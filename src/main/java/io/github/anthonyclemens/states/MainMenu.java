@@ -105,6 +105,7 @@ public class MainMenu extends BasicGameState{
         switch (menuOptions[selectedIndex]) {
             case "Start Game":
                 // Start Game
+                menuMusic.stop();
                 game.enterState(0); // Change to game state
                 break;
             case "Multiplayer":

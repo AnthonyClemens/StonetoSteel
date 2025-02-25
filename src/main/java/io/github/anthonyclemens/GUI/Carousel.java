@@ -50,10 +50,10 @@ public class Carousel {
     }
 
     public String update(Input input){
-        if(this.left.update(input)){
+        if(this.right.update(input)){
             return this.nextVal();
         }
-        if(this.right.update(input)){
+        if(this.left.update(input)){
             return this.prevVal();
         }
         return this.data.get(this.index);
