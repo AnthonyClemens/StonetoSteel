@@ -9,8 +9,10 @@ import org.newdawn.slick.geom.Rectangle;
 public class Button {
     private Color color;
     private Image img;
-    private float bx,by;
-    private float width,height;
+    private float bx;
+    private float by;
+    private float width;
+    private float height;
     private Rectangle rect;
     private String text;
     private boolean debug;

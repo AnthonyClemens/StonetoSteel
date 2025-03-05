@@ -45,7 +45,7 @@ public class Carousel {
 
     public void render(Graphics g){
         this.left.render(g);
-        this.ttf.drawString(this.x+this.left.getWidth(), this.y, this.data.get(this.index));
+        this.ttf.drawString(this.x+this.left.getWidth()+(this.maxWidth-this.ttf.getWidth(this.data.get(index)))/2, this.y, this.data.get(this.index));
         this.right.render(g);
     }
 

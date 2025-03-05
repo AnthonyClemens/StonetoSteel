@@ -35,18 +35,21 @@ public class SettingsMenu extends BasicGameState{
     private int selectedIndex = 0;
     private Settings settings;
     private Input input;
-    List<String> validResolutions;
-    Button testButton;
-    Carousel testCarousel;
-    TextButton testTextButton;
-    ToggleButton testToggleButton;
+    private List<String> validResolutions;
+    private Button testButton;
+    private Carousel testCarousel;
+    private TextButton testTextButton;
+    private ToggleButton testToggleButton;
+    private TextButton textButtons[];
 
-    private static final String TITLE_STRING = "Isometric Game";
-    private static final int SPACING = 64;
-    private static final int PADDING = 12;
+
+    //Constants
+    private static final String TITLE_STRING = "Game Settings";
+    private static final float SPACING = 64;
+    private static final float PADDING = 12;
     private final TrueTypeFont titleF = new TrueTypeFont(new Font("Courier", Font.BOLD, 32), true);
-    private final TrueTypeFont menuOptionsF = new TrueTypeFont(new Font("Courier", Font.PLAIN, 24),true);
-    private final String[] menuOptions = {"Start Game", "Multiplayer", "Options", "Quit"};
+    private final TrueTypeFont menuOptionsF = new TrueTypeFont(new Font("Courier", Font.PLAIN, 32),true);
+    private final String[] menuOptions = {"Video", "Audio", "Controls", "Apply"};
 
     @Override
     public int getID() {
@@ -71,26 +74,37 @@ public class SettingsMenu extends BasicGameState{
             System.err.println("Cannot get display modes");
         }
 
+        //Create the Options Tabs
+        textButtons = new TextButton[menuOptions.length];
+        for(int i=0; i<menuOptions.length; i++){
+            if(menuOptions[i]!="Apply"){
+                textButtons[i] = new TextButton(menuOptions[i], Color.black, menuOptionsF, Color.darkGray, 20, i*SPACING+200+menuOptionsF.getHeight(), menuOptionsF.getHeight());
+            }else{
+                textButtons[i] = new TextButton(menuOptions[i], Color.black, menuOptionsF, Color.green, 20, i*SPACING+200+menuOptionsF.getHeight(), menuOptionsF.getHeight());
+            }
+        }
+
         //Create the GUI
-        testButton = new Button(new Image("textures/GUI/ArrowsLeft2.png"), container.getWidth()/2, container.getHeight()/2, 44, 84);
         testCarousel = new Carousel(validResolutions, new Image("textures/GUI/ArrowsLeft2.png"), new Image("textures/GUI/ArrowsRight2.png"), menuOptionsF, 200, 200, Color.black);
         testCarousel.move(container.getWidth()/2-(testCarousel.getRect().getWidth()/2), 200);
-        testTextButton = new TextButton("Test Text Button", Color.black, menuOptionsF, Color.blue, container.getWidth()/2, 300, 200);
     }
 
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
         g.setBackground(Color.gray);
-        g.setColor(Color.black);
-        titleF.drawString(container.getWidth()/2-titleF.getWidth(TITLE_STRING)/2, 100, TITLE_STRING, g.getColor());
-        testButton.render(g);
+        titleF.drawString(container.getWidth()/2-titleF.getWidth(TITLE_STRING)/2, 100, TITLE_STRING, Color.black);
+        for(TextButton tb : textButtons){
+            tb.render(g);
+        }
         testCarousel.render(g);
-        testTextButton.render(g);
     }
 
     @Override
     public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
         settings.setResolution(testCarousel.update(input));
+        for(TextButton tb : textButtons){
+            tb.update(input);
+        }
         if (input.isKeyPressed(Input.KEY_ENTER)){
             applySettings(container);
         }

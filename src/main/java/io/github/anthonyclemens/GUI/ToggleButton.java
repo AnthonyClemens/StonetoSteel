@@ -22,7 +22,7 @@ public class ToggleButton extends Button{
 
     @Override
     public boolean update(Input input){
-        value = (super.update(input)) ? super.update(input) : value;
+        this.value = (super.update(input)) ? !this.value : this.value;
         return value;
     }
 }

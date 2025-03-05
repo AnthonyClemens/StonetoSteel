@@ -26,7 +26,7 @@ public class TextButton extends Button{
     @Override
     public void render(Graphics g){
         super.render(g);
-        this.ttf.drawString(super.getRect().getX(), super.getRect().getY()+super.getHeight()/2, this.buttonString, this.textColor);
+        this.ttf.drawString(super.getRect().getX(), super.getRect().getY(), this.buttonString, this.textColor);
     }
 
     //Getters
