@@ -19,6 +19,6 @@ public class Player {
     }
 
     public void render(Renderer r){
-        r.drawImageAtCoord(this.currImage,this.pX,this.pY);
+        //r.drawImageAtCoord(this.currImage,this.pX,this.pY);
     }
 }

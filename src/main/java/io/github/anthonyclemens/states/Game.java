@@ -1,5 +1,8 @@
 package io.github.anthonyclemens.states;
 
+import java.util.Random;
+
+import org.lwjgl.Sys;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
@@ -9,10 +12,9 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.InputAdapter;
 
-import io.github.anthonyclemens.Player.Player;
 import io.github.anthonyclemens.Rendering.Renderer;
+import io.github.anthonyclemens.SharedData;
 import io.github.anthonyclemens.WorldGen.ChunkManager;
-import io.github.anthonyclemens.WorldGen.MultiTileObject;
 
 public class Game extends BasicGameState{
 
@@ -22,53 +24,115 @@ public class Game extends BasicGameState{
     private float cameraX = 0;
     private float cameraY = 0;
     private Renderer renderer;
-    private ChunkManager chunkManager;
-    private Player player;
-    private int test = 0;
+    private boolean dragging = false;
+    private float lastMouseX;
+    private float lastMouseY;
+    private SpriteSheet tileSheet;
+    private Input input;
 
     @Override
     public int getID() {
-        return 2;
+        return 3;
+    }
+
+    @Override
+    public void enter(GameContainer container, StateBasedGame game) {
+        //Initialize the ChunkManager with seed entered or randomly generate one
+        ChunkManager chunkManager;
+        if(SharedData.seed!=0){
+            chunkManager = new ChunkManager(SharedData.seed);
+        }else{
+            Random r = new Random(Sys.getTime());
+            chunkManager = new ChunkManager(r.nextInt());
+        }
+        renderer = new Renderer(zoom, tileSheet, chunkManager);
     }
 
     @Override
     public void init(GameContainer container, StateBasedGame game) throws SlickException {
-        SpriteSheet tileSheet = new SpriteSheet("textures/World/tinyBlocks_NOiL.png", TILE_WIDTH, TILE_HEIGHT);
-        SpriteSheet playerSS = new SpriteSheet("textures/Player/test.png", 16, 16);
-        player = new Player(playerSS, 0, 0);
-        chunkManager = new ChunkManager();
-        renderer = new Renderer(zoom, tileSheet, chunkManager);
-        MultiTileObject tree = new MultiTileObject(8, 8, 0, 0, new int[][]{
-            {-1,40,-1},
-            {40,40,40},
-            {30,-1,-1}
-        });
-        chunkManager.getChunk(0, 0).addMultiTileObject(tree);
+        tileSheet = new SpriteSheet("textures/World/tinyBlocks_NOiL.png", TILE_WIDTH, TILE_HEIGHT);
         container.getInput().addMouseListener(new InputAdapter() {
+            //Drag
+            @Override
+            public void mousePressed(int button, int x, int y) {
+                if (button == Input.MOUSE_RIGHT_BUTTON) {
+                    dragging = true;
+                    lastMouseX = x;
+                    lastMouseY = y;
+                }
+            }
+
+            @Override
+            public void mouseReleased(int button, int x, int y) {
+                if (button == Input.MOUSE_RIGHT_BUTTON) {
+                    dragging = false;
+                }
+            }
+            //Zoom
             @Override
             public void mouseWheelMoved(int change) {
                 zoom += change * 0.001f;
-                zoom = Math.min(Math.max(0.2f, zoom),6f);
+                zoom = Math.min(Math.max(0.2f, zoom), 6f);
             }
         });
+        input = container.getInput();
     }
 
     @Override
     public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
-        Input input = container.getInput();
-        if (input.isKeyDown(Input.KEY_LEFT)) cameraX -= delta * 0.1f * zoom;
-        if (input.isKeyDown(Input.KEY_RIGHT)) cameraX += delta * 0.1f * zoom;
-        if (input.isKeyDown(Input.KEY_UP)) cameraY -= delta * 0.1f * zoom;
-        if (input.isKeyDown(Input.KEY_DOWN)) cameraY += delta * 0.1f * zoom;
-        if (input.isKeyPressed(Input.KEY_ADD)) test++;
+        updateKeyboard(game, delta);
+        updateMouse();
         renderer.update(container, zoom, cameraX, cameraY);
     }
+
 
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
         renderer.render(g);
-        chunkManager.getChunk(0, 0).render(renderer);
-        renderer.drawTile(test, new int[]{0,0}, new int[]{0,0});
-        player.render(renderer);
+        debugGUI(g);
+    }
+
+
+    private void updateKeyboard(StateBasedGame game, int delta){
+        if (input.isKeyDown(Input.KEY_LEFT)) cameraX -= delta * 0.1f * zoom;
+        if (input.isKeyDown(Input.KEY_RIGHT)) cameraX += delta * 0.1f * zoom;
+        if (input.isKeyDown(Input.KEY_UP)) cameraY -= delta * 0.1f * zoom;
+        if (input.isKeyDown(Input.KEY_DOWN)) cameraY += delta * 0.1f * zoom;
+        if (input.isKeyDown(Input.KEY_ESCAPE)) game.enterState(0);
+        if (input.isKeyDown(Input.KEY_SPACE)){
+            cameraX = 0;
+            cameraY = 0;
+        }
+    }
+
+
+    private void updateMouse(){
+        // Handle mouse dragging
+        if (dragging) {
+            float currentMouseX = input.getMouseX();
+            float currentMouseY = input.getMouseY();
+
+            // Calculate the delta movement
+            float deltaX = (currentMouseX - lastMouseX) / zoom;
+            float deltaY = (currentMouseY - lastMouseY) / zoom;
+
+            // Update the camera position
+            cameraX -= deltaX;
+            cameraY -= deltaY;
+
+            // Update the last mouse position
+            lastMouseX = currentMouseX;
+            lastMouseY = currentMouseY;
+        }
+    }
+
+
+    private void debugGUI(Graphics g){
+        //Debug GUI
+        int[] selectedBlock = renderer.screenToIsometric(lastMouseX, lastMouseY);
+        g.drawString("Mouse: "+lastMouseX+", "+lastMouseY,0,40);
+        g.drawString("Tile: "+selectedBlock[0]+", "+selectedBlock[1],0,60);
+        g.drawString("Chunk: "+selectedBlock[2]+", "+selectedBlock[3],0,80);
+        g.drawString("Zoom level: "+Math.round(zoom*100.0)/100.0+"x", 0, 100);
     }
 }

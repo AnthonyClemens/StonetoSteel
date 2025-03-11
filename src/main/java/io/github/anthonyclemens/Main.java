@@ -7,6 +7,7 @@ import org.newdawn.slick.state.StateBasedGame;
 
 import io.github.anthonyclemens.states.Game;
 import io.github.anthonyclemens.states.MainMenu;
+import io.github.anthonyclemens.states.NewGame;
 import io.github.anthonyclemens.states.SettingsMenu;
 
 
@@ -50,6 +51,7 @@ public class Main extends StateBasedGame{
     @Override
     public void initStatesList(GameContainer container) throws SlickException {
         addState(new MainMenu());
+        addState(new NewGame());
         addState(new SettingsMenu());
         addState(new Game());
     }

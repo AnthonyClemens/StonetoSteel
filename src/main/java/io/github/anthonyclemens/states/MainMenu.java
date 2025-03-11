@@ -22,13 +22,11 @@ public class MainMenu extends BasicGameState{
     private Settings settings;
     private Input input;
     private Music menuMusic;
-    private float musicVolume;
-    private boolean fadingIn = true;
 
     //Constants
     private static final String TITLE_STRING = "Isometric Game";
-    private static final float SPACING = 64;
-    private static final float PADDING = 12;
+    private static final int SPACING = 64;
+    private static final int PADDING = 12;
     private final TrueTypeFont titleF = new TrueTypeFont(new Font("Courier", Font.BOLD, 32), true);
     private final TrueTypeFont menuOptionsF = new TrueTypeFont(new Font("Courier", Font.PLAIN, 24),true);
     private final String[] menuOptions = {"Start Game", "Multiplayer", "Options", "Quit"};

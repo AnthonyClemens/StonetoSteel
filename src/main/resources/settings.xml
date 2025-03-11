@@ -2,7 +2,7 @@
 <settings>
 	<video>
 		<maxfps>120</maxfps>
-		<vsync>true</vsync>
+		<vsync>false</vsync>
 		<fullscreen>false</fullscreen>
 		<resolution>1920x1080</resolution>
 		<showstats>true</showstats>

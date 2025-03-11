@@ -1,11 +1,12 @@
-package io.github.anthonyclemens.GUI;
+package io.github.anthonyclemens.GUI.Buttons;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 
 public class ToggleButton extends Button{
-    private Color enabled, disabled;
+    private final Color enabled;
+    private final Color disabled;
     private boolean value;
 
     public ToggleButton(Color enabled, Color disabled, float x, float y, float width, float height){
@@ -21,8 +22,7 @@ public class ToggleButton extends Button{
     }
 
     @Override
-    public boolean update(Input input){
-        this.value = (super.update(input)) ? !this.value : this.value;
-        return value;
+    public void update(Input input){
+        this.value = !this.value;
     }
 }
