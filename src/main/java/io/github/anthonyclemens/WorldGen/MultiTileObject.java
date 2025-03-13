@@ -5,16 +5,16 @@ import io.github.anthonyclemens.Rendering.Renderer;
 public class MultiTileObject extends GameObject {
     protected int[][][] layout;
 
-    public MultiTileObject(int x, int y, int cx, int cy, int[][][] layout) {
-        super(x, y, cx, cy);
-        this.layout = layout;
+    public MultiTileObject(Builder builder) {
+        super(builder.x, builder.y, builder.cx, builder.cy);
+        this.layout = builder.layout;
     }
 
     @Override
     public void render(Renderer r){
         for (int z = 0; z < layout.length; z++) { // Iterate over the depth (z-axis)
             for (int x = 0; x < layout[z].length; x++) {
-                for (int y = 0; y < layout[z][x].length; y++) {
+                for (var y = 0; y < layout[z][x].length; y++) {
                     if (layout[z][x][y] != -1) {
                         //r.drawTile(
                         //    layout[z][x][y],
@@ -24,6 +24,52 @@ public class MultiTileObject extends GameObject {
                     }
                 }
             }
+        }
+    }
+
+    @Override
+    public void renderBatch(Renderer r) {
+        for (int z = 0; z < layout.length; z++) { // Iterate over the depth (z-axis)
+            for (int x = 0; x < layout[z].length; x++) {
+                for (var y = 0; y < layout[z][x].length; y++) {
+                    if (layout[z][x][y] != -1) {
+                        r.drawTileBatch(layout[z][x][y], this.x, this.y, this.chunkX, this.chunkY);
+                    }
+                }
+            }
+        }
+    }
+
+
+    // Builder class
+    public static class Builder {
+        private int x;
+        private int y;
+        private int cx;
+        private int cy;
+        private int[][][] layout;
+
+        public Builder setXYPos(int x, int y){
+            this.x=x;
+            this.y=y;
+            return this;
+        }
+
+        public Builder setChunkPos(ChunkManager cm, int cx, int cy){
+            this.cx=cx;
+            this.cy=cy;
+            int chunkSize = cm.getChunk(cx, cy).getChunkSize();
+            this.layout = new int[chunkSize][chunkSize][chunkSize];
+            return this;
+        }
+
+        public Builder setTile(int tile, int x, int y, int z){
+            this.layout[z][x][y] = tile;
+            return this;
+        }
+
+        public MultiTileObject build() {
+            return new MultiTileObject(this);
         }
     }
 }

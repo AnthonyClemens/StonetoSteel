@@ -15,4 +15,9 @@ public class SingleTileObject extends GameObject{
         r.drawTile(i,x,y,chunkX,chunkY);
     }
 
+    @Override
+    public void renderBatch(Renderer r) {
+        r.drawTileBatch(i,x,y,chunkX,chunkY);
+    }
+
 }

@@ -174,13 +174,13 @@ public class Chunk {
         gameObjects.remove(idx);
     }
 
-    public void addMultiTileObject(MultiTileObject obj) {
-        gameObjects.add(obj);
+    public List<GameObject> getGameObjects() {
+        return gameObjects;
     }
 
     public void render(Renderer r) {
         for (GameObject obj : gameObjects) {
-            obj.render(r);
+            obj.renderBatch(r);
         }
     }
 

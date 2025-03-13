@@ -15,6 +15,7 @@ public class TextField extends GUIElement{
     private final TrueTypeFont ttf;
     private final int padding;
     private final int maxChars;
+    private String bgText;
 
     public TextField(float x, float y, int maxChars, Color active, Color notActive, TrueTypeFont ttf, int padding) {
         super(x, y, ttf.getWidth("Z")*maxChars + (float)padding, ttf.getHeight() + (float)padding);
@@ -24,6 +25,10 @@ public class TextField extends GUIElement{
         this.ttf = ttf;
         this.padding = padding;
         this.maxChars = maxChars;
+    }
+
+    public void setBgText(String str){
+        this.bgText=str;
     }
 
     @Override
@@ -36,6 +41,9 @@ public class TextField extends GUIElement{
         g.fill(this.getRect());
         g.setColor(Color.black);
         g.draw(this.getRect());
+        if("".equals(text)){
+            ttf.drawString(x+padding/2f, y+padding/2f, bgText, Color.gray);
+        }
         ttf.drawString(x+padding/2f, y+padding/2f, text, Color.black);
     }
 
@@ -47,13 +55,15 @@ public class TextField extends GUIElement{
         }
     }
 
-    public String handleInput(Input input, String currentText, int maxCharacters) {
-        StringBuilder inputString = new StringBuilder();
+    public String handleInput(Input input, String currentString, int maxCharacters) {
+        StringBuilder inputString = new StringBuilder(currentString);
         // Check for backspace to remove the last character
-        if (input.isKeyPressed(Input.KEY_BACK) && !currentText.isEmpty()) {
-                currentText = currentText.substring(0, currentText.length() - 1);
+        if (input.isKeyPressed(Input.KEY_BACK) && !inputString.isEmpty()) {
+                String afterBack = inputString.substring(0, inputString.length() - 1);
+                inputString.delete(0, inputString.length());
+                inputString.append(afterBack);
             }
-        
+
         // Loop through possible character key codes
         for (int key = Input.KEY_A; key <= Input.KEY_Z; key++) {
             if (input.isKeyPressed(key)) {
@@ -61,8 +71,8 @@ public class TextField extends GUIElement{
                 if (input.isKeyDown(Input.KEY_LSHIFT) || input.isKeyDown(Input.KEY_RSHIFT)) {
                     c = Character.toUpperCase(c); // Handle uppercase letters
                 }
-                if (currentText.length() < maxCharacters) {
-                    currentText += c;
+                if (inputString.length() < maxCharacters) {
+                    inputString.append(c);
                 }
             }
         }
@@ -70,17 +80,16 @@ public class TextField extends GUIElement{
         for (int key = Input.KEY_0; key <= Input.KEY_9; key++) {
             if (input.isKeyPressed(key)) {
                 char c = (char) ('0' + (key - Input.KEY_0)); // Convert to character
-                if (currentText.length() < maxCharacters) {
-                    currentText += c;
+                if (inputString.length() < maxCharacters) {
+                    inputString.append(c);
                 }
             }
         }
         // Handle spaces
-        if (input.isKeyPressed(Input.KEY_SPACE) && currentText.length() < maxCharacters) {
-                currentText += " ";
+        if (input.isKeyPressed(Input.KEY_SPACE) && inputString.length() < maxCharacters) {
+                inputString.append(" ");
             }
-        
-        return currentText;
+        return inputString.toString();
     }
 
     public String getText(){

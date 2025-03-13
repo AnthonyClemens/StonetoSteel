@@ -4,6 +4,7 @@ import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.states.Game;
 import io.github.anthonyclemens.states.MainMenu;
@@ -17,9 +18,6 @@ public class Main extends StateBasedGame{
             super("IsoGame");
         }
         public static void main(String[] args){
-        if(args.length>0){
-            //
-        }
         try {
             Settings settings = Settings.getInstance();
             Utils.loadSettings(settings);
@@ -34,7 +32,7 @@ public class Main extends StateBasedGame{
             //app.setIcon("");
             app.start();
         } catch (SlickException e){
-            System.err.println("Failed to create Slick2D Container");
+            Log.error("Failed to create Slick2D Container");
         }
     }
 

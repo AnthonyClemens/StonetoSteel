@@ -24,4 +24,6 @@ public abstract class GameObject {
     }
 
     public abstract void render(Renderer r);
+
+    public abstract void renderBatch(Renderer r);
 }

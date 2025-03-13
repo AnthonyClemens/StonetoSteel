@@ -1,11 +1,14 @@
 package io.github.anthonyclemens.WorldGen;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import org.newdawn.slick.util.Log;
 
 public class ChunkManager {
     private static final int CHUNK_SIZE = 16;
@@ -17,7 +20,7 @@ public class ChunkManager {
         this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.seed = seed;
 
-        System.out.println("ChunkManager initialized for infinite world generation with seed: "+seed);
+        Log.info(" ChunkManager initialized for infinite world generation with seed: "+seed);
     }
 
     public Biome getBiomeForChunk(int chunkX, int chunkY) {
@@ -71,5 +74,17 @@ public class ChunkManager {
         int tileY = (absY % CHUNK_SIZE + CHUNK_SIZE) % CHUNK_SIZE;
 
         return new int[]{tileX, tileY, chunkX, chunkY};
+    }
+
+    public void addGameObject(GameObject obj) {
+        this.getChunk(obj.chunkX, obj.chunkY).addGameObject(obj);
+    }
+
+    public void addGameObjects(List<GameObject> gobs, int chunkX, int chunkY) {
+        this.getChunk(chunkX, chunkY).addGameObjects(gobs);
+    }
+
+    public void removeGameObject(int idx, int chunkX, int chunkY){
+        this.getChunk(chunkX, chunkY).removeGameObject(idx);
     }
 }

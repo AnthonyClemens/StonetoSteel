@@ -3,6 +3,7 @@ package io.github.anthonyclemens.states;
 import java.util.Random;
 
 import org.lwjgl.Sys;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
@@ -12,9 +13,12 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.InputAdapter;
 
+import io.github.anthonyclemens.Logic.Calender;
+import io.github.anthonyclemens.Rendering.Environment;
 import io.github.anthonyclemens.Rendering.Renderer;
 import io.github.anthonyclemens.SharedData;
 import io.github.anthonyclemens.WorldGen.ChunkManager;
+import io.github.anthonyclemens.WorldGen.MultiTileObject;
 
 public class Game extends BasicGameState{
 
@@ -29,6 +33,8 @@ public class Game extends BasicGameState{
     private float lastMouseY;
     private SpriteSheet tileSheet;
     private Input input;
+    private Environment env;
+    private Calender calender;
 
     @Override
     public int getID() {
@@ -46,6 +52,14 @@ public class Game extends BasicGameState{
             chunkManager = new ChunkManager(r.nextInt());
         }
         renderer = new Renderer(zoom, tileSheet, chunkManager);
+        MultiTileObject mto = new MultiTileObject.Builder()
+            .setXYPos(8,8)
+            .setChunkPos(chunkManager, 0, 0)
+            .setTile(30, 8, 8, 0)
+            .setTile(30, 8, 9, 1)
+            .setTile(30, 8, 10, 2)
+            .build();
+        chunkManager.addGameObject(mto);
     }
 
     @Override
@@ -76,10 +90,13 @@ public class Game extends BasicGameState{
             }
         });
         input = container.getInput();
+        calender = new Calender(1, 1, 1847);
+        env = new Environment(.5f, 7f, 19f, calender);
     }
 
     @Override
     public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
+        env.updateDayNightCycle(delta);
         updateKeyboard(game, delta);
         updateMouse();
         renderer.update(container, zoom, cameraX, cameraY);
@@ -89,6 +106,8 @@ public class Game extends BasicGameState{
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
         renderer.render(g);
+        env.renderOverlay(container, g); // Apply the overlay
+        displayHUD(container, g);
         debugGUI(g);
     }
 
@@ -129,10 +148,17 @@ public class Game extends BasicGameState{
 
     private void debugGUI(Graphics g){
         //Debug GUI
+        g.setColor(Color.black);
         int[] selectedBlock = renderer.screenToIsometric(lastMouseX, lastMouseY);
-        g.drawString("Mouse: "+lastMouseX+", "+lastMouseY,0,40);
-        g.drawString("Tile: "+selectedBlock[0]+", "+selectedBlock[1],0,60);
-        g.drawString("Chunk: "+selectedBlock[2]+", "+selectedBlock[3],0,80);
-        g.drawString("Zoom level: "+Math.round(zoom*100.0)/100.0+"x", 0, 100);
+        g.drawString("Mouse: "+lastMouseX+", "+lastMouseY,10,40);
+        g.drawString("Tile: "+selectedBlock[0]+", "+selectedBlock[1],10,60);
+        g.drawString("Chunk: "+selectedBlock[2]+", "+selectedBlock[3],10,80);
+        g.drawString("Zoom level: "+Math.round(zoom*100.0)/100.0+"x", 10, 100);
+    }
+
+    private void displayHUD(GameContainer c, Graphics g) {
+        g.setColor(Color.black);
+        g.drawString("Date: "+calender.toString(),c.getWidth()-200f,0);
+        g.drawString("Time: "+env.toString(),c.getWidth()-200f,16);
     }
 }

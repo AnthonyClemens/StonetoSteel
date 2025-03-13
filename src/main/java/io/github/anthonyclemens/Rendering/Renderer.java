@@ -59,7 +59,7 @@ public class Renderer {
     private void renderChunkWithBlockSize(int chunkX, int chunkY, int blockSize) {
         Chunk chunk = this.chunkManager.getChunk(chunkX, chunkY);
         int lodSize = chunk.getChunkSize() / blockSize;
-
+        this.tileSheet.startUse();
         for (int blockY = 0; blockY < lodSize; blockY++) {
             for (int blockX = 0; blockX < lodSize; blockX++) {
                 // Calculate isometric position for the block
@@ -76,6 +76,7 @@ public class Renderer {
             }
         }
         chunk.render(this);
+        this.tileSheet.endUse();
     }
 
     public int[] screenToIsometric(float screenX, float screenY) {
@@ -131,7 +132,11 @@ public class Renderer {
     }
 
     private void drawScaledIsoImage(Image tile, float isoX, float isoY, float width, float height) {
-        tile.draw(isoX, isoY, width, height);
+        tile.drawEmbedded(isoX, isoY, width, height);
+    }
+
+    public void drawTileBatch(int i, int xPos, int yPos, int chunkX, int chunkY){
+        this.getTile(i).drawEmbedded(calculateIsoX(xPos, yPos, chunkX, chunkY), calculateIsoY(xPos, yPos, chunkX, chunkY), getTileSize()*zoom, getTileSize()*zoom);
     }
 
     public void drawScaledTile(int tileType, int xPos, int yPos, int chunkX, int chunkY, float width, float height){
@@ -155,6 +160,10 @@ public class Renderer {
 
     public static int getTileSize(){
         return TILE_SIZE;
+    }
+
+    public SpriteSheet getTileSheet(){
+        return this.tileSheet;
     }
 
     //Setters

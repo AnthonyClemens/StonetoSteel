@@ -1,6 +1,8 @@
 package io.github.anthonyclemens.states;
 
 import java.awt.Font;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -13,6 +15,8 @@ import org.newdawn.slick.state.StateBasedGame;
 
 import io.github.anthonyclemens.GUI.Buttons.ColorTextButton;
 import io.github.anthonyclemens.GUI.Fields.NumberField;
+import io.github.anthonyclemens.GUI.Fields.TextField;
+import io.github.anthonyclemens.GUI.GUIElement;
 import io.github.anthonyclemens.Math.TwoDimensionMath;
 import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.SharedData;
@@ -24,7 +28,9 @@ public class NewGame extends BasicGameState{
     private ColorTextButton[] sectionButtons;
     private static final String TITLE_STRING = "New Game";
     private NumberField seedField;
+    private TextField nameField;
     private float titleX;
+    private List<GUIElement> guiElements = new ArrayList<>();
 
 
     //Constants
@@ -71,10 +77,15 @@ public class NewGame extends BasicGameState{
         for(int i=0; i<menuOptions.length; i++){
             sectionButtons[i].centerX(container,container.getHeight()-SPACING*(i+1));
         }
+        nameField = new TextField(0, 0, 20, Color.white, Color.lightGray, menuOptionsF, PADDING);
+        nameField.setBgText("Enter World Name");
+        nameField.centerX(container, 164);
 
         seedField = new NumberField(0, 0, 20, Color.white, Color.lightGray, menuOptionsF, PADDING);
         seedField.setBgText("Enter a Seed");
-        seedField.centerX(container, 200);
+        seedField.centerX(container, 228);
+        guiElements.add(seedField);
+        guiElements.add(nameField);
         titleX=TwoDimensionMath.getMiddleX(titleF.getWidth(TITLE_STRING), container.getWidth());
     }
 
@@ -85,13 +96,17 @@ public class NewGame extends BasicGameState{
         for(ColorTextButton sectionButton : sectionButtons){
             sectionButton.render(g);
         }
-        seedField.render(g);
+        for(GUIElement gui : guiElements){
+            gui.render(g);
+        }
     }
 
 
     @Override
     public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
-        seedField.update(input);
+        for(GUIElement gui : guiElements){
+            gui.update(input);
+        }
         for(ColorTextButton button : sectionButtons){
             button.update(input);
             if (button.isClicked()) {

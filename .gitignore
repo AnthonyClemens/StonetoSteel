@@ -1,8 +1,4 @@
 /.vscode
 /target
 /target/*
-Generation*
-Neuron*
-BestOne*
-!/visualizer/Generation*
 *.py

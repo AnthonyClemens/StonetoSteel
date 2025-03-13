@@ -4,7 +4,7 @@
 		<maxfps>120</maxfps>
 		<vsync>false</vsync>
 		<fullscreen>false</fullscreen>
-		<resolution>1920x1080</resolution>
+		<resolution>800x600</resolution>
 		<showstats>true</showstats>
 	</video>
 	<sound>
