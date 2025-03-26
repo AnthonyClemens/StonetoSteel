@@ -1,5 +1,9 @@
 package io.github.anthonyclemens;
 
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -12,19 +16,39 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.newdawn.slick.TrueTypeFont;
+import org.newdawn.slick.util.Log;
+import org.newdawn.slick.util.ResourceLoader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 public class Utils {
 
-    public static void loadSettings(Settings settings){
+    public static TrueTypeFont getFont(String location, float fontSize) {
         try {
-            ClassLoader classLoader = Main.class.getClassLoader();
-            InputStream inputStream = classLoader.getResourceAsStream("settings.xml");
-            if (inputStream == null) {
-                System.err.println("XML file not found in resources.");
-                return;
+            InputStream inputStream = ResourceLoader.getResourceAsStream(location);
+
+            // Create AWT Font
+            Font awtFont = Font.createFont(Font.TRUETYPE_FONT, inputStream);
+            awtFont = awtFont.deriveFont(fontSize); // Set font size
+            return new TrueTypeFont(awtFont, true);
+        } catch (FontFormatException | IOException e) {
+            Log.error(e);
+        }
+        return null;
+    }
+
+    public static Settings loadSettings(Settings settings){
+        try {
+            // Specify the file path relative to the current directory
+            File file = new File(System.getProperty("user.dir"),"settings.xml");
+            InputStream inputStream = null;
+            if (!file.exists()) {
+                ClassLoader classLoader = Main.class.getClassLoader();
+                inputStream = classLoader.getResourceAsStream("settings.xml");
+            }else{
+                inputStream = new FileInputStream(file);
             }
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -64,6 +88,7 @@ public class Utils {
         } catch (IOException e){
             System.err.println("Failed to open file");
         }
+        return settings;
     }
 
     public static void saveSettings(Settings settings) {
@@ -151,7 +176,7 @@ public class Utils {
             StreamResult result = new StreamResult("settings.xml");
             transformer.transform(source, result);
 
-            System.out.println("Settings saved successfully.");
+            Log.info("Settings saved successfully.");
         } catch (ParserConfigurationException e) {
             System.err.println("Failed to create XML document");
         } catch (TransformerException e) {

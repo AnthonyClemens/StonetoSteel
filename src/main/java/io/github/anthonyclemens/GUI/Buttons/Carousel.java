@@ -8,6 +8,7 @@ import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.TrueTypeFont;
 import org.newdawn.slick.geom.Rectangle;
+import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.GUI.GUIElement;
 import io.github.anthonyclemens.GUI.OnClickListener;
@@ -30,6 +31,7 @@ public class Carousel extends GUIElement {
         this.ttf = builder.ttf;
         this.color = builder.color;
         this.textColor = Color.black;
+        this.index = builder.index;
 
         // Determine the longest string for maxWidth
         String longString = "";
@@ -41,8 +43,8 @@ public class Carousel extends GUIElement {
         this.maxWidth = builder.ttf.getWidth(longString);
 
         // Initialize left and right buttons
-        this.leftButton = new ImageButton(builder.x, builder.y, builder.leftImage.getWidth(), builder.ttf.getHeight(), builder.leftImage);
-        this.rightButton = new ImageButton(builder.x + this.maxWidth + this.leftButton.getWidth(), builder.y, builder.rightImage.getWidth(), builder.ttf.getHeight(), builder.rightImage);
+        this.leftButton = new ImageButton(builder.x, builder.y, (builder.ttf.getHeight() / (float)builder.leftImage.getHeight()) * builder.leftImage.getWidth(), builder.ttf.getHeight(), builder.leftImage);
+        this.rightButton = new ImageButton(builder.x + this.maxWidth + this.leftButton.getWidth(), builder.y, (builder.ttf.getHeight() / (float)builder.rightImage.getHeight()) * builder.rightImage.getWidth(), builder.ttf.getHeight(), builder.rightImage);
         this.leftButton.setColor(builder.color);
         this.rightButton.setColor(builder.color);
 
@@ -58,8 +60,8 @@ public class Carousel extends GUIElement {
         g.setColor(this.color);
         this.leftButton.render(g);
         this.ttf.drawString(
-            this.x + this.leftButton.getWidth() + (this.maxWidth - this.ttf.getWidth(this.data.get(index))) / 2,
-            this.y,
+            getX() + this.leftButton.getWidth() + (this.maxWidth - this.ttf.getWidth(this.data.get(index))) / 2,
+            getY(),
             this.data.get(this.index),
             this.textColor
         );
@@ -89,8 +91,8 @@ public class Carousel extends GUIElement {
     //Setters
     @Override
     public void move(float x, float y) {
-        this.x = x;
-        this.y = y;
+        this.setX(x);
+        this.setY(y);
         this.leftButton.move(x, y);
         this.rightButton.move(x + this.leftButton.getWidth() + this.maxWidth, y);
     }
@@ -105,6 +107,20 @@ public class Carousel extends GUIElement {
 
     public void setButtonsColor(Color nc){
         this.color=nc;
+    }
+
+    public void setValue(String val){
+        int idx = -1;
+        for (int i = 0; i < this.data.size(); i++) {
+            if(this.data.get(i).equals(val)){
+                idx=i;
+            }
+        }
+        if(idx>-1){
+            this.index = idx;
+        }else{
+            Log.error("Trying to set Carousel to invalid value.");
+        }
     }
 
     //Getters
@@ -147,6 +163,7 @@ public class Carousel extends GUIElement {
         private float y;
         private Color color;
         private OnClickListener onClickListener;
+        private int index;
 
         public Builder data(List<String> data) {
             this.data = data;
@@ -181,6 +198,16 @@ public class Carousel extends GUIElement {
 
         public Builder onClick(OnClickListener listener) {
             this.onClickListener = listener;
+            return this;
+        }
+
+        public Builder defaultValue(String val){
+            this.index = 0;
+            for (int i = 0; i < this.data.size(); i++) {
+                if(this.data.get(i).equals(val)){
+                    this.index=i;
+                }
+            }
             return this;
         }
 

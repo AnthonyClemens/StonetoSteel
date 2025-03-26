@@ -4,12 +4,12 @@
 		<maxfps>120</maxfps>
 		<vsync>false</vsync>
 		<fullscreen>false</fullscreen>
-		<resolution>800x600</resolution>
+		<resolution>1024x768</resolution>
 		<showstats>true</showstats>
 	</video>
 	<sound>
 		<main>1.0</main>
-		<music>1.0</music>
+		<music>0.2</music>
 		<ambient>1.0</ambient>
 		<player>1.0</player>
 		<enemy>1.0</enemy>

@@ -1,6 +1,6 @@
 package io.github.anthonyclemens.WorldGen;
 
-import io.github.anthonyclemens.Rendering.Renderer;
+import io.github.anthonyclemens.Rendering.IsoRenderer;
 
 public abstract class GameObject {
     protected int x;
@@ -23,7 +23,7 @@ public abstract class GameObject {
         return y;
     }
 
-    public abstract void render(Renderer r);
+    public abstract void render(IsoRenderer r);
 
-    public abstract void renderBatch(Renderer r);
+    public abstract void renderBatch(IsoRenderer r);
 }

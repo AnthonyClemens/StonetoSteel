@@ -1,6 +1,6 @@
 package io.github.anthonyclemens.WorldGen;
 
-import io.github.anthonyclemens.Rendering.Renderer;
+import io.github.anthonyclemens.Rendering.IsoRenderer;
 
 public class MultiTileObject extends GameObject {
     protected int[][][] layout;
@@ -11,16 +11,12 @@ public class MultiTileObject extends GameObject {
     }
 
     @Override
-    public void render(Renderer r){
-        for (int z = 0; z < layout.length; z++) { // Iterate over the depth (z-axis)
+    public void render(IsoRenderer r) {
+        for (int z = layout.length-1; z > 0; z--) { // Iterate over the depth (z-axis)
             for (int x = 0; x < layout[z].length; x++) {
                 for (var y = 0; y < layout[z][x].length; y++) {
                     if (layout[z][x][y] != -1) {
-                        //r.drawTile(
-                        //    layout[z][x][y],
-                        //    new int[]{this.x + x, this.y + y, z},
-                        //    new int[]{this.chunkX, this.chunkY}
-                        //);
+                        r.drawTile(layout[z][x][y], this.x, this.y, this.chunkX, this.chunkY);
                     }
                 }
             }
@@ -28,8 +24,8 @@ public class MultiTileObject extends GameObject {
     }
 
     @Override
-    public void renderBatch(Renderer r) {
-        for (int z = 0; z < layout.length; z++) { // Iterate over the depth (z-axis)
+    public void renderBatch(IsoRenderer r) {
+        for (int z = layout.length-1; z > 0; z--) { // Iterate over the depth (z-axis)
             for (int x = 0; x < layout[z].length; x++) {
                 for (var y = 0; y < layout[z][x].length; y++) {
                     if (layout[z][x][y] != -1) {

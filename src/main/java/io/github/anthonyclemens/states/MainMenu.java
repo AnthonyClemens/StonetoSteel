@@ -1,35 +1,38 @@
 package io.github.anthonyclemens.states;
 
-import java.awt.Font;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
-import org.newdawn.slick.Music;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.TrueTypeFont;
-import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.util.Log;
 
+import io.github.anthonyclemens.GUI.Banner;
+import io.github.anthonyclemens.GUI.Buttons.ImageTextButton;
+import io.github.anthonyclemens.Math.TwoDimensionMath;
 import io.github.anthonyclemens.Settings;
+import io.github.anthonyclemens.Sound.JukeBox;
+import io.github.anthonyclemens.Utils;
 
 public class MainMenu extends BasicGameState{
     //Variables
-    private Rectangle[] buttons;
-    private int selectedIndex = 0;
     private Settings settings;
     private Input input;
-    private Music menuMusic;
 
     //Constants
-    private static final String TITLE_STRING = "Isometric Game";
-    private static final int SPACING = 64;
-    private static final int PADDING = 12;
-    private final TrueTypeFont titleF = new TrueTypeFont(new Font("Courier", Font.BOLD, 32), true);
-    private final TrueTypeFont menuOptionsF = new TrueTypeFont(new Font("Courier", Font.PLAIN, 24),true);
-    private final String[] menuOptions = {"Start Game", "Multiplayer", "Options", "Quit"};
+    private static final String TITLE_STRING = "Stone to Steel";
+    private static final String MAIN_FONT = "fonts/MedievalTimes.ttf";
+    private final List<String> menuMusic = new ArrayList<>(Arrays.asList("music/menu/Lovely.ogg","music/menu/WalkingHome.ogg"));
+    public static JukeBox menuJukeBox;
+    private Image backgroundImage;
+    private Banner titleBanner;
+    private final List<ImageTextButton> menuButtons = new ArrayList<>();
 
     @Override
     public int getID() {
@@ -37,84 +40,82 @@ public class MainMenu extends BasicGameState{
     }
 
     @Override
+    public void enter(GameContainer container, StateBasedGame game) throws SlickException {
+        // Load music and play menu music
+        menuJukeBox.setVolume(settings.getMusicVolume());
+        menuJukeBox.playRandomSong("menu");
+        // Set background image
+        backgroundImage = new Image("textures/Background.png");
+        // Create title banner
+        Image bannerImage = new Image("textures/GUI/TextField/UI_Paper_Banner_01_Downward.png");
+        bannerImage.setFilter(Image.FILTER_NEAREST);
+        titleBanner = new Banner(bannerImage, TITLE_STRING, Utils.getFont(MAIN_FONT, 60f), TwoDimensionMath.getMiddleX(792, container.getWidth()), 10, 820, 280);
+        titleBanner.changeYOffset(20f);
+        // Load button images
+        Image buttonImage = new Image("textures/GUI/TextField/UI_Paper_Textfield_01.png");
+        buttonImage.setFilter(Image.FILTER_NEAREST);
+        // Create menu buttons
+        ImageTextButton startGame = new ImageTextButton(buttonImage, "Start Game", Utils.getFont(MAIN_FONT, 36f), TwoDimensionMath.getMiddleX(311, container.getWidth()), 300, 311, 104);
+        ImageTextButton options = new ImageTextButton(buttonImage, "Options", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(248, container.getWidth()), 420, 248, 82);
+        ImageTextButton exit = new ImageTextButton(buttonImage, "Exit", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(193, container.getWidth()), 520, 193, 64);
+        ImageTextButton credits = new ImageTextButton(buttonImage, "Credits", Utils.getFont(MAIN_FONT, 24f), TwoDimensionMath.getMiddleX(168, container.getWidth()), 600, 168, 56);
+        menuButtons.clear();
+        menuButtons.addAll(List.of(startGame,options,exit,credits));
+    }
+
+    @Override
     public void init(GameContainer container, StateBasedGame game) throws SlickException {
         input = container.getInput();
         settings = Settings.getInstance();
-        // Initialize buttons
-        buttons = new Rectangle[menuOptions.length];
-        for (int i = 0; i < menuOptions.length; i++) {
-            buttons[i] = new Rectangle(container.getWidth()/2-(menuOptionsF.getWidth(menuOptions[i]))/2, 200 + i * SPACING, menuOptionsF.getWidth(menuOptions[i])+PADDING*2, menuOptionsF.getHeight()+PADDING*2);
-        }
-        //Load music
-        menuMusic = new Music("music/title.ogg");
-        menuMusic.loop(1.0f,settings.getMusicVolume());
+        menuJukeBox = new JukeBox();
+        menuJukeBox.addSongs("menu", menuMusic);
+
+        Image cursor = new Image("cursors/Icon_Cursor_03c.png");
+        container.setMouseCursor(cursor, 0, 0);
     }
 
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
-        g.setBackground(Color.gray);
-        // Render Title
-        titleF.drawString(container.getWidth()/2-titleF.getWidth(TITLE_STRING)/2, 100,TITLE_STRING);
-        // Render buttons and menu options
-        for (int i = 0; i < menuOptions.length; i++) {
-            if (menuOptions[i].equals("Multiplayer")) {
-                g.setColor(Color.darkGray);
-            } else if (i == selectedIndex) {
-                g.setColor(Color.yellow);
-            } else {
-                g.setColor(Color.white);
-            }
-            g.fill(buttons[i]);
-            g.setColor(Color.black);
-            menuOptionsF.drawString(buttons[i].getX()+PADDING, buttons[i].getY()+PADDING, menuOptions[i], g.getColor());
+        drawBackground(container); // Render the background to fit screen (no stretching)
+        titleBanner.render(g); // Render the Title banner
+        for(ImageTextButton itb : menuButtons){ // Render all of the buttons
+            itb.render(g);
         }
     }
 
     @Override
     public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
-        if (input.isKeyPressed(settings.getKeyCode("up"))) {
-            selectedIndex--;
-            if (selectedIndex < 0) {
-                selectedIndex = menuOptions.length - 1;
-            }
-        }
-        if (input.isKeyPressed(settings.getKeyCode("up"))) {
-            selectedIndex++;
-            if (selectedIndex >= menuOptions.length) {
-                selectedIndex = 0;
-            }
-        }
-        // Handle mouse input to navigate the menu
-        for (int i = 0; i < buttons.length; i++) {
-            if (buttons[i].contains(input.getMouseX(), input.getMouseY())) {
-                selectedIndex = i;
-                if (input.isMousePressed(Input.MOUSE_LEFT_BUTTON)) {
-                    handleMenuSelection(container, game);
+        for(ImageTextButton itb : menuButtons){
+            itb.update(input); // Sets the isClicked bool
+            if(itb.isClicked()){
+                switch(itb.getText()){ // Figure out what button was pressed
+                    case "Start Game"-> game.enterState(2);
+                    case "Options"-> game.enterState(1);
+                    case "Exit"-> container.exit();
+                    case "Credits"->Log.debug("TODO");
                 }
             }
         }
-
-        if (input.isKeyPressed(Input.KEY_ENTER)){
-            handleMenuSelection(container, game);
-        }
     }
 
-    private void handleMenuSelection(GameContainer container, StateBasedGame game){
-        switch (menuOptions[selectedIndex]) {
-            case "Start Game":
-                // Start Game
-                menuMusic.stop();
-                game.enterState(2); // Change to game state
-                break;
-            case "Multiplayer":
-                System.out.println("Not yet implemented!");
-                break;
-            case "Options":
-                game.enterState(1);
-                break;
-            case "Quit":
-                container.exit();
-                break;
-        }
+    private void drawBackground(GameContainer container) {
+        // Get screen dimensions
+        int screenWidth = container.getWidth();
+        int screenHeight = container.getHeight();
+
+        // Get image dimensions
+        float imageWidth = backgroundImage.getWidth();
+        float imageHeight = backgroundImage.getHeight();
+
+        // Calculate the scaling factor and center position in one step
+        float scaleFactor = Math.max(screenWidth / imageWidth, screenHeight / imageHeight);
+        float scaledWidth = imageWidth * scaleFactor;
+        float scaledHeight = imageHeight * scaleFactor;
+        float x = (screenWidth - scaledWidth) / 2;
+        float y = (screenHeight - scaledHeight) / 2;
+
+        // Render the scaled image
+        backgroundImage.draw(x, y, scaledWidth, scaledHeight);
     }
+
 }

@@ -19,18 +19,16 @@ import io.github.anthonyclemens.GUI.Fields.TextField;
 import io.github.anthonyclemens.GUI.GUIElement;
 import io.github.anthonyclemens.Math.TwoDimensionMath;
 import io.github.anthonyclemens.Settings;
-import io.github.anthonyclemens.SharedData;
 
 public class NewGame extends BasicGameState{
     //Variables
     private Settings settings;
     private Input input;
     private ColorTextButton[] sectionButtons;
+    private final List<GUIElement> fields = new ArrayList<>();
     private static final String TITLE_STRING = "New Game";
-    private NumberField seedField;
-    private TextField nameField;
     private float titleX;
-    private List<GUIElement> guiElements = new ArrayList<>();
+
 
 
     //Constants
@@ -46,10 +44,9 @@ public class NewGame extends BasicGameState{
     }
 
     @Override
-    public void init(GameContainer container, StateBasedGame game) throws SlickException {
+    public void enter(GameContainer container, StateBasedGame game){
         input = container.getInput();
         settings = Settings.getInstance();
-
         //Create the Options Tabs
         sectionButtons = new ColorTextButton[menuOptions.length];
         for(int i=0; i<menuOptions.length; i++){
@@ -77,54 +74,54 @@ public class NewGame extends BasicGameState{
         for(int i=0; i<menuOptions.length; i++){
             sectionButtons[i].centerX(container,container.getHeight()-SPACING*(i+1));
         }
-        nameField = new TextField(0, 0, 20, Color.white, Color.lightGray, menuOptionsF, PADDING);
+
+        TextField nameField = new TextField(0, 0, 20, Color.white, Color.lightGray, menuOptionsF, PADDING);
         nameField.setBgText("Enter World Name");
         nameField.centerX(container, 164);
 
-        seedField = new NumberField(0, 0, 20, Color.white, Color.lightGray, menuOptionsF, PADDING);
+        NumberField seedField = new NumberField(0, 0, 20, Color.white, Color.lightGray, menuOptionsF, PADDING);
         seedField.setBgText("Enter a Seed");
         seedField.centerX(container, 228);
-        guiElements.add(seedField);
-        guiElements.add(nameField);
+        //fields.add(nameField);
+        fields.add(seedField);
         titleX=TwoDimensionMath.getMiddleX(titleF.getWidth(TITLE_STRING), container.getWidth());
+    }
+
+    @Override
+    public void init(GameContainer container, StateBasedGame game) throws SlickException {
     }
 
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
         g.setBackground(Color.gray);
         titleF.drawString(titleX, 100, TITLE_STRING, Color.black);
-        for(ColorTextButton sectionButton : sectionButtons){
-            sectionButton.render(g);
+
+        for(GUIElement gui: fields){
+            gui.render(g);
         }
-        for(GUIElement gui : guiElements){
+        for(GUIElement gui: sectionButtons){
             gui.render(g);
         }
     }
 
-
     @Override
     public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
-        for(GUIElement gui : guiElements){
+        for(GUIElement gui: fields){
             gui.update(input);
         }
-        for(ColorTextButton button : sectionButtons){
+        // Handle button actions
+        for (ColorTextButton button : sectionButtons) {
             button.update(input);
             if (button.isClicked()) {
                 switch (button.getText()) {
                     case "Start Game" -> {
-                        if(seedField.getNum()!=0){
-                            SharedData.seed = seedField.getNum();
-                        }
-                        game.enterState(3);
+                        MainMenu.menuJukeBox.stopMusic();
+                        game.enterState(99);
                     }
                     case "Back" -> game.enterState(0);
                     default -> {}
                 }
             }
         }
-    }
-
-    public String[] getMenuOptions() {
-        return menuOptions;
     }
 }

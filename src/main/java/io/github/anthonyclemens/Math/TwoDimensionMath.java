@@ -10,7 +10,7 @@ public class TwoDimensionMath {
         return boundWidth/2f-rect.getWidth()/2f;
     }
 
-    public static float getMiddleX(int itemWidth, int boundWidth){
+    public static float getMiddleX(float itemWidth, float boundWidth){
         return boundWidth/2f-itemWidth/2f;
     }
 }

@@ -8,9 +8,9 @@ import io.github.anthonyclemens.GUI.GUIElement;
 import io.github.anthonyclemens.GUI.OnClickListener;
 
 public class Button extends GUIElement {
-    private Color c;
-    private boolean clicked;
-    private OnClickListener onClickListener;
+    protected Color c;
+    protected boolean clicked;
+    protected OnClickListener onClickListener;
 
     public Button(float x, float y, float w, float h){
         super(x,y,w,h);
@@ -23,6 +23,8 @@ public class Button extends GUIElement {
         if(this.c!=null){
             g.setColor(this.c);
             g.fill(this.getRect());
+            g.setColor(Color.black);
+            g.draw(this.r);
         }else{
             g.draw(this.getRect());
         }
@@ -30,12 +32,15 @@ public class Button extends GUIElement {
 
     @Override
     public void update(Input input){
-        this.clicked = this.getRect().contains(input.getMouseX(), input.getMouseY()) && input.isMousePressed(Input.MOUSE_LEFT_BUTTON);
+        if(this.clicked){
+            this.clicked=!this.clicked;
+        }
+        this.clicked = this.r.contains(input.getMouseX(), input.getMouseY()) && input.isMousePressed(Input.MOUSE_LEFT_BUTTON);
     }
 
     //Getters
     public boolean isClicked(){
-        return clicked;
+        return this.clicked;
     }
 
     public Color getColor(){
@@ -52,7 +57,7 @@ public class Button extends GUIElement {
     }
 
     public OnClickListener getOnClickListener() {
-        return onClickListener;
+        return this.onClickListener;
     }
 
 }

@@ -8,20 +8,20 @@ import org.newdawn.slick.TrueTypeFont;
 import io.github.anthonyclemens.GUI.GUIElement;
 
 public class NumberField extends GUIElement{
-    private boolean clicked;
+    private boolean focused;
     private final Color active;
     private final Color notActive;
-    private String text;
     private final TrueTypeFont ttf;
     private final int padding;
     private final int maxChars;
     private String bgText;
+    private String value;
 
     public NumberField(float x, float y, int maxChars, Color active, Color notActive, TrueTypeFont ttf, int padding) {
         super(x, y, ttf.getWidth("Z")*maxChars + (float)padding, ttf.getHeight() + (float)padding);
         this.active = active;
         this.notActive = notActive;
-        this.text = "";
+        this.value = "";
         this.ttf = ttf;
         this.padding = padding;
         this.maxChars = maxChars;
@@ -34,29 +34,29 @@ public class NumberField extends GUIElement{
 
     @Override
     public void render(Graphics g) {
-        if(this.clicked){
+        if(this.focused){
             g.setColor(this.active);
         }else{
             g.setColor(this.notActive);
         }
-        g.fill(this.getRect());
+        g.fill(this.r);
         g.setColor(Color.black);
-        g.draw(this.getRect());
-        if("".equals(text)){
-            ttf.drawString(x+padding/2f, y+padding/2f, bgText, Color.gray);
+        g.draw(this.r);
+        if("".equals(this.value)){
+            ttf.drawString(getX()+padding/2f, getY()+padding/2f, bgText, Color.gray);
         }
-        ttf.drawString(x+padding/2f, y+padding/2f, text, Color.black);
+        ttf.drawString(getX()+padding/2f, getY()+padding/2f, this.value, Color.black);
     }
 
     @Override
     public void update(Input input) {
-        this.clicked = (this.getRect().contains(input.getMouseX(), input.getMouseY()) && input.isMousePressed(Input.MOUSE_LEFT_BUTTON)) ? !this.clicked : this.clicked;
-        if(this.clicked){
-            this.text = handleInput(input, this.text, this.maxChars);
+        this.focused = (this.getRect().contains(input.getMouseX(), input.getMouseY()) && input.isMousePressed(Input.MOUSE_LEFT_BUTTON)) ? !this.focused : this.focused;
+        if(this.focused){
+            this.value = takeInput(input, this.value, this.maxChars);
         }
     }
 
-    public String handleInput(Input input, String currentText, int maxCharacters) {
+    private String takeInput(Input input, String currentText, int maxCharacters) {
         int[] keyCodes = {82, 79, 80, 81, 75, 76, 77, 71, 72, 73,  //Number row
                           11,  2,  3,  4,  5,  6,  7,  8,  9, 10}; //Number pad
         char[] characters = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
@@ -78,7 +78,7 @@ public class NumberField extends GUIElement{
     }
 
     public int getNum(){
-        return (!"".equals(this.text))? Integer.parseInt(this.text): 0;
+        return (!"".equals(this.value))? Integer.parseInt(this.value): 0;
     }
 
 }

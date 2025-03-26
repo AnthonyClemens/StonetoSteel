@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import io.github.anthonyclemens.Rendering.Renderer;
+import org.newdawn.slick.SlickException;
+
+import io.github.anthonyclemens.Rendering.IsoRenderer;
 
 public class Chunk {
     private final int chunkSize;
@@ -20,7 +22,8 @@ public class Chunk {
     private final int chunkY;
     private final ChunkManager chunkManager;
 
-    public Chunk(int chunkSize, Biome biome, ChunkManager chunkManager, int chunkX, int chunkY) {
+
+    public Chunk(int chunkSize, Biome biome, ChunkManager chunkManager, int chunkX, int chunkY) throws SlickException {
         this.rand = new Random();
         this.chunkSize = chunkSize;
         this.tiles = new int[chunkSize][chunkSize];
@@ -58,7 +61,8 @@ public class Chunk {
     }
 
     private int generateTileForBiomeWithBlending(Biome mainBiome, Biome neighborBiome) {
-        if (rand.nextDouble() < 0.5) { //% chance to blend
+        double probability = 0.5; //% chance to blend
+        if (rand.nextDouble() < probability) {
             return generateTileForBiome(neighborBiome);
         }
         return generateTileForBiome(mainBiome);
@@ -100,10 +104,11 @@ public class Chunk {
     private int generateTileForBiome(Biome biome) {
         return switch (biome) {
             case DESERT ->rand.nextInt(2)+4;// Sand
+            case BEACH ->rand.nextInt(2)+4;// Sand
             case PLAINS ->rand.nextInt(4);// Grass
-            case WINTER ->rand.nextInt(2)+13;// Snow
+            case WATER ->rand.nextInt(2)+23;// Water
             case MOUNTAIN ->rand.nextInt(8)+50;// Rocks
-            case SWAMP ->rand.nextInt(3)+6;// Dirt, mud
+            case SWAMP ->rand.nextInt(2)+6;// Dirt, mud
             default -> 0;
         };
     }
@@ -178,7 +183,7 @@ public class Chunk {
         return gameObjects;
     }
 
-    public void render(Renderer r) {
+    public void render(IsoRenderer r) {
         for (GameObject obj : gameObjects) {
             obj.renderBatch(r);
         }
@@ -188,11 +193,11 @@ public class Chunk {
         return this.chunkSize;
     }
 
-    private void generateGameObjects() {
+    private void generateGameObjects() throws SlickException {
         switch (biome) {
                 case DESERT -> this.addGameObjects(Biome.generateDesertObjects(this.rand, this.chunkX, this.chunkY, this.chunkSize));
                 case PLAINS ->{}
-                case WINTER ->{}
+                case WATER -> {}//this.addGameObjects(Biome.generateWaterObjects(this.rand, this.chunkX, this.chunkY, this.chunkSize));
                 case MOUNTAIN ->{}
                 case SWAMP ->{}
                 default -> {}

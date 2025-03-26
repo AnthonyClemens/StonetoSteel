@@ -20,7 +20,7 @@ public class ChunkManager {
         this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.seed = seed;
 
-        Log.info(" ChunkManager initialized for infinite world generation with seed: "+seed);
+        Log.info("ChunkManager initialized for infinite world generation with seed: "+seed);
     }
 
     public Biome getBiomeForChunk(int chunkX, int chunkY) {
@@ -57,9 +57,11 @@ public class ChunkManager {
         try {
             return future.get();
         } catch (ExecutionException e) {
+            Log.error("Error generating chunk");
             chunks.remove(key); // Remove the failing entry for retry
             return null;
         } catch (InterruptedException e) {
+            Log.error("Error generating chunk");
             chunks.remove(key); // Remove the failing entry for retry
             Thread.currentThread().interrupt();
             return null;

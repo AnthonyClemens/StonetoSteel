@@ -7,21 +7,22 @@ import org.newdawn.slick.TrueTypeFont;
 
 import io.github.anthonyclemens.GUI.GUIElement;
 
+
 public class TextField extends GUIElement{
-    private boolean clicked;
+    private boolean focused;
     private final Color active;
     private final Color notActive;
-    private String text;
     private final TrueTypeFont ttf;
     private final int padding;
     private final int maxChars;
     private String bgText;
+    private String value;
 
     public TextField(float x, float y, int maxChars, Color active, Color notActive, TrueTypeFont ttf, int padding) {
         super(x, y, ttf.getWidth("Z")*maxChars + (float)padding, ttf.getHeight() + (float)padding);
         this.active = active;
         this.notActive = notActive;
-        this.text = "";
+        this.value = "";
         this.ttf = ttf;
         this.padding = padding;
         this.maxChars = maxChars;
@@ -33,7 +34,7 @@ public class TextField extends GUIElement{
 
     @Override
     public void render(Graphics g) {
-        if(this.clicked){
+        if(this.focused){
             g.setColor(this.active);
         }else{
             g.setColor(this.notActive);
@@ -41,21 +42,18 @@ public class TextField extends GUIElement{
         g.fill(this.getRect());
         g.setColor(Color.black);
         g.draw(this.getRect());
-        if("".equals(text)){
-            ttf.drawString(x+padding/2f, y+padding/2f, bgText, Color.gray);
+        if("".equals(this.value)){
+            ttf.drawString(getX()+padding/2f, getY()+padding/2f, bgText, Color.gray);
         }
-        ttf.drawString(x+padding/2f, y+padding/2f, text, Color.black);
+        ttf.drawString(getX()+padding/2f, getY()+padding/2f, this.value, Color.black);
     }
 
     @Override
     public void update(Input input) {
-        this.clicked = (this.getRect().contains(input.getMouseX(), input.getMouseY()) && input.isMousePressed(Input.MOUSE_LEFT_BUTTON)) ? !this.clicked : this.clicked;
-        if(this.clicked){
-            this.text = handleInput(input, this.text, this.maxChars);
-        }
+        this.value = handleInput(input, this.value, this.maxChars);
     }
 
-    public String handleInput(Input input, String currentString, int maxCharacters) {
+    private String handleInput(Input input, String currentString, int maxCharacters) {
         StringBuilder inputString = new StringBuilder(currentString);
         // Check for backspace to remove the last character
         if (input.isKeyPressed(Input.KEY_BACK) && !inputString.isEmpty()) {
@@ -93,7 +91,7 @@ public class TextField extends GUIElement{
     }
 
     public String getText(){
-        return this.text;
+        return this.value;
     }
 
 }

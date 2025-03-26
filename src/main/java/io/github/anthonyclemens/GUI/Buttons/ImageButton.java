@@ -14,9 +14,9 @@ public class ImageButton extends Button{
     @Override
     public void render(Graphics g){
         if(this.getColor()!=null){
-            this.i.draw(this.x, this.y, this.getWidth(), this.getHeight(), this.getColor());
+            this.i.draw(getX(), getY(), this.getWidth(), this.getHeight(), this.getColor());
         }else{
-            this.i.draw(this.x, this.y, this.getWidth(), this.getHeight());
+            this.i.draw(getX(), getY(), this.getWidth(), this.getHeight());
         }
     }
 

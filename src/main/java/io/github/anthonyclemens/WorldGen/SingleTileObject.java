@@ -1,6 +1,6 @@
 package io.github.anthonyclemens.WorldGen;
 
-import io.github.anthonyclemens.Rendering.Renderer;
+import io.github.anthonyclemens.Rendering.IsoRenderer;
 
 public class SingleTileObject extends GameObject{
     private final int i;
@@ -11,12 +11,12 @@ public class SingleTileObject extends GameObject{
     }
 
     @Override
-    public void render(Renderer r) {
+    public void render(IsoRenderer r) {
         r.drawTile(i,x,y,chunkX,chunkY);
     }
 
     @Override
-    public void renderBatch(Renderer r) {
+    public void renderBatch(IsoRenderer r) {
         r.drawTileBatch(i,x,y,chunkX,chunkY);
     }
 
