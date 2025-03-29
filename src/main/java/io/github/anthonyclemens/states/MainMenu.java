@@ -16,13 +16,13 @@ import org.newdawn.slick.util.Log;
 import io.github.anthonyclemens.GUI.Banner;
 import io.github.anthonyclemens.GUI.Buttons.ImageTextButton;
 import io.github.anthonyclemens.Math.TwoDimensionMath;
+import io.github.anthonyclemens.Rendering.RenderUtils;
 import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.Sound.JukeBox;
 import io.github.anthonyclemens.Utils;
 
 public class MainMenu extends BasicGameState{
     //Variables
-    private Settings settings;
     private Input input;
 
     //Constants
@@ -41,6 +41,7 @@ public class MainMenu extends BasicGameState{
 
     @Override
     public void enter(GameContainer container, StateBasedGame game) throws SlickException {
+        Settings settings = Settings.getInstance();
         // Load music and play menu music
         menuJukeBox.setVolume(settings.getMusicVolume());
         menuJukeBox.playRandomSong("menu");
@@ -50,7 +51,7 @@ public class MainMenu extends BasicGameState{
         Image bannerImage = new Image("textures/GUI/TextField/UI_Paper_Banner_01_Downward.png");
         bannerImage.setFilter(Image.FILTER_NEAREST);
         titleBanner = new Banner(bannerImage, TITLE_STRING, Utils.getFont(MAIN_FONT, 60f), TwoDimensionMath.getMiddleX(792, container.getWidth()), 10, 820, 280);
-        titleBanner.changeYOffset(20f);
+        titleBanner.changeYOffset(120f);
         // Load button images
         Image buttonImage = new Image("textures/GUI/TextField/UI_Paper_Textfield_01.png");
         buttonImage.setFilter(Image.FILTER_NEAREST);
@@ -66,7 +67,6 @@ public class MainMenu extends BasicGameState{
     @Override
     public void init(GameContainer container, StateBasedGame game) throws SlickException {
         input = container.getInput();
-        settings = Settings.getInstance();
         menuJukeBox = new JukeBox();
         menuJukeBox.addSongs("menu", menuMusic);
 
@@ -76,7 +76,7 @@ public class MainMenu extends BasicGameState{
 
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
-        drawBackground(container); // Render the background to fit screen (no stretching)
+        RenderUtils.drawBackground(backgroundImage,container); // Render the background to fit screen (no stretching)
         titleBanner.render(g); // Render the Title banner
         for(ImageTextButton itb : menuButtons){ // Render all of the buttons
             itb.render(g);
@@ -97,25 +97,4 @@ public class MainMenu extends BasicGameState{
             }
         }
     }
-
-    private void drawBackground(GameContainer container) {
-        // Get screen dimensions
-        int screenWidth = container.getWidth();
-        int screenHeight = container.getHeight();
-
-        // Get image dimensions
-        float imageWidth = backgroundImage.getWidth();
-        float imageHeight = backgroundImage.getHeight();
-
-        // Calculate the scaling factor and center position in one step
-        float scaleFactor = Math.max(screenWidth / imageWidth, screenHeight / imageHeight);
-        float scaledWidth = imageWidth * scaleFactor;
-        float scaledHeight = imageHeight * scaleFactor;
-        float x = (screenWidth - scaledWidth) / 2;
-        float y = (screenHeight - scaledHeight) / 2;
-
-        // Render the scaled image
-        backgroundImage.draw(x, y, scaledWidth, scaledHeight);
-    }
-
 }

@@ -13,8 +13,9 @@ public class Banner extends GUIElement{
     private final String text;
     private final TrueTypeFont ttf;
     private Color color;
-    private final int textWidth;
+    private int textWidth;
     private float yOffset;
+    private float xOffset;
 
 
     public Banner(Image i, String text, TrueTypeFont ttf, float x, float y, float width, float height) {
@@ -22,16 +23,21 @@ public class Banner extends GUIElement{
         this.image = i;
         this.text = text;
         this.ttf = ttf;
-        this.color = Color.black;
-        this.textWidth = this.ttf.getWidth(this.text);
-        this.yOffset = TwoDimensionMath.getMiddleX(this.ttf.getHeight(), this.getHeight());
+        if(this.ttf!=null){
+            this.color = Color.black;
+            this.textWidth = this.ttf.getWidth(this.text);
+            this.yOffset = TwoDimensionMath.getMiddleX(this.ttf.getHeight(), this.getHeight());
+            this.xOffset = TwoDimensionMath.getMiddleX(this.textWidth, this.getWidth());
+        }
     }
 
     @Override
     public void render(Graphics g) {
         this.image.draw(this.getX(), this.getY(), this.getWidth(), this.getHeight());
-        g.setColor(this.color);
-        this.ttf.drawString(TwoDimensionMath.getMiddleX(this.textWidth, this.getWidth())+this.getX(), this.yOffset+this.getY(), this.text, this.color);
+        if(this.ttf!=null){
+            g.setColor(this.color);
+            this.ttf.drawString(this.xOffset+this.getX(), this.yOffset+this.getY(), this.text, this.color);
+        }
     }
 
     @Override
@@ -44,6 +50,10 @@ public class Banner extends GUIElement{
     }
 
     public void changeYOffset(float offset){
-        this.yOffset+=offset;
+        this.yOffset=offset;
+    }
+
+    public void changeXOffset(float offset){
+        this.xOffset=offset;
     }
 }

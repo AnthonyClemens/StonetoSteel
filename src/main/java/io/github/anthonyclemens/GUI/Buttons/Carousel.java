@@ -51,7 +51,6 @@ public class Carousel extends GUIElement {
         // Define the bounding rectangle
         this.setWidth(this.leftButton.getWidth() + this.maxWidth + this.rightButton.getWidth());
         this.setHeight(builder.ttf.getHeight());
-        this.index = 0;
         this.onClickListener=builder.onClickListener;
     }
 

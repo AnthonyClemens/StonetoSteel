@@ -30,4 +30,12 @@ public class ToggleButton extends Button{
             this.value=!this.value;
         }
     }
+
+    public boolean getValue(){
+        return this.value;
+    }
+
+    public void setValue(boolean newValue){
+        this.value = newValue;
+    }
 }

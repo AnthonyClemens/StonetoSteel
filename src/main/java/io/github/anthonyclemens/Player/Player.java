@@ -60,9 +60,14 @@ public class Player {
     }
 
     private void updateDirection(float dx, float dy) {
-        if (dx == 0 && dy == 0) return; // No movement, direction unchanged
-        // Calculate direction based on dx and dy
-        direction = (int) ((Math.atan2(-dy, dx) / Math.PI + 1) * 4) % 8;
+        if (dx == 0 && dy < 0) direction = 0; // Up
+        else if (dx > 0 && dy < 0) direction = 1; // Up-right
+        else if (dx > 0 && dy == 0) direction = 2; // Right
+        else if (dx > 0 && dy > 0) direction = 3; // Down-right
+        else if (dx == 0 && dy > 0) direction = 4; // Down
+        else if (dx < 0 && dy > 0) direction = 5; // Down-left
+        else if (dx < 0 && dy == 0) direction = 6; // Left
+        else if (dx < 0 && dy < 0) direction = 7; // Up-left
     }
 
     public void render(GameContainer container, float zoom, float cameraX, float cameraY) {

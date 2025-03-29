@@ -1,5 +1,8 @@
 package io.github.anthonyclemens.states;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
@@ -8,19 +11,22 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
 import io.github.anthonyclemens.GUI.Banner;
+import io.github.anthonyclemens.GUI.Buttons.ImageTextButton;
 import io.github.anthonyclemens.Math.TwoDimensionMath;
+import io.github.anthonyclemens.Rendering.RenderUtils;
 import io.github.anthonyclemens.Utils;
 
 public class SoundSettings extends BasicGameState{
     private Image backgroundImage;
     private Banner titleBanner;
+    private final List<ImageTextButton> menuButtons = new ArrayList<>();
 
     private static final String TITLE_STRING = "Sound Settings";
     private static final String MAIN_FONT = "fonts/MedievalTimes.ttf";
 
     @Override
     public int getID() {
-        return 3;
+        return 11;
     }
 
     @Override
@@ -30,8 +36,15 @@ public class SoundSettings extends BasicGameState{
         // Create title banner
         Image bannerImage = new Image("textures/GUI/TextField/UI_Paper_Banner_01_Downward.png");
         bannerImage.setFilter(Image.FILTER_NEAREST);
-        titleBanner = new Banner(bannerImage, TITLE_STRING, Utils.getFont(MAIN_FONT, 48f), TwoDimensionMath.getMiddleX(640, container.getWidth()), 10, 640, 251);
-        titleBanner.changeYOffset(20f);
+        titleBanner = new Banner(bannerImage, TITLE_STRING, Utils.getFont(MAIN_FONT, 48f), TwoDimensionMath.getMiddleX(720, container.getWidth()), 10, 720, 251);
+        titleBanner.changeYOffset(120f);
+        // Load button images
+        Image buttonImage = new Image("textures/GUI/TextField/UI_Paper_Textfield_01.png");
+        buttonImage.setFilter(Image.FILTER_NEAREST);
+        // Create menu buttons
+        ImageTextButton backButton = new ImageTextButton(buttonImage, "Back", Utils.getFont(MAIN_FONT, 40f), 10, 10, 240, 80);
+        menuButtons.clear();
+        menuButtons.addAll(List.of(backButton));
     }
 
     @Override
@@ -41,32 +54,22 @@ public class SoundSettings extends BasicGameState{
 
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
-        drawBackground(container); // Render the background to fit screen (no stretching)
+        RenderUtils.drawBackground(backgroundImage, container); // Render the background to fit screen (no stretching)
         titleBanner.render(g); // Render the Title banner
+        for(ImageTextButton itb : menuButtons){
+            itb.render(g);
+        }
     }
 
     @Override
     public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
-        
-    }
-
-    private void drawBackground(GameContainer container) {
-        // Get screen dimensions
-        int screenWidth = container.getWidth();
-        int screenHeight = container.getHeight();
-
-        // Get image dimensions
-        float imageWidth = backgroundImage.getWidth();
-        float imageHeight = backgroundImage.getHeight();
-
-        // Calculate the scaling factor and center position in one step
-        float scaleFactor = Math.max(screenWidth / imageWidth, screenHeight / imageHeight);
-        float scaledWidth = imageWidth * scaleFactor;
-        float scaledHeight = imageHeight * scaleFactor;
-        float x = (screenWidth - scaledWidth) / 2;
-        float y = (screenHeight - scaledHeight) / 2;
-
-        // Render the scaled image
-        backgroundImage.draw(x, y, scaledWidth, scaledHeight);
+        for(ImageTextButton itb : menuButtons){
+            itb.update(container.getInput()); // Sets the isClicked bool
+            if(itb.isClicked()){
+                switch(itb.getText()){ // Figure out what button was pressed
+                    case "Back"->game.enterState(1);
+                }
+            }
+        }
     }
 }

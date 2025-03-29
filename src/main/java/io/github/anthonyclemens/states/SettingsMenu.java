@@ -14,6 +14,7 @@ import org.newdawn.slick.state.StateBasedGame;
 import io.github.anthonyclemens.GUI.Banner;
 import io.github.anthonyclemens.GUI.Buttons.ImageTextButton;
 import io.github.anthonyclemens.Math.TwoDimensionMath;
+import io.github.anthonyclemens.Rendering.RenderUtils;
 import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.Utils;
 
@@ -41,8 +42,8 @@ public class SettingsMenu extends BasicGameState{
         // Create title banner
         Image bannerImage = new Image("textures/GUI/TextField/UI_Paper_Banner_01_Downward.png");
         bannerImage.setFilter(Image.FILTER_NEAREST);
-        titleBanner = new Banner(bannerImage, TITLE_STRING, Utils.getFont(MAIN_FONT, 48f), TwoDimensionMath.getMiddleX(640, container.getWidth()), 10, 640, 251);
-        titleBanner.changeYOffset(20f);
+        titleBanner = new Banner(bannerImage, TITLE_STRING, Utils.getFont(MAIN_FONT, 48f), TwoDimensionMath.getMiddleX(720, container.getWidth()), 10, 720, 251);
+        titleBanner.changeYOffset(120f);
         // Load button images
         Image buttonImage = new Image("textures/GUI/TextField/UI_Paper_Textfield_01.png");
         buttonImage.setFilter(Image.FILTER_NEAREST);
@@ -64,7 +65,7 @@ public class SettingsMenu extends BasicGameState{
 
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
-        drawBackground(container);
+        RenderUtils.drawBackground(backgroundImage,container);
         titleBanner.render(g);
         for(ImageTextButton itb : menuButtons){
             itb.render(g);
@@ -77,33 +78,13 @@ public class SettingsMenu extends BasicGameState{
             itb.update(input); // Sets the isClicked bool
             if(itb.isClicked()){
                 switch(itb.getText()){ // Figure out what button was pressed
-                    case "Video Settings"-> game.enterState(2);
-                    case "Sound Settings"-> game.enterState(3);
-                    case "Control Settings"-> game.enterState(4);
+                    case "Video Settings"-> game.enterState(10);
+                    case "Sound Settings"-> game.enterState(11);
+                    case "Control Settings"-> game.enterState(12);
                     case "Back"->game.enterState(0);
                 }
             }
         }
-    }
-
-    private void drawBackground(GameContainer container) {
-        // Get screen dimensions
-        int screenWidth = container.getWidth();
-        int screenHeight = container.getHeight();
-
-        // Get image dimensions
-        float imageWidth = backgroundImage.getWidth();
-        float imageHeight = backgroundImage.getHeight();
-
-        // Calculate the scaling factor and center position in one step
-        float scaleFactor = Math.max(screenWidth / imageWidth, screenHeight / imageHeight);
-        float scaledWidth = imageWidth * scaleFactor;
-        float scaledHeight = imageHeight * scaleFactor;
-        float x = (screenWidth - scaledWidth) / 2;
-        float y = (screenHeight - scaledHeight) / 2;
-
-        // Render the scaled image
-        backgroundImage.draw(x, y, scaledWidth, scaledHeight);
     }
 
 }

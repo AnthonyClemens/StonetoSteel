@@ -17,21 +17,17 @@ import io.github.anthonyclemens.states.VideoSettings;
 
 public class Main extends StateBasedGame{
 
+        private static AppGameContainer app;
+
         public Main() {
             super("Stone to Steel");
         }
         public static void main(String[] args){
         try {
             Settings settings = Settings.getInstance();
-            settings = Utils.loadSettings(settings);
             //Initialize the Slick2d engine
-            AppGameContainer app = new AppGameContainer(new Main());
-            app.setDisplayMode(settings.getWidth(), settings.getHeight(), settings.isFullscreen());
-            app.setVSync(settings.isVsync());
-		    app.setAlwaysRender(true);
-		    app.setShowFPS(false);
-		    app.setMaximumLogicUpdateInterval(60);
-		    app.setTargetFrameRate(settings.getMaxFPS());
+            app = new AppGameContainer(new Main());
+            setSettings(settings);
             //app.setIcon("");
             app.start();
         } catch (SlickException e){
@@ -58,6 +54,15 @@ public class Main extends StateBasedGame{
         addState(new VideoSettings());
         addState(new SoundSettings());
         addState(new ControlSettings());
+    }
+
+    public static void setSettings(Settings settings) throws SlickException{
+        app.setDisplayMode(settings.getWidth(), settings.getHeight(), settings.isFullscreen());
+        app.setVSync(settings.isVsync());
+		app.setAlwaysRender(true);
+		app.setShowFPS(false);
+		app.setMaximumLogicUpdateInterval(60);
+		app.setTargetFrameRate(settings.getMaxFPS());
     }
 
 }

@@ -13,24 +13,102 @@ import org.lwjgl.opengl.DisplayMode;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
+import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.GUI.Banner;
+import io.github.anthonyclemens.GUI.Buttons.Carousel;
+import io.github.anthonyclemens.GUI.Buttons.ImageTextButton;
+import io.github.anthonyclemens.GUI.Buttons.ToggleButton;
+import io.github.anthonyclemens.Main;
+import io.github.anthonyclemens.Math.TwoDimensionMath;
+import io.github.anthonyclemens.Rendering.RenderUtils;
+import io.github.anthonyclemens.Settings;
+import io.github.anthonyclemens.Utils;
 
 public class VideoSettings extends BasicGameState{
     private List<String> validResolutions;
     private Image backgroundImage;
     private Banner titleBanner;
-
-    private static final String TITLE_STRING = "Sound Settings";
+    private final List<ImageTextButton> menuButtons = new ArrayList<>();
+    private final List<ToggleButton> toggleButtons = new ArrayList<>();
+    private final List<Carousel> carousels = new ArrayList<>();
+    private final List<Banner> bgBanners = new ArrayList<>();
+    private static final String TITLE_STRING = "Video Settings";
     private static final String MAIN_FONT = "fonts/MedievalTimes.ttf";
 
     @Override
     public int getID() {
-        return 2;
+        return 10;
+    }
+
+    @Override
+    public void enter(GameContainer container, StateBasedGame game) throws SlickException {
+        Settings settings = Settings.getInstance();
+        // Set background image
+        backgroundImage = new Image("textures/Background.png");
+        // Create title banner
+        Image bannerImage = new Image("textures/GUI/TextField/UI_Paper_Banner_01_Downward.png");
+        bannerImage.setFilter(Image.FILTER_NEAREST);
+        titleBanner = new Banner(bannerImage, TITLE_STRING, Utils.getFont(MAIN_FONT, 48f), TwoDimensionMath.getMiddleX(720, container.getWidth()), 10, 720, 251);
+        titleBanner.changeYOffset(120f);
+        // Load button images
+        Image buttonImage = new Image("textures/GUI/TextField/UI_Paper_Textfield_01.png");
+        buttonImage.setFilter(Image.FILTER_NEAREST);
+        // Load carousel button textures
+        Image leftCarouselButton = new Image("textures/GUI/Carousel/leftarrow.png");
+        Image rightCarouselButton = new Image("textures/GUI/Carousel/rightarrow.png");
+        // Load the background banners
+        Image backBanner = new Image("textures/GUI/TextField/UI_Paper_Button_Large_Lock_01a1.png");
+        backBanner.setFilter(Image.FILTER_NEAREST);
+        // Create menu buttons
+        ImageTextButton backButton = new ImageTextButton(buttonImage, "Back", Utils.getFont(MAIN_FONT, 40f), 10, 10, 240, 80);
+        ImageTextButton applyButton = new ImageTextButton(buttonImage, "Apply", Utils.getFont(MAIN_FONT, 24f), TwoDimensionMath.getMiddleX(180, container.getWidth()), 564, 180, 64);
+        // Create the Carousels and associated borders
+        Banner resBanner = new Banner(backBanner, "Res", Utils.getFont(MAIN_FONT, 32f),TwoDimensionMath.getMiddleX(300, container.getWidth())-150, 240, 300, 100);
+        resBanner.changeXOffset(32);
+        Carousel resolution = new Carousel.Builder()
+            .data(validResolutions)
+            .font(Utils.getFont(MAIN_FONT, 28f))
+            .defaultValue(container.getWidth()+"x"+container.getHeight())
+            .leftImage(leftCarouselButton)
+            .rightImage(rightCarouselButton)
+            .position(TwoDimensionMath.getMiddleX(300, container.getWidth())-70, 272)
+            .build();
+        Banner refreshRateBanner = new Banner(backBanner, "FPS", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(300, container.getWidth())+150, 240, 300, 100);
+        refreshRateBanner.changeXOffset(32);
+        Carousel refreshRate = new Carousel.Builder()
+            .data(new ArrayList<>(Arrays.asList("60","90","120","144","165","240")))
+            .font(Utils.getFont(MAIN_FONT, 28f))
+            .defaultValue(String.valueOf(settings.getMaxFPS()))
+            .leftImage(leftCarouselButton)
+            .rightImage(rightCarouselButton)
+            .position(TwoDimensionMath.getMiddleX(300, container.getWidth())+300, 272)
+            .build();
+        // Create the Toggle buttons and associated borders
+        Image enabled = new Image("textures/GUI/ToggleButton/checkmark.png");
+        Image disabled = new Image("textures/GUI/ToggleButton/cross.png");
+        Banner vsyncBanner = new Banner(backBanner, "VSync", Utils.getFont(MAIN_FONT, 32f),TwoDimensionMath.getMiddleX(300, container.getWidth())-150, 400, 300, 100);
+        vsyncBanner.changeXOffset(32);
+        ToggleButton vsyncButton = new ToggleButton(enabled, disabled, TwoDimensionMath.getMiddleX(64, container.getWidth())-64, 418, 64, 64);
+        vsyncButton.setValue(settings.isVsync());
+
+        Banner fullscreenBanner = new Banner(backBanner, "Fullscreen", Utils.getFont(MAIN_FONT, 32f),TwoDimensionMath.getMiddleX(300, container.getWidth())+150, 400, 300, 100);
+        fullscreenBanner.changeXOffset(32);
+        ToggleButton fullscreenButton = new ToggleButton(enabled, disabled, TwoDimensionMath.getMiddleX(64, container.getWidth())+240, 418, 64, 64);
+        fullscreenButton.setValue(settings.isFullscreen());
+
+        menuButtons.clear();
+        menuButtons.addAll(List.of(backButton,applyButton));
+        carousels.clear();
+        carousels.addAll(List.of(resolution,refreshRate));
+        bgBanners.clear();
+        bgBanners.addAll(List.of(resBanner,refreshRateBanner,vsyncBanner,fullscreenBanner));
+        toggleButtons.clear();
+        toggleButtons.addAll(List.of(vsyncButton,fullscreenButton));
     }
 
     @Override
@@ -53,31 +131,49 @@ public class VideoSettings extends BasicGameState{
 
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
-        
+        RenderUtils.drawBackground(backgroundImage, container); // Render the background to fit screen (no stretching)
+        titleBanner.render(g); // Render the Title banner
+        for(ImageTextButton itb : menuButtons){ itb.render(g); }
+        for(Banner bg : bgBanners){ bg.render(g); }
+        for(Carousel c : carousels){ c.render(g); }
+        for(ToggleButton tb : toggleButtons){ tb.render(g); }
     }
 
     @Override
     public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
-        
+        Input input = container.getInput();
+        for(Carousel c : carousels){ c.update(input); }
+        for(ToggleButton tb : toggleButtons){ tb.update(input); }
+        for(ImageTextButton itb : menuButtons){
+            itb.update(input); // Sets the isClicked bool
+            if(itb.isClicked()){
+                switch(itb.getText()){ // Figure out what button was pressed
+                    case "Apply"->{
+                        applySettings(container);
+                        game.enterState(10);
+                    }
+                    case "Back"->game.enterState(1);
+                }
+            }
+        }
     }
 
-    private void drawBackground(GameContainer container) {
-        // Get screen dimensions
-        int screenWidth = container.getWidth();
-        int screenHeight = container.getHeight();
-
-        // Get image dimensions
-        float imageWidth = backgroundImage.getWidth();
-        float imageHeight = backgroundImage.getHeight();
-
-        // Calculate the scaling factor and center position in one step
-        float scaleFactor = Math.max(screenWidth / imageWidth, screenHeight / imageHeight);
-        float scaledWidth = imageWidth * scaleFactor;
-        float scaledHeight = imageHeight * scaleFactor;
-        float x = (screenWidth - scaledWidth) / 2;
-        float y = (screenHeight - scaledHeight) / 2;
-
-        // Render the scaled image
-        backgroundImage.draw(x, y, scaledWidth, scaledHeight);
+    private void applySettings(GameContainer container) throws SlickException{
+        Settings settings = Settings.getInstance();
+        Log.debug("\nApplying settings:");
+        String resolution = carousels.get(0).getValue();
+        String refreshRate = carousels.get(1).getValue();
+        Boolean vsyncBool = toggleButtons.get(0).getValue();
+        Boolean fullscreenBool = toggleButtons.get(1).getValue();
+        Log.debug("Resolution: "+resolution);
+        Log.debug("Max FPS: "+refreshRate);
+        Log.debug("vsync? "+vsyncBool);
+        Log.debug("Fullscreen? "+fullscreenBool);
+        settings.setResolution(resolution);
+        settings.setMaxFPS(Integer.parseInt(refreshRate));
+        settings.setVsync(vsyncBool);
+        settings.setFullscreen(fullscreenBool);
+        settings.applyToGameContainer(container);
+        Main.setSettings(settings);
     }
 }
