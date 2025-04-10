@@ -40,13 +40,11 @@ public class SettingsMenu extends BasicGameState{
         // Set background image
         backgroundImage = new Image("textures/Background.png");
         // Create title banner
-        Image bannerImage = new Image("textures/GUI/TextField/UI_Paper_Banner_01_Downward.png");
-        bannerImage.setFilter(Image.FILTER_NEAREST);
+        Image bannerImage = new Image("textures/GUI/TextField/UI_Paper_Banner_01_Downward.png", false, Image.FILTER_NEAREST);
         titleBanner = new Banner(bannerImage, TITLE_STRING, Utils.getFont(MAIN_FONT, 48f), TwoDimensionMath.getMiddleX(720, container.getWidth()), 10, 720, 251);
         titleBanner.changeYOffset(120f);
         // Load button images
-        Image buttonImage = new Image("textures/GUI/TextField/UI_Paper_Textfield_01.png");
-        buttonImage.setFilter(Image.FILTER_NEAREST);
+        Image buttonImage = new Image("textures/GUI/TextField/UI_Paper_Textfield_01.png", false, Image.FILTER_NEAREST);
         // Create menu buttons
         ImageTextButton videoSettings = new ImageTextButton(buttonImage, "Video Settings", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(342, container.getWidth()), 300, 342, 114);
         ImageTextButton soundSettings = new ImageTextButton(buttonImage, "Sound Settings", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(342, container.getWidth()), 450, 342, 114);

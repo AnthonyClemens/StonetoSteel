@@ -1,16 +1,23 @@
 package io.github.anthonyclemens.WorldGen;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.SpriteSheet;
 
+import io.github.anthonyclemens.GameObjects.GameObject;
+import io.github.anthonyclemens.GameObjects.ImageObject;
+import io.github.anthonyclemens.GameObjects.SingleTileObject;
 import io.github.anthonyclemens.Rendering.IsoRenderer;
 
-public class Chunk {
+public class Chunk implements Serializable {
     private final int chunkSize;
     private final int[][] tiles;
     private List<GameObject> gameObjects;
@@ -23,8 +30,8 @@ public class Chunk {
     private final ChunkManager chunkManager;
 
 
-    public Chunk(int chunkSize, Biome biome, ChunkManager chunkManager, int chunkX, int chunkY) throws SlickException {
-        this.rand = new Random();
+    public Chunk(int chunkSize, Biome biome, ChunkManager chunkManager, int chunkX, int chunkY, int seed) throws SlickException {
+        this.rand = new Random(seed);
         this.chunkSize = chunkSize;
         this.tiles = new int[chunkSize][chunkSize];
         this.gameObjects = new ArrayList<>();
@@ -93,7 +100,7 @@ public class Chunk {
         return null;
     }
 
-    private Biome getNeighborBiome(int offsetX, int offsetY) {
+    public Biome getNeighborBiome(int offsetX, int offsetY) {
         int neighborChunkX = this.chunkX + offsetX;
         int neighborChunkY = this.chunkY + offsetY;
 
@@ -105,7 +112,7 @@ public class Chunk {
         return switch (biome) {
             case DESERT ->rand.nextInt(2)+4;// Sand
             case BEACH ->rand.nextInt(2)+4;// Sand
-            case PLAINS ->rand.nextInt(4);// Grass
+            case PLAINS -> rand.nextBoolean() ? rand.nextInt(4) : rand.nextInt(4) + 10; // Grass
             case WATER ->rand.nextInt(2)+23;// Water
             case MOUNTAIN ->rand.nextInt(8)+50;// Rocks
             case SWAMP ->rand.nextInt(2)+6;// Dirt, mud
@@ -185,7 +192,7 @@ public class Chunk {
 
     public void render(IsoRenderer r) {
         for (GameObject obj : gameObjects) {
-            obj.renderBatch(r);
+            obj.render(r);
         }
     }
 
@@ -195,13 +202,61 @@ public class Chunk {
 
     private void generateGameObjects() throws SlickException {
         switch (biome) {
-                case DESERT -> this.addGameObjects(Biome.generateDesertObjects(this.rand, this.chunkX, this.chunkY, this.chunkSize));
-                case PLAINS ->{}
-                case WATER -> {}//this.addGameObjects(Biome.generateWaterObjects(this.rand, this.chunkX, this.chunkY, this.chunkSize));
+                case DESERT -> this.addGameObjects(generateDesertObjects(this.rand, this.chunkX, this.chunkY, this.chunkSize));
+                case PLAINS -> this.addGameObjects(generatePlainsObjects(this.rand, this.chunkX, this.chunkY, this.chunkSize));
+                case WATER -> this.addGameObjects(generateWaterObjects(this.rand, this.chunkX, this.chunkY, this.chunkSize));
                 case MOUNTAIN ->{}
                 case SWAMP ->{}
                 default -> {}
         }
+    }
+
+
+    private List<GameObject> generateDesertObjects(Random rand, int chunkX, int chunkY, int chunkSize) {
+        List<GameObject> gobs = new ArrayList<>();
+        double probability = 0.02;
+        for (int y = 0; y < chunkSize-1; y++) {
+            for (int x = 0; x < chunkSize-1; x++) {
+                if(rand.nextFloat() < probability){
+                    gobs.add(new SingleTileObject(9, x, y, chunkX, chunkY, "cactus"));// Place a cactus
+                }
+            }
+        }
+        return gobs;
+    }
+
+    private List<GameObject> generateWaterObjects(Random rand, int chunkX, int chunkY, int chunkSize) throws SlickException {
+        List<GameObject> gobs = new ArrayList<>();
+        SpriteSheet fishes = new SpriteSheet("textures/Organisms/fish.png",16,16);
+        double probability = 0.02;
+        for (int y = 0; y < chunkSize-1; y++) {
+            for (int x = 0; x < chunkSize-1; x++) {
+                if(rand.nextFloat() < probability){
+                    Image fish = fishes.getSprite(rand.nextInt(fishes.getHorizontalCount()), 0);
+                    gobs.add(new ImageObject(fish, x, y, chunkX, chunkY, "fish"));// Place a fish
+                }
+            }
+        }
+        return gobs;
+    }
+
+    private List<GameObject> generatePlainsObjects(Random rand, int chunkX, int chunkY, int chunkSize) throws SlickException {
+        List<GameObject> gobs = new ArrayList<>();
+        double probability = 0.02;
+        SpriteSheet trees = new SpriteSheet("textures/World/16x32.png", 16, 32);
+        for (int y = 0; y < chunkSize-1; y++) {
+            for (int x = 0; x < chunkSize-1; x++) {
+                if(rand.nextFloat() < probability){
+                    Image tree = trees.getSprite(rand.nextInt(trees.getHorizontalCount()), rand.nextInt(trees.getVerticalCount()));
+                    gobs.add(new ImageObject(tree, x, y, chunkX, chunkY, "tree"));// Place a tree
+                }
+            }
+        }
+        return gobs;
+    }
+
+    public int getTile(int x, int y) {
+        return tiles[x][y];
     }
 
 }

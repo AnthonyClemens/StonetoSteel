@@ -7,6 +7,7 @@ import java.util.List;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.TrueTypeFont;
@@ -18,11 +19,12 @@ import io.github.anthonyclemens.GUI.Fields.NumberField;
 import io.github.anthonyclemens.GUI.Fields.TextField;
 import io.github.anthonyclemens.GUI.GUIElement;
 import io.github.anthonyclemens.Math.TwoDimensionMath;
+import io.github.anthonyclemens.Rendering.RenderUtils;
 import io.github.anthonyclemens.Settings;
 
 public class NewGame extends BasicGameState{
     //Variables
-    private Settings settings;
+    private Image backgroundImage;
     private Input input;
     private ColorTextButton[] sectionButtons;
     private final List<GUIElement> fields = new ArrayList<>();
@@ -46,7 +48,6 @@ public class NewGame extends BasicGameState{
     @Override
     public void enter(GameContainer container, StateBasedGame game){
         input = container.getInput();
-        settings = Settings.getInstance();
         //Create the Options Tabs
         sectionButtons = new ColorTextButton[menuOptions.length];
         for(int i=0; i<menuOptions.length; i++){
@@ -89,11 +90,13 @@ public class NewGame extends BasicGameState{
 
     @Override
     public void init(GameContainer container, StateBasedGame game) throws SlickException {
+        // Set background image
+        backgroundImage = new Image("textures/Background.png");
     }
 
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
-        g.setBackground(Color.gray);
+        RenderUtils.drawBackground(backgroundImage,container);
         titleF.drawString(titleX, 100, TITLE_STRING, Color.black);
 
         for(GUIElement gui: fields){

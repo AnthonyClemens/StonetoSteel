@@ -1,10 +1,12 @@
 package io.github.anthonyclemens.Rendering;
 
+import java.io.Serializable;
+
 import org.newdawn.slick.Input;
 
 import io.github.anthonyclemens.Player.Player;
 
-public class Camera {
+public class Camera implements Serializable{
     private float x;
     private float y;
 

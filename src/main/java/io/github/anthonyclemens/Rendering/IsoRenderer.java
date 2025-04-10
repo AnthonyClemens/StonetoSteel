@@ -3,64 +3,96 @@ package io.github.anthonyclemens.Rendering;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
-import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
 
+import io.github.anthonyclemens.Player.Player;
 import io.github.anthonyclemens.WorldGen.Chunk;
 import io.github.anthonyclemens.WorldGen.ChunkManager;
 
+/**
+ * The IsoRenderer class is responsible for rendering isometric tiles and chunks
+ * in a game environment. It handles zoom levels, visible chunk calculations,
+ * and rendering logic for different levels of detail (LOD).
+ */
 public class IsoRenderer {
-    private static final int TILE_SIZE = 18;
-    private float zoom;
-    private SpriteSheet tileSheet;
+    private static final int TILE_SIZE = 18; // Size of the tile in pixels
+    private float zoom; // Zoom level for rendering
+    private SpriteSheet tileSheet; // SpriteSheet containing the tile images
     private int offsetX;
     private int offsetY;
-    private final ChunkManager chunkManager;
-    private int[] visibleChunks;
+    private final ChunkManager chunkManager; // Reference to the chunk manager
+    private int[] visibleChunks; // Array to store the visible chunks
+    private boolean firstFrame = true; // Flag to check if it's the first frame
+    private int lastTileType = 0; // Last tile type used for rendering
+    private final GameContainer container; // Reference to the game container
 
-    public IsoRenderer(float zoom, SpriteSheet tileSheet, ChunkManager chunkManager) throws SlickException {
+    public IsoRenderer(float zoom, SpriteSheet tileSheet, ChunkManager chunkManager, GameContainer container){
         this.zoom = zoom;
         this.tileSheet = tileSheet;
         this.chunkManager = chunkManager;
+        this.container = container;
     }
 
     private int getLODLevel() {
-        if (this.zoom > 0.6f) return 0; // High zoom: Full detail (1x1)
-        if (this.zoom <= 0.6f && this.zoom > 0.3) return 1; // Medium zoom: Quarter Chunks
+        if (this.zoom > 1.2f) return 0; // High zoom: Full detail (1x1)
+        if (this.zoom <= 1.2f && this.zoom > 0.6f) return 1; // Medium zoom: Quarter Chunks
         return 2; // Low zoom: Half Chunks
     }
 
     public void update(GameContainer container, float zoom, float cameraX, float cameraY) {
-        if (this.zoom != zoom || this.offsetX != (container.getWidth() / 2) - (int) (cameraX * zoom) || this.offsetY != (container.getHeight() / 2) - (int) (cameraY * zoom)) {
+        if (this.zoom != zoom || this.offsetX != (container.getWidth() / 2) - (int) (cameraX * zoom) || this.offsetY != (container.getHeight() / 2) - (int) (cameraY * zoom) || firstFrame) {
             this.zoom = zoom;
             this.offsetX = (container.getWidth() / 2) - (int) (cameraX * zoom);
             this.offsetY = (container.getHeight() / 2) - (int) (cameraY * zoom);
             this.visibleChunks = getVisibleChunkRange(container);
+            firstFrame=false;
         }
+
     }
 
-    public void render(Graphics g){
-        if(this.visibleChunks==null) return;
+    public void render(Player player){
+        if(this.visibleChunks==null) return; // Skip the rendering process if the visible chunks are not set
         for (int chunkX = this.visibleChunks[0]; chunkX <= this.visibleChunks[2]; chunkX++) {
             for (int chunkY = this.visibleChunks[1]; chunkY <= this.visibleChunks[3]; chunkY++) {
-                renderChunk(chunkX, chunkY, g);
+                renderChunk(chunkX, chunkY); // Render each chunk in the visible range
+            }
+        }
+        float renderRadius = 800*zoom; // Define the radius for rendering in pixels
+        float renderRadiusSquared = renderRadius * renderRadius;
+
+        for (int chunkX = this.visibleChunks[0]; chunkX <= this.visibleChunks[2]; chunkX++) {
+            for (int chunkY = this.visibleChunks[1]; chunkY <= this.visibleChunks[3]; chunkY++) {
+            float chunkCenterX = calculateIsoX(chunkManager.getChunk(chunkX, chunkY).getChunkSize() / 2, 
+                               chunkManager.getChunk(chunkX, chunkY).getChunkSize() / 2, 
+                               chunkX, chunkY);
+            float chunkCenterY = calculateIsoY(chunkManager.getChunk(chunkX, chunkY).getChunkSize() / 2, 
+                               chunkManager.getChunk(chunkX, chunkY).getChunkSize() / 2, 
+                               chunkX, chunkY);
+
+            float dx = chunkCenterX - player.getRenderX();
+            float dy = chunkCenterY - player.getRenderY();
+
+            if ((dx * dx + dy * dy) <= renderRadiusSquared) {
+                this.chunkManager.getChunk(chunkX, chunkY).render(this); // Render the chunk objects
+            }
             }
         }
     }
 
-    private void renderChunk(int chunkX, int chunkY, Graphics g) {
+    private void renderChunk(int chunkX, int chunkY) {
         int blockSize = switch (getLODLevel()) {
             case 0 -> 1; // LOD 0
             case 1 -> 2; // LOD 1
             case 2 -> 8; // LOD 2
             default -> 1;
         };
-        renderChunkWithBlockSize(chunkX, chunkY, blockSize, g);
+        renderChunkWithBlockSize(chunkX, chunkY, blockSize);
     }
 
-    private void renderChunkWithBlockSize(int chunkX, int chunkY, int blockSize, Graphics g) {
+    private void renderChunkWithBlockSize(int chunkX, int chunkY, int blockSize) {
         Chunk chunk = this.chunkManager.getChunk(chunkX, chunkY);
-        if(chunk==null) return;
+        Image block = this.getTile(lastTileType); // Placeholder for the block image
+        if(chunk==null) return; // Skip the rendering process if the chunk is not generated yet
         int lodSize = chunk.getChunkSize() / blockSize;
         this.tileSheet.startUse();
         for (int blockY = 0; blockY < lodSize; blockY++) {
@@ -74,10 +106,13 @@ public class IsoRenderer {
                     ? chunk.getLODTile(0,blockX, blockY) // Full detail for LOD 0
                     : chunk.getLODTile(blockSize == 2 ? 1 : 2, blockX, blockY);
                 // Get the tile image and draw it
-                drawScaledIsoImage(this.getTile(tileType), isoX, isoY, TILE_SIZE * zoom * blockSize, TILE_SIZE * zoom * blockSize);
+                if (tileType != lastTileType) {
+                    lastTileType = tileType;
+                    block = this.getTile(tileType);
+                }
+                drawScaledIsoImage(block, isoX, isoY, TILE_SIZE * zoom * blockSize, TILE_SIZE * zoom * blockSize);
             }
         }
-        chunk.render(this);
         this.tileSheet.endUse();
     }
 
@@ -117,13 +152,13 @@ public class IsoRenderer {
         return new int[]{minChunkX, minChunkY, maxChunkX, maxChunkY};
     }
 
-    private float calculateIsoX(int x, int y, int chunkX, int chunkY) {
+    public float calculateIsoX(int x, int y, int chunkX, int chunkY) {
         int halfTileWidth = (TILE_SIZE / 2);
         int chunkSize = chunkManager.getChunk(chunkX, chunkY).getChunkSize();
         return (((x - y) * halfTileWidth + (chunkX - chunkY) * chunkSize * halfTileWidth) * zoom) + this.offsetX;
     }
 
-    private float calculateIsoY(int x, int y, int chunkX, int chunkY) {
+    public float calculateIsoY(int x, int y, int chunkX, int chunkY) {
         int quarterTileHeight = (TILE_SIZE / 4);
         int chunkSize = chunkManager.getChunk(chunkX, chunkY).getChunkSize();
         return (((x + y) * quarterTileHeight + (chunkX + chunkY) * chunkSize * quarterTileHeight) * zoom) + this.offsetY;
@@ -150,11 +185,15 @@ public class IsoRenderer {
     }
 
     public void drawImageAtCoord(Image i, int xPos, int yPos, int chunkX, int chunkY){
-        i.draw(calculateIsoY(xPos, yPos, chunkX, chunkY), calculateIsoY(xPos, yPos, chunkX, chunkY), this.zoom);
+        i.draw(calculateIsoX(xPos, yPos, chunkX, chunkY), calculateIsoY(xPos, yPos, chunkX, chunkY), this.zoom);
+    }
+
+    public void drawRectangle(int xPos, int yPos, int chunkX, int chunkY, float width, float height) {
+        this.getGraphics().drawRect(calculateIsoX(xPos, yPos, chunkX, chunkY), calculateIsoY(xPos, yPos, chunkX, chunkY), width * zoom, height * zoom);
     }
 
     public void drawImageAtCoordBatch(Image i, int xPos, int yPos, int chunkX, int chunkY){
-        i.drawEmbedded(calculateIsoY(xPos, yPos, chunkX, chunkY), calculateIsoY(xPos, yPos, chunkX, chunkY), this.zoom*TILE_SIZE, this.zoom*TILE_SIZE);
+        i.drawEmbedded(calculateIsoX(xPos, yPos, chunkX, chunkY), calculateIsoY(xPos, yPos, chunkX, chunkY), this.zoom*i.getWidth(), this.zoom*i.getHeight());
     }
 
     public void drawImageAtPosition(Image i, int screenX, int screenY){
@@ -169,6 +208,18 @@ public class IsoRenderer {
 
     public SpriteSheet getTileSheet(){
         return this.tileSheet;
+    }
+
+    public int[] getTileCoords(int tileType){
+        return new int[]{tileType % this.tileSheet.getHorizontalCount(), tileType / this.tileSheet.getHorizontalCount()};
+    }
+
+    public Graphics getGraphics(){
+        return this.container.getGraphics();
+    }
+
+    public float getZoom(){
+        return this.zoom;
     }
 
     //Setters

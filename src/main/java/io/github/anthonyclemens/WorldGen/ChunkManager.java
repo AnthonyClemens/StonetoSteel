@@ -1,26 +1,33 @@
 package io.github.anthonyclemens.WorldGen;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
+import org.newdawn.slick.SlickException;
 import org.newdawn.slick.util.Log;
 
-public class ChunkManager {
+import io.github.anthonyclemens.GameObjects.GameObject;
+import io.github.anthonyclemens.Rendering.IsoRenderer;
+
+public class ChunkManager implements Serializable{
     private static final int CHUNK_SIZE = 16;
-    private final Map<String, Future<Chunk>> chunks = new ConcurrentHashMap<>();
-    private final ExecutorService executor;
+    private final Map<String, Chunk> chunks = new ConcurrentHashMap<>();
     private final int seed;
+    private transient IsoRenderer isoRenderer;
 
     public ChunkManager(int seed) {
-        this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.seed = seed;
-
         Log.info("ChunkManager initialized for infinite world generation with seed: "+seed);
+    }
+
+    public void attachRenderer(IsoRenderer isoRenderer) {
+        this.isoRenderer = isoRenderer;
+    }
+
+    public IsoRenderer getIsoRenderer() {
+        return this.isoRenderer;
     }
 
     public Biome getBiomeForChunk(int chunkX, int chunkY) {
@@ -46,26 +53,19 @@ public class ChunkManager {
         return noiseSum / maxAmplitude; // Normalize the final noise value
     }
 
-    public Chunk getChunk(int chunkX, int chunkY){
+    public Chunk getChunk(int chunkX, int chunkY) {
         String key = chunkX + "," + chunkY;
 
-        Future<Chunk> future = chunks.computeIfAbsent(key, k -> executor.submit(() -> {
+        // Check if the chunk already exists in the map
+        return chunks.computeIfAbsent(key, k -> {
             Biome biome = getBiomeForChunk(chunkX, chunkY);
-            return new Chunk(CHUNK_SIZE, biome, this, chunkX, chunkY);
-        }));
-
-        try {
-            return future.get();
-        } catch (ExecutionException e) {
-            Log.error("Error generating chunk");
-            chunks.remove(key); // Remove the failing entry for retry
-            return null;
-        } catch (InterruptedException e) {
-            Log.error("Error generating chunk");
-            chunks.remove(key); // Remove the failing entry for retry
-            Thread.currentThread().interrupt();
-            return null;
-        }
+            try {
+                return new Chunk(CHUNK_SIZE, biome, this, chunkX, chunkY, this.seed+chunks.size());
+            } catch (SlickException e) {
+                Log.error("Error generating chunk", e);
+                return null; // Return null if chunk generation fails
+            }
+        });
     }
 
     public int[] getBlockAndChunk(int absX, int absY) {
@@ -78,11 +78,11 @@ public class ChunkManager {
         return new int[]{tileX, tileY, chunkX, chunkY};
     }
 
-    public void addGameObject(GameObject obj) {
-        this.getChunk(obj.chunkX, obj.chunkY).addGameObject(obj);
+    public void addGameObject(GameObject obj){
+        this.getChunk(obj.getCX(), obj.getCY()).addGameObject(obj);
     }
 
-    public void addGameObjects(List<GameObject> gobs, int chunkX, int chunkY) {
+    public void addGameObjects(List<GameObject> gobs, int chunkX, int chunkY){
         this.getChunk(chunkX, chunkY).addGameObjects(gobs);
     }
 

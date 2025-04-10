@@ -89,28 +89,52 @@ public class Settings {
         writeToFile("Resolution", resolution);
     }
 
-    public float getMainVolume() {
-        try{
-            return Float.parseFloat(readFromFile("MainVolume"));
-        }catch(Exception e){
-            return 1f;
-        }
-    }
-
     public void setMainVolume(float mainVolume) {
         writeToFile("MainVolume", String.valueOf(mainVolume));
     }
 
-    public void setMusicVolume(float mainVolume) {
-        writeToFile("MusicVolume", String.valueOf(mainVolume));
+    public float getMainVolume() {
+        return getVolume("MainVolume");
+    }
+
+    public void setMusicVolume(float musicVolume) {
+        writeToFile("MusicVolume", String.valueOf(musicVolume));
     }
 
     public float getMusicVolume() {
-        try{
-            return Float.parseFloat(readFromFile("MusicVolume"));
-        }catch(Exception e){
-            return 1f;
-        }
+        return getVolume("MusicVolume");
+    }
+
+    public void setAmbientVolume(float ambientVolume) {
+        writeToFile("AmbientVolume", String.valueOf(ambientVolume));
+    }
+
+    public float getAmbientVolume() {
+        return getVolume("AmbientVolume");
+    }
+
+    public void setPlayerVolume(float playerVolume) {
+        writeToFile("PlayerVolume", String.valueOf(playerVolume));
+    }
+
+    public float getPlayerVolume() {
+        return getVolume("PlayerVolume");
+    }
+
+    public void setFriendlyVolume(float friendlyVolume) {
+        writeToFile("FriendlyVolume", String.valueOf(friendlyVolume));
+    }
+
+    public float getFriendlyVolume() {
+        return getVolume("FriendlyVolume");
+    }
+
+    public void setEnemyVolume(float enemyVolume) {
+        writeToFile("EnemyVolume", String.valueOf(enemyVolume));
+    }
+
+    public float getEnemyVolume() {
+        return getVolume("EnemyVolume");
     }
 
     public String getUpKey() {
@@ -205,4 +229,11 @@ public class Settings {
         }
     }
 
+    private float getVolume(String category){
+        try{
+            return Float.parseFloat(readFromFile(category));
+        }catch(Exception e){
+            return 1f;
+        }
+    }
 }

@@ -133,10 +133,7 @@ public class VideoSettings extends BasicGameState{
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
         RenderUtils.drawBackground(backgroundImage, container); // Render the background to fit screen (no stretching)
         titleBanner.render(g); // Render the Title banner
-        for(ImageTextButton itb : menuButtons){ itb.render(g); }
-        for(Banner bg : bgBanners){ bg.render(g); }
-        for(Carousel c : carousels){ c.render(g); }
-        for(ToggleButton tb : toggleButtons){ tb.render(g); }
+        List.of(menuButtons, bgBanners, carousels, toggleButtons).forEach(list -> list.forEach(item -> item.render(g)));
     }
 
     @Override
@@ -150,7 +147,7 @@ public class VideoSettings extends BasicGameState{
                 switch(itb.getText()){ // Figure out what button was pressed
                     case "Apply"->{
                         applySettings(container);
-                        game.enterState(10);
+                        game.enterState(this.getID());
                     }
                     case "Back"->game.enterState(1);
                 }

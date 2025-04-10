@@ -1,10 +1,12 @@
 package io.github.anthonyclemens.Logic;
 
+import java.io.Serializable;
+
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 
-public class DayNightCycle {
+public class DayNightCycle implements Serializable{
     private float timeOfDay = 8.0f; // Initial time of day (8AM)
     private final Calender calender;
     private final float totalCycleSeconds;

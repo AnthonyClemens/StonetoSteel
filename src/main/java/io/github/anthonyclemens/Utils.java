@@ -4,6 +4,8 @@ import java.awt.Font;
 import java.awt.FontFormatException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.newdawn.slick.TrueTypeFont;
 import org.newdawn.slick.util.Log;
@@ -23,6 +25,14 @@ public class Utils {
             Log.error(e);
         }
         return null;
+    }
+
+    public static List<String> getFilePaths(String prefix, int start, int end){
+        List<String> paths = new ArrayList<>();
+        for(int i = start; i < end; i++){
+            paths.add(prefix+String.format("%01d", i)+".ogg");
+        }
+        return paths;
     }
 
 }

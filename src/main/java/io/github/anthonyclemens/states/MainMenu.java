@@ -43,18 +43,16 @@ public class MainMenu extends BasicGameState{
     public void enter(GameContainer container, StateBasedGame game) throws SlickException {
         Settings settings = Settings.getInstance();
         // Load music and play menu music
-        menuJukeBox.setVolume(settings.getMusicVolume());
         menuJukeBox.playRandomSong("menu");
+        menuJukeBox.setVolume(settings.getMainVolume()*settings.getMusicVolume());
         // Set background image
         backgroundImage = new Image("textures/Background.png");
         // Create title banner
-        Image bannerImage = new Image("textures/GUI/TextField/UI_Paper_Banner_01_Downward.png");
-        bannerImage.setFilter(Image.FILTER_NEAREST);
+        Image bannerImage = new Image("textures/GUI/TextField/UI_Paper_Banner_01_Downward.png", false, Image.FILTER_NEAREST);
         titleBanner = new Banner(bannerImage, TITLE_STRING, Utils.getFont(MAIN_FONT, 60f), TwoDimensionMath.getMiddleX(792, container.getWidth()), 10, 820, 280);
         titleBanner.changeYOffset(120f);
         // Load button images
-        Image buttonImage = new Image("textures/GUI/TextField/UI_Paper_Textfield_01.png");
-        buttonImage.setFilter(Image.FILTER_NEAREST);
+        Image buttonImage = new Image("textures/GUI/TextField/UI_Paper_Textfield_01.png", false, Image.FILTER_NEAREST);
         // Create menu buttons
         ImageTextButton startGame = new ImageTextButton(buttonImage, "Start Game", Utils.getFont(MAIN_FONT, 36f), TwoDimensionMath.getMiddleX(311, container.getWidth()), 300, 311, 104);
         ImageTextButton options = new ImageTextButton(buttonImage, "Options", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(248, container.getWidth()), 420, 248, 82);

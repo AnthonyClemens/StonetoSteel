@@ -1,6 +1,8 @@
 package io.github.anthonyclemens.Logic;
 
-public class Calender {
+import java.io.Serializable;
+
+public class Calender implements Serializable{
     private int day;
     private int month;
     private int year;

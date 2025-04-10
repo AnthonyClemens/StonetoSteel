@@ -83,6 +83,7 @@ public class JukeBox {
 
     public void setVolume(float volume){
         this.volume=volume;
+        if(currentMusic!=null) currentMusic.setVolume(volume);
     }
 
     public String findSongPath(Music song) {
