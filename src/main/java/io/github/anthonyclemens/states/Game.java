@@ -335,7 +335,7 @@ public class Game extends BasicGameState{
                     float overlapY = player.getHitbox().getCenterY() - gob.getHitbox().getCenterY();
 
                     // Smoothly resolve collision by adjusting position incrementally
-                    float adjustmentFactor = 0.4f; // Smaller values make the adjustment smoother
+                    float adjustmentFactor = 0.6f; // Smaller values make the adjustment smoother
                     if (Math.abs(overlapX) > Math.abs(overlapY)) {
                         player.setX(player.getX() + (overlapX > 0 ? adjustmentFactor : -adjustmentFactor));
                     } else {

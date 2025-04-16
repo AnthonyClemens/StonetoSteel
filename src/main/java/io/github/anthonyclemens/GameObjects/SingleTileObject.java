@@ -1,7 +1,6 @@
 package io.github.anthonyclemens.GameObjects;
 
 import org.newdawn.slick.Color;
-import org.newdawn.slick.geom.Rectangle;
 
 import io.github.anthonyclemens.Rendering.IsoRenderer;
 import io.github.anthonyclemens.states.Game;
