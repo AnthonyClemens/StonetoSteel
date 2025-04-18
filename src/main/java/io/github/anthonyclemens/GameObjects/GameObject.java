@@ -5,24 +5,24 @@ import java.io.Serializable;
 import org.newdawn.slick.geom.Rectangle;
 
 import io.github.anthonyclemens.Rendering.IsoRenderer;
-import io.github.anthonyclemens.WorldGen.Biome;
 
 public abstract class GameObject implements Serializable{
     protected int x;
     protected int y;
     protected int chunkX;
     protected int chunkY;
-    protected Biome biome;
     protected String name;
     protected Rectangle hitbox;
+    protected String tileSheet;
 
-    protected GameObject(int x, int y, int chunkX, int chunkY, String name) {
+    protected GameObject(String tileSheet, int x, int y, int chunkX, int chunkY, String objName) {
         this.x = x;
         this.y = y;
         this.chunkX=chunkX;
         this.chunkY=chunkY;
-        this.name=name;
-        this.hitbox = new Rectangle(x, y, IsoRenderer.getTileSize(), IsoRenderer.getTileSize());
+        this.name=objName;
+        this.tileSheet = tileSheet;
+        this.hitbox = new Rectangle(0,0,0,0);
     }
 
     public int getX() {
@@ -31,10 +31,6 @@ public abstract class GameObject implements Serializable{
 
     public int getY() {
         return this.y;
-    }
-
-    public Biome getBiome(){
-        return this.biome;
     }
 
     public String getName(){
@@ -53,7 +49,16 @@ public abstract class GameObject implements Serializable{
         return this.hitbox;
     }
 
+    public String getTileSheetName(){
+        return this.tileSheet;
+    }
+
+    public void calculateHitbox(float zoom) {
+        // Calculate the hitbox based on the object's position and size
+        this.hitbox.setBounds(x * zoom, y * zoom, hitbox.getWidth(), hitbox.getHeight());
+    }
+
     public abstract void render(IsoRenderer r);
 
-    public abstract void renderBatch(IsoRenderer r);
+    public abstract void update(IsoRenderer r, int deltaTime);
 }

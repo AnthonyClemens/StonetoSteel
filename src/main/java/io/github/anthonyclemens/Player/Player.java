@@ -2,14 +2,14 @@ package io.github.anthonyclemens.Player;
 
 import java.util.List;
 
-import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
+import org.newdawn.slick.geom.Rectangle;
 
 import io.github.anthonyclemens.Settings;
-import io.github.anthonyclemens.Utils;
 import io.github.anthonyclemens.Sound.SoundBox;
+import io.github.anthonyclemens.Utils;
 import io.github.anthonyclemens.states.Game;
 
 public class Player {
@@ -17,6 +17,10 @@ public class Player {
     private float y;
     private float dx;
     private float dy;
+    private float previousX; // Previous X position
+    private float previousY; // Previous Y position
+    private int health; // Player health
+    private int maxHealth; // Maximum health
     private final float defaultSpeed; // Default movement speed
     private int direction; // Current look direction
     private boolean cameraLocked = true; // Lock camera to player when true
@@ -39,6 +43,8 @@ public class Player {
         Settings settings = Settings.getInstance(); // Get settings instance
         this.x = startX;
         this.y = startY;
+        this.health = 100; // Initialize health
+        this.maxHealth = 100; // Initialize max health
         this.defaultSpeed = speed;
         this.animations = animations;
         this.idleAnimations = idleAnimations;
@@ -55,6 +61,8 @@ public class Player {
     }
 
     public void update(Input input, int delta, int tile) {
+        previousX = x; // Store current X position as previous
+        previousY = y; // Store current Y position as previous
         dx = 0;
         dy = 0;
         float speed = this.defaultSpeed;
@@ -186,6 +194,14 @@ public class Player {
         return renderY;
     }
 
+    public float getPreviousX() {
+        return previousX; // Get previous X position
+    }
+
+    public float getPreviousY() {
+        return previousY; // Get previous Y position
+    }
+
     public void setX(float newX) {
         this.x = newX; // Set player X position
     }
@@ -200,5 +216,33 @@ public class Player {
 
     public float getSpeed(){
         return this.defaultSpeed; // Get player speed
+    }
+
+    public int getHealth() {
+        return health; // Get player health
+    }
+
+    public void addHealth(int add) {
+        if(this.health+add > this.maxHealth){
+            this.health = this.maxHealth; // Set player health to max if it exceeds
+        } else {
+            this.health += add; // Add health to player
+        }
+    }
+
+    public void subtractHealth(int subtract) {
+        if(this.health-subtract < 0){
+            this.health = 0; // Set player health to max if it exceeds
+        } else {
+            this.health -= subtract; // Add health to player
+        }
+    }
+
+    public int getMaxHealth() {
+        return maxHealth; // Get player max health
+    }
+
+    public void setMaxHealth(int maxHealth) {
+        this.maxHealth = maxHealth; // Set player max health
     }
 }

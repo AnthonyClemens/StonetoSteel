@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.newdawn.slick.SlickException;
 import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.GameObjects.GameObject;
@@ -59,12 +58,7 @@ public class ChunkManager implements Serializable{
         // Check if the chunk already exists in the map
         return chunks.computeIfAbsent(key, k -> {
             Biome biome = getBiomeForChunk(chunkX, chunkY);
-            try {
-                return new Chunk(CHUNK_SIZE, biome, this, chunkX, chunkY, this.seed+chunks.size());
-            } catch (SlickException e) {
-                Log.error("Error generating chunk", e);
-                return null; // Return null if chunk generation fails
-            }
+            return new Chunk(CHUNK_SIZE, biome, this, chunkX, chunkY, this.seed+chunks.size());
         });
     }
 

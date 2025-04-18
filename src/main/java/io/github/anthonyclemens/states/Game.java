@@ -1,10 +1,5 @@
 package io.github.anthonyclemens.states;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,7 +7,6 @@ import java.util.Random;
 
 import org.lwjgl.Sys;
 import org.newdawn.slick.Animation;
-import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
@@ -22,21 +16,24 @@ import org.newdawn.slick.SpriteSheet;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.InputAdapter;
-import org.newdawn.slick.util.Log;
 
-import io.github.anthonyclemens.GameObjects.GameObject;
+import io.github.anthonyclemens.GameObjects.MultiTileObject;
 import io.github.anthonyclemens.Logic.Calender;
 import io.github.anthonyclemens.Logic.DayNightCycle;
 import io.github.anthonyclemens.Player.Player;
 import io.github.anthonyclemens.Rendering.Camera;
 import io.github.anthonyclemens.Rendering.IsoRenderer;
+import io.github.anthonyclemens.Rendering.SpriteManager;
 import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.SharedData;
 import io.github.anthonyclemens.Sound.JukeBox;
 import io.github.anthonyclemens.Sound.SoundBox;
-import io.github.anthonyclemens.WorldGen.Biome;
-import io.github.anthonyclemens.WorldGen.Chunk;
 import io.github.anthonyclemens.WorldGen.ChunkManager;
+import io.github.anthonyclemens.utils.AmbientSoundManager;
+import io.github.anthonyclemens.utils.CollisionHandler;
+import io.github.anthonyclemens.utils.DebugGUI;
+import io.github.anthonyclemens.utils.DisplayHUD;
+import io.github.anthonyclemens.utils.SaveLoadManager;
 
 public class Game extends BasicGameState{
 
@@ -47,12 +44,9 @@ public class Game extends BasicGameState{
     private boolean dragging = false;
     private float lastMouseX;
     private float lastMouseY;
-    private boolean dayNightSwitch = true;
-    private Biome lastBiome = null;
 
     // Game Constants
     private Image backgroundImage;
-    private SpriteSheet tileSheet;
     private static final int TILE_WIDTH = 18;
     private static final int TILE_HEIGHT = 18;
 
@@ -78,6 +72,12 @@ public class Game extends BasicGameState{
     private final List<String> waterSounds = new ArrayList<>(Arrays.asList("sounds/Water/flowingwater.ogg"));
     private final List<String> beachSounds = new ArrayList<>(Arrays.asList("sounds/Beach/waves.ogg"));
 
+    private CollisionHandler collisionHandler;
+    private DebugGUI debugGUI;
+    private DisplayHUD displayHUD;
+    private AmbientSoundManager ambientSoundManager;
+    private SaveLoadManager saveLoadManager;
+
     @Override
     public int getID() {
         return 99;
@@ -94,7 +94,7 @@ public class Game extends BasicGameState{
             Random r = new Random(Sys.getTime());
             chunkManager = new ChunkManager(r.nextInt());
         }
-        renderer = new IsoRenderer(zoom, tileSheet, chunkManager, container);
+        renderer = new IsoRenderer(zoom, "main", chunkManager, container);
         chunkManager.attachRenderer(renderer);
         SpriteSheet playerSheet = new SpriteSheet("textures/Player/test.png", 16, 17);
         // Define animations for the player
@@ -126,11 +126,29 @@ public class Game extends BasicGameState{
         ambientSoundBox.setVolume(settings.getMainVolume()*settings.getAmbientVolume());
         jukeBox.setVolume(settings.getMainVolume()*settings.getMusicVolume());
         player.setVolume(settings.getMainVolume()*settings.getPlayerVolume());
+        MultiTileObject test = new MultiTileObject("main", 8, 8, 0, 0, "test");
+        test.addBlock(30, 2, 2, 0);
+        test.addBlock(30, 2, 2, 1);
+        test.addBlock(30, 2, 2, 2);
+        test.addBlock(40, 2, 2, 4);
+        test.addBlock(40, 3, 2, 3);
+        test.addBlock(40, 3, 3, 3);
+        test.addBlock(40, 2, 3, 3);
+        test.addBlock(40, 1, 3, 3);
+        test.addBlock(40, 1, 1, 3);
+        test.addBlock(40, 1, 2, 3);
+        test.addBlock(40, 2, 1, 3);
+        test.addBlock(40, 3, 3, 3);
+        test.addBlock(40, 3, 1, 3);
+        chunkManager.addGameObject(test);
     }
 
     @Override
     public void init(GameContainer container, StateBasedGame game) throws SlickException {
-        tileSheet = new SpriteSheet("textures/World/18x18.png", TILE_WIDTH, TILE_HEIGHT);
+        SpriteManager.addSpriteSheet("main", "textures/World/18x18.png", TILE_WIDTH, TILE_HEIGHT);
+        SpriteManager.addSpriteSheet("fishes", "textures/Organisms/fish.png", 16, 16);
+        SpriteManager.addSpriteSheet("bigtrees", "textures/World/48x48.png", 48, 48);
+        SpriteManager.addSpriteSheet("smalltrees", "textures/World/16x32.png", 16, 32);
         container.getInput().addMouseListener(new InputAdapter() {
             //Drag
             @Override
@@ -165,32 +183,41 @@ public class Game extends BasicGameState{
         ambientSoundBox = new SoundBox();
         ambientSoundBox.addSounds("plainsSounds", plainsSounds);
         ambientSoundBox.addSounds("desertSounds", desertSounds);
-        ambientSoundBox.addSounds("plainsSounds", plainsSounds);
         ambientSoundBox.addSounds("waterSounds", waterSounds);
         ambientSoundBox.addSounds("beachSounds", beachSounds);
         ambientSoundBox.addSounds("nightSounds", nightSounds);
 
         this.backgroundImage = new Image("textures/MissingTexture.png");
+
+        collisionHandler = new CollisionHandler();
+        debugGUI = new DebugGUI();
+        displayHUD = new DisplayHUD();
+        ambientSoundManager = new AmbientSoundManager(renderer, jukeBox, ambientSoundBox);
+        saveLoadManager = new SaveLoadManager();
     }
 
     @Override
     public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
         Input input = container.getInput();
         int[] playerLoc = renderer.screenToIsometric(player.getRenderX(), player.getRenderY());
-        int playerBlock = renderer.getChunkManager().getChunk(playerLoc[2], playerLoc[3]).getTile(playerLoc[0], playerLoc[1]);
+        ChunkManager chunkManager = renderer.getChunkManager();
+
         env.updateDayNightCycle(delta);
-        playAmbientMusic();
-        playAmbientSounds(env);
+        ambientSoundManager.playAmbientMusic(env);
+        ambientSoundManager.playAmbientSounds(env, player, renderer);
+
         updateKeyboard(game, delta, input, container);
         updateMouse(input);
-        player.update(input, delta, playerBlock);
-        checkCollision(player, renderer.getChunkManager().getChunk(playerLoc[2], playerLoc[3]));
-        camera.update(player, input, cameraX, cameraY);
-        cameraX=camera.getX();
-        cameraY=camera.getY();
-        renderer.update(container, zoom, camera.getX(), camera.getY());
-    }
+        player.update(input, delta, chunkManager.getChunk(playerLoc[2], playerLoc[3]).getTile(playerLoc[0], playerLoc[1]));
+        collisionHandler.checkCollision(player, chunkManager.getChunk(playerLoc[2], playerLoc[3]));
 
+        camera.update(player, input, cameraX, cameraY);
+        cameraX = camera.getX();
+        cameraY = camera.getY();
+
+        renderer.update(container, zoom, cameraX, cameraY);
+        renderer.updateVisibleChunks(delta);
+    }
 
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
@@ -198,10 +225,9 @@ public class Game extends BasicGameState{
         renderer.render(player);
         player.render(container, zoom, camera.getX(), camera.getY());
         env.renderOverlay(container, g);
-        displayHUD(container, g);
-        if (showDebug) debugGUI(g, container);
+        displayHUD.renderHUD(container, g, calender, env);
+        if (showDebug) debugGUI.renderDebugGUI(g, container, renderer, player, zoom);
     }
-
 
     private void updateKeyboard(StateBasedGame game, int delta, Input input, GameContainer container) throws SlickException{
         if (input.isKeyDown(Input.KEY_LEFT)) cameraX -= delta * 0.1f * zoom;
@@ -210,14 +236,20 @@ public class Game extends BasicGameState{
         if (input.isKeyDown(Input.KEY_DOWN)) cameraY += delta * 0.1f * zoom;
         if (input.isKeyPressed(Input.KEY_ESCAPE)) game.enterState(0);
         if (input.isKeyPressed(Input.KEY_F3)) showDebug=!showDebug;
-        if (input.isKeyPressed(Input.KEY_F7)) saveGame();
-        if (input.isKeyPressed(Input.KEY_F8)) loadGame(container);
+        if (input.isKeyPressed(Input.KEY_F7)) saveLoadManager.saveGame("save.dat", env, renderer.getChunkManager(), camera, player);
+        if (input.isKeyPressed(Input.KEY_F8)) {
+            saveLoadManager.loadGame("save.dat", container, renderer, player);
+            // Reassign variables after loading
+            renderer = saveLoadManager.getRenderer();
+            camera = saveLoadManager.getCamera();
+            player = saveLoadManager.getPlayer();
+            env = saveLoadManager.getDayNightCycle();
+        }
         if (input.isKeyPressed(Input.KEY_F11)){
             boolean toggleFullscreen = !game.getContainer().isFullscreen();
             game.getContainer().setFullscreen(toggleFullscreen);
         }
     }
-
 
     private void updateMouse(Input input){
         // Handle mouse dragging
@@ -236,126 +268,6 @@ public class Game extends BasicGameState{
             // Update the last mouse position
             lastMouseX = currentMouseX;
             lastMouseY = currentMouseY;
-        }
-    }
-
-
-    private void debugGUI(Graphics g, GameContainer container){
-        //Debug GUI
-        Input input = container.getInput();
-        g.setColor(Color.black);
-        int[] selectedBlock = renderer.screenToIsometric(player.getRenderX(), player.getRenderY());
-        g.drawString("FPS: "+container.getFPS(),10,20);
-        g.drawString("Mouse: "+input.getMouseX()+", "+input.getMouseY(),10,40);
-        g.drawString("Tile: "+selectedBlock[0]+", "+selectedBlock[1],10,60);
-        g.drawString("Chunk: "+selectedBlock[2]+", "+selectedBlock[3],10,80);
-        g.drawString("Zoom level: "+Math.round(zoom*100.0)/100.0+"x", 10, 100);
-        g.drawString("Biome: "+renderer.getChunkManager().getBiomeForChunk(selectedBlock[2],selectedBlock[3]),10,120);
-    }
-
-    private void displayHUD(GameContainer c, Graphics g) {
-        g.setColor(Color.black);
-        g.drawString("Date: "+calender.toString(),c.getWidth()-200f,0);
-        g.drawString("Time: "+env.toString(),c.getWidth()-200f,16);
-    }
-
-    private void playAmbientMusic(){
-        if (env.isSunDown()) {
-            if (!dayNightSwitch) { // Transition to night
-                Log.debug("Switching to night music...");
-                jukeBox.playRandomSong("nightMusic");
-                dayNightSwitch = true; // Set the flag to indicate it's night
-            }
-        } else {
-            if (dayNightSwitch) { // Transition to day
-                Log.debug("Switching to day music...");
-                jukeBox.playRandomSong("dayMusic");
-                dayNightSwitch = false; // Set the flag to indicate it's day
-            }
-        }
-    }
-
-    private void playAmbientSounds(DayNightCycle dnc) {
-        int[] playerBlock = renderer.screenToIsometric(player.getRenderX(), player.getRenderY());
-        if(dnc.isSunDown()&&!ambientSoundBox.isAnySoundPlaying()){
-            ambientSoundBox.playRandomSound("nightSounds");
-        }
-        Biome currentBiome = renderer.getChunkManager().getBiomeForChunk(playerBlock[2], playerBlock[3]);
-        if (lastBiome != currentBiome) {
-            lastBiome = currentBiome;
-            ambientSoundBox.stopAllSounds();
-        }
-        if(dnc.isSunUp()&&!ambientSoundBox.isAnySoundPlaying()){
-            switch (renderer.getChunkManager().getBiomeForChunk(playerBlock[2],playerBlock[3])) {
-                    case DESERT -> ambientSoundBox.playRandomSound("desertSounds");
-                    case PLAINS -> ambientSoundBox.playRandomSound("plainsSounds");
-                    case WATER -> ambientSoundBox.playRandomSound("waterSounds");
-                    case MOUNTAIN ->{}
-                    case SWAMP ->{}
-                    case BEACH -> ambientSoundBox.playRandomSound("beachSounds");
-            }
-        }
-    }
-
-    private void saveGame() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("save.dat"))) {
-            oos.writeObject(env);
-            oos.writeObject(renderer.getChunkManager());
-            oos.writeObject(camera);
-            oos.writeFloat(player.getX());
-            oos.writeFloat(player.getY());
-        } catch (IOException e) {
-            Log.error("Failed to save game: " + e.getMessage());
-        }
-        Log.debug("Game saved.");
-    }
-
-    private void loadGame(GameContainer container) {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("save.dat"))) {
-            env = (DayNightCycle) ois.readObject();
-            ChunkManager newChunkManager = (ChunkManager) ois.readObject();
-            renderer = new IsoRenderer(zoom, tileSheet, newChunkManager, container);
-            newChunkManager.attachRenderer(renderer);
-            camera = (Camera) ois.readObject();
-            player.setX(ois.readFloat());
-            player.setY(ois.readFloat());
-        } catch (IOException | ClassNotFoundException e) {
-            Log.error("Failed to load game: " + e.getMessage());
-        }
-        Log.debug("Game loaded.");
-    }
-
-    private void checkCollision(Player player, Chunk currentChunk) {
-        // Check collision with game objects
-        try {
-            for (GameObject gob : currentChunk.getGameObjects()) {
-                if (gob.getHitbox().intersects(player.getHitbox())) {
-                    // Calculate overlap
-                    float overlapX = player.getHitbox().getCenterX() - gob.getHitbox().getCenterX();
-                    float overlapY = player.getHitbox().getCenterY() - gob.getHitbox().getCenterY();
-
-                    // Smoothly resolve collision by adjusting position incrementally
-                    float adjustmentFactor = 0.6f; // Smaller values make the adjustment smoother
-                    if (Math.abs(overlapX) > Math.abs(overlapY)) {
-                        player.setX(player.getX() + (overlapX > 0 ? adjustmentFactor : -adjustmentFactor));
-                    } else {
-                        player.setY(player.getY() + (overlapY > 0 ? adjustmentFactor : -adjustmentFactor));
-                    }
-
-                    // Handle specific interactions based on the game object's name
-                    switch (gob.getName()) {
-                        case "cactus":
-                            //player.takeDamage(10); // Inflict damage to the player
-                            Log.debug("Player took damage from cactus!");
-                            break;
-                        default:
-                            Log.debug("Collision detected with game object: " + gob.getName());
-                            break;
-                    }
-                }
-            }
-        } catch (NullPointerException e) {
-            Log.error("Error checking collision: " + e.getMessage());
         }
     }
 }
