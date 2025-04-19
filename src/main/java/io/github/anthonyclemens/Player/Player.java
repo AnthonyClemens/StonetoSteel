@@ -73,7 +73,7 @@ public class Player {
 
         if (dx != 0 || dy != 0) {
             normalizeAndMove(delta, speed);
-            updateDirection(dx, dy);
+            direction = updateDirection(dx, dy);
             animations[direction].start(); // Play movement animation
             playMovementSound(block, speed);
         } else {
@@ -131,15 +131,16 @@ public class Player {
         }
     }
 
-    private void updateDirection(float dx, float dy) {
-        if (dx == 0 && dy < 0) direction = 0; // Up
-        else if (dx > 0 && dy < 0) direction = 1; // Up-right
-        else if (dx > 0 && dy == 0) direction = 2; // Right
-        else if (dx > 0 && dy > 0) direction = 3; // Down-right
-        else if (dx == 0 && dy > 0) direction = 4; // Down
-        else if (dx < 0 && dy > 0) direction = 5; // Down-left
-        else if (dx < 0 && dy == 0) direction = 6; // Left
-        else if (dx < 0 && dy < 0) direction = 7; // Up-left
+    public int updateDirection(float dx, float dy) {
+        if (dx == 0 && dy < 0) return 0; // Up
+        else if (dx > 0 && dy < 0) return 1; // Up-right
+        else if (dx > 0 && dy == 0) return 2; // Right
+        else if (dx > 0 && dy > 0) return 3; // Down-right
+        else if (dx == 0 && dy > 0) return 4; // Down
+        else if (dx < 0 && dy > 0) return 5; // Down-left
+        else if (dx < 0 && dy == 0) return 6; // Left
+        else if (dx < 0 && dy < 0) return 7; // Up-left
+        return 0;
     }
 
     public void render(GameContainer container, float zoom, float cameraX, float cameraY) {
@@ -244,5 +245,13 @@ public class Player {
 
     public void setMaxHealth(int maxHealth) {
         this.maxHealth = maxHealth; // Set player max health
+    }
+
+    public void setPreviousX(float newX){
+        this.previousX=newX;
+    }
+
+    public void setPreviousY(float newY){
+        this.previousY=newY;
     }
 }

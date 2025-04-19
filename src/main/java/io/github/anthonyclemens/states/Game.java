@@ -174,7 +174,7 @@ public class Game extends BasicGameState{
             }
         });
         calender = new Calender(16, 3, 2025);
-        env = new DayNightCycle(2f, 6f, 19f, calender);
+        env = new DayNightCycle(4f, 6f, 19f, calender);
 
         jukeBox = new JukeBox();
         jukeBox.addSongs("dayMusic", dayMusic);

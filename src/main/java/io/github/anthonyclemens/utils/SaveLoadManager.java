@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.util.Log;
@@ -24,7 +26,9 @@ public class SaveLoadManager {
     private Player loadedPlayer;
 
     public void saveGame(String filePath, DayNightCycle env, ChunkManager chunkManager, Camera camera, Player player) {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
+        try (FileOutputStream fos = new FileOutputStream(filePath);
+             GZIPOutputStream gzos = new GZIPOutputStream(fos);
+             ObjectOutputStream oos = new ObjectOutputStream(gzos)) {
             oos.writeObject(env);
             oos.writeObject(chunkManager);
             oos.writeObject(camera);
@@ -48,7 +52,9 @@ public class SaveLoadManager {
     }
 
     public void loadGame(String filePath, GameContainer container, IsoRenderer renderer, Player player) {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
+        try (FileInputStream fis = new FileInputStream(filePath);
+             GZIPInputStream gzis = new GZIPInputStream(fis);
+             ObjectInputStream ois = new ObjectInputStream(gzis)) {
             loadedEnv = (DayNightCycle) ois.readObject();
             ChunkManager newChunkManager = (ChunkManager) ois.readObject();
             loadedRenderer = new IsoRenderer(renderer.getZoom(), "main", newChunkManager, container);
@@ -60,7 +66,7 @@ public class SaveLoadManager {
         } catch (IOException | ClassNotFoundException e) {
             Log.error("Failed to load game "+filePath+": " + e.getMessage());
         }
-        Log.debug("Game loaded.");
+        Log.debug("Game "+filePath+" loaded.");
     }
 
     public DayNightCycle getDayNightCycle() {
