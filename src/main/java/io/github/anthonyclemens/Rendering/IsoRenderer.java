@@ -15,7 +15,7 @@ import io.github.anthonyclemens.WorldGen.ChunkManager;
  * and rendering logic for different levels of detail (LOD).
  */
 public class IsoRenderer {
-    private static final int RENDER_DISTANCE = 40; // Render distance in blocks
+    private static final int RENDER_DISTANCE = 64; // Render distance in blocks
     private static final int TILE_SIZE = 18; // Size of the tile in pixels
     private float zoom; // Zoom level for rendering
     private SpriteSheet worldTileSheet;
@@ -35,9 +35,8 @@ public class IsoRenderer {
     }
 
     private int getLODLevel() {
-        if (this.zoom > 1.2f) return 0; // High zoom: Full detail (1x1)
-        if (this.zoom <= 1.2f && this.zoom > 0.6f) return 1; // Medium zoom: Quarter Chunks
-        return 2; // Low zoom: Half Chunks
+        if (this.zoom > 1f) return 0; // High zoom: Full detail (1x1)
+        return 1; // Medium zoom: Quarter Chunks
     }
 
     public void update(GameContainer container, float zoom, float cameraX, float cameraY) {

@@ -16,7 +16,6 @@ public class Chunk implements Serializable {
     private final List<GameObject> gameObjects;
     private final Random rand;
     private int[][] lod1Tiles;
-    private int[][] lod2Tiles;
     private final Biome biome;
     private final int chunkX;
     private final int chunkY;
@@ -123,16 +122,6 @@ public class Chunk implements Serializable {
                 this.lod1Tiles[x][y] = aggregateRegion(x * 2, y * 2, 2, 2);
             }
         }
-
-        // LOD 2
-        int lod2Size = chunkSize / 8;
-        this.lod2Tiles = new int[lod2Size][lod2Size];
-
-        for (int x = 0; x < lod2Size; x++) {
-            for (int y = 0; y < lod2Size; y++) {
-                this.lod2Tiles[x][y] = aggregateRegion(x * 8, y * 8, 8, 8);
-            }
-        }
     }
 
     public Biome getBiome() {
@@ -163,7 +152,6 @@ public class Chunk implements Serializable {
 
     public int getLODTile(int lodLevel, int x, int y) {
         if (lodLevel == 1) return lod1Tiles[x][y];
-        if (lodLevel == 2) return lod2Tiles[x][y];
         return tiles[x][y]; // Full detail
     }
 

@@ -199,7 +199,7 @@ public class Game extends BasicGameState{
     @Override
     public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
         Input input = container.getInput();
-        int[] playerLoc = renderer.screenToIsometric(player.getRenderX(), player.getRenderY());
+        int[] playerLoc = renderer.screenToIsometric(player.getRenderX()+player.getHitbox().getWidth()/2, player.getRenderY()+player.getHitbox().getHeight());
         ChunkManager chunkManager = renderer.getChunkManager();
 
         env.updateDayNightCycle(delta);

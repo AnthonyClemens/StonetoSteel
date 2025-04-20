@@ -12,7 +12,7 @@ public class GameObjectGenerator {
     // Density values for object generation
     private static final double DESERT_CACTUS_DENSITY = 0.04; // 4% density for cactus
     private static final double WATER_FISH_DENSITY = 0.01; // 1% density for fish
-    private static final double PLAINS_TREE_DENSITY = 0.1; // 10% density for trees
+    private static final double PLAINS_TREE_DENSITY = 0.3; // 30% density for trees
     private static final double PLAINS_BIG_TREE_PROBABILITY = 0.75; // 75% probability for big trees
 
     public static List<GameObject> generateObjectsForBiome(Biome biome, Random rand, int chunkX, int chunkY, int chunkSize) {
