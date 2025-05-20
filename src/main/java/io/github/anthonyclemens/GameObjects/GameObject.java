@@ -5,15 +5,19 @@ import java.io.Serializable;
 import org.newdawn.slick.geom.Rectangle;
 
 import io.github.anthonyclemens.Rendering.IsoRenderer;
+import io.github.anthonyclemens.WorldGen.Biome;
 
 public abstract class GameObject implements Serializable{
     protected int x;
     protected int y;
+    protected float previousX;
+    protected float previousY;
     protected int chunkX;
     protected int chunkY;
     protected String name;
     protected Rectangle hitbox;
     protected String tileSheet;
+    protected Biome biome; // Optional: to associate a biome with the game object
 
     protected GameObject(String tileSheet, int x, int y, int chunkX, int chunkY, String objName) {
         this.x = x;
@@ -51,6 +55,38 @@ public abstract class GameObject implements Serializable{
 
     public String getTileSheetName(){
         return this.tileSheet;
+    }
+
+    public float getPreviousX() {
+        return previousX;
+    }
+
+    public void setPreviousX(float previousX) {
+        this.previousX = previousX;
+    }
+
+    public float getPreviousY() {
+        return previousY;
+    }
+
+    public void setPreviousY(float previousY) {
+        this.previousY = previousY;
+    }
+
+    public void setX(int newX) {
+        this.x = newX;
+    }
+
+    public void setY(int newY) {
+        this.y = newY;
+    }
+
+    public void setBiome(Biome biome) {
+        this.biome = biome;
+    }
+
+    public Biome getBiome() {
+        return this.biome;
     }
 
     public void calculateHitbox(float zoom) {

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import io.github.anthonyclemens.GameObjects.Fish;
 import io.github.anthonyclemens.GameObjects.GameObject;
 import io.github.anthonyclemens.GameObjects.SingleTileObject;
 
@@ -45,7 +46,8 @@ public class GameObjectGenerator {
         for (int y = 0; y < chunkSize - 1; y++) {
             for (int x = 0; x < chunkSize - 1; x++) {
                 if (rand.nextFloat() < WATER_FISH_DENSITY) {
-                    SingleTileObject newObject = new SingleTileObject("fishes", "fish", rand.nextInt(4), x, y, chunkX, chunkY);
+                    //SingleTileObject newObject = new SingleTileObject("fishes", "fish", rand.nextInt(4), x, y, chunkX, chunkY);
+                    Fish newObject = new Fish("fishes", x, y, chunkX, chunkY, "fish");
                     if (!isOverlapping(newObject, gobs)) {
                         gobs.add(newObject); // Add only if no overlap
                     }

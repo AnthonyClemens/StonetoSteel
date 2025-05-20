@@ -209,7 +209,7 @@ public class Game extends BasicGameState{
         updateKeyboard(game, delta, input, container);
         updateMouse(input);
         player.update(input, delta, chunkManager.getChunk(playerLoc[2], playerLoc[3]).getTile(playerLoc[0], playerLoc[1]));
-        collisionHandler.checkCollision(player, chunkManager.getChunk(playerLoc[2], playerLoc[3]));
+        collisionHandler.checkPlayerCollision(player, chunkManager.getChunk(playerLoc[2], playerLoc[3]));
 
         camera.update(player, input, cameraX, cameraY);
         cameraX = camera.getX();
