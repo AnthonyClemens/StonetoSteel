@@ -17,9 +17,11 @@ import org.newdawn.slick.util.Log;
 import io.github.anthonyclemens.GUI.Banner;
 import io.github.anthonyclemens.GUI.Buttons.ImageTextButton;
 import io.github.anthonyclemens.GUI.Slider;
+import io.github.anthonyclemens.GameStates;
 import io.github.anthonyclemens.Math.TwoDimensionMath;
 import io.github.anthonyclemens.Rendering.RenderUtils;
 import io.github.anthonyclemens.Settings;
+import io.github.anthonyclemens.SharedData;
 import io.github.anthonyclemens.Utils;
 
 public class SoundSettings extends BasicGameState{
@@ -109,7 +111,7 @@ public class SoundSettings extends BasicGameState{
             if(itb.isClicked()){
                 switch(itb.getText()){ // Figure out what button was pressed
                     case "Apply"->applySoundSettings();
-                    case "Back"->game.enterState(1);
+                    case "Back"->SharedData.enterState(GameStates.SETTINGS_MENU,game);
                 }
             }
         }

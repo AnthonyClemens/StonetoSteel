@@ -10,16 +10,19 @@ import io.github.anthonyclemens.Sound.SoundBox;
 import io.github.anthonyclemens.WorldGen.Biome;
 
 public class AmbientSoundManager {
-    private final IsoRenderer renderer;
+    private IsoRenderer renderer;
     private final JukeBox jukeBox;
     private final SoundBox ambientSoundBox;
     private boolean dayNightSwitch = true;
     private Biome lastBiome = null;
 
-    public AmbientSoundManager(IsoRenderer renderer, JukeBox jukeBox, SoundBox ambientSoundBox) {
-        this.renderer = renderer;
+    public AmbientSoundManager(JukeBox jukeBox, SoundBox ambientSoundBox) {
         this.jukeBox = jukeBox;
         this.ambientSoundBox = ambientSoundBox;
+    }
+
+    public void attacheRenderer(IsoRenderer renderer) {
+        this.renderer = renderer;
     }
 
     public void playAmbientMusic(DayNightCycle env) {
@@ -38,7 +41,11 @@ public class AmbientSoundManager {
         }
     }
 
-    public void playAmbientSounds(DayNightCycle env, Player player, IsoRenderer renderer) {
+    public void playAmbientSounds(DayNightCycle env, Player player) {
+        if (renderer == null) {
+            Log.error("Renderer is not attached to AmbientSoundManager.");
+            return;
+        }
         int[] playerBlock = renderer.screenToIsometric(player.getRenderX(), player.getRenderY());
         if (env.isSunDown() && !ambientSoundBox.isAnySoundPlaying()) {
             ambientSoundBox.playRandomSound("nightSounds");

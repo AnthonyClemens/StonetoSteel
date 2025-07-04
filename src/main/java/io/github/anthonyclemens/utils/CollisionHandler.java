@@ -62,7 +62,9 @@ public class CollisionHandler {
                         // Simulate a bounce: reverse vertical movement component.
                         player.setPreviousY(player.getY() + dy);
                     }
-                    
+                    if(gob.getName().equals("cactus")){
+                        player.subtractHealth(10); // Example health deduction on collision
+                    }
                     if (Game.showDebug) {
                         Log.debug("Collision detected with game object: " + gob.getName());
                     }

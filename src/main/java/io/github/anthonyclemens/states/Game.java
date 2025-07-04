@@ -18,6 +18,7 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.InputAdapter;
 
 import io.github.anthonyclemens.GameObjects.MultiTileObject;
+import io.github.anthonyclemens.GameStates;
 import io.github.anthonyclemens.Logic.Calender;
 import io.github.anthonyclemens.Logic.DayNightCycle;
 import io.github.anthonyclemens.Player.Player;
@@ -58,6 +59,7 @@ public class Game extends BasicGameState{
     private IsoRenderer renderer;
     private JukeBox jukeBox;
     private SoundBox ambientSoundBox;
+    ChunkManager chunkManager;
 
     // Debug Related Variables
     public static boolean showDebug = true;
@@ -86,16 +88,20 @@ public class Game extends BasicGameState{
     @Override
     public void enter(GameContainer container, StateBasedGame game) throws SlickException {
         Settings settings = Settings.getInstance();
+        if(SharedData.isHotstart()){
+            return;
+        }
+        SharedData.setHotstart(true);
         //Initialize the ChunkManager with seed entered or randomly generate one
-        ChunkManager chunkManager;
-        if(SharedData.seed!=0){
-            chunkManager = new ChunkManager(SharedData.seed);
+        if(SharedData.getSeed()!=0){
+            chunkManager = new ChunkManager(SharedData.getSeed());
         }else{
             Random r = new Random(Sys.getTime());
             chunkManager = new ChunkManager(r.nextInt());
         }
         renderer = new IsoRenderer(zoom, "main", chunkManager, container);
         chunkManager.attachRenderer(renderer);
+        ambientSoundManager.attacheRenderer(renderer);
         SpriteSheet playerSheet = new SpriteSheet("textures/Player/test.png", 16, 17);
         // Define animations for the player
         Animation[] animations = new Animation[8];
@@ -192,7 +198,7 @@ public class Game extends BasicGameState{
         collisionHandler = new CollisionHandler();
         debugGUI = new DebugGUI();
         displayHUD = new DisplayHUD();
-        ambientSoundManager = new AmbientSoundManager(renderer, jukeBox, ambientSoundBox);
+        ambientSoundManager = new AmbientSoundManager(jukeBox, ambientSoundBox);
         saveLoadManager = new SaveLoadManager();
     }
 
@@ -200,11 +206,10 @@ public class Game extends BasicGameState{
     public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
         Input input = container.getInput();
         int[] playerLoc = renderer.screenToIsometric(player.getRenderX()+player.getHitbox().getWidth()/2, player.getRenderY()+player.getHitbox().getHeight());
-        ChunkManager chunkManager = renderer.getChunkManager();
 
         env.updateDayNightCycle(delta);
         ambientSoundManager.playAmbientMusic(env);
-        ambientSoundManager.playAmbientSounds(env, player, renderer);
+        ambientSoundManager.playAmbientSounds(env, player);
 
         updateKeyboard(game, delta, input, container);
         updateMouse(input);
@@ -226,7 +231,7 @@ public class Game extends BasicGameState{
         player.render(container, zoom, camera.getX(), camera.getY());
         env.renderOverlay(container, g);
         displayHUD.renderHUD(container, g, calender, env);
-        if (showDebug) debugGUI.renderDebugGUI(g, container, renderer, player, zoom);
+        if (showDebug) debugGUI.renderDebugGUI(g, container, renderer, player, zoom, jukeBox, ambientSoundBox);
     }
 
     private void updateKeyboard(StateBasedGame game, int delta, Input input, GameContainer container) throws SlickException{
@@ -234,9 +239,9 @@ public class Game extends BasicGameState{
         if (input.isKeyDown(Input.KEY_RIGHT)) cameraX += delta * 0.1f * zoom;
         if (input.isKeyDown(Input.KEY_UP)) cameraY -= delta * 0.1f * zoom;
         if (input.isKeyDown(Input.KEY_DOWN)) cameraY += delta * 0.1f * zoom;
-        if (input.isKeyPressed(Input.KEY_ESCAPE)) game.enterState(0);
+        if (input.isKeyPressed(Input.KEY_ESCAPE)) SharedData.enterState(GameStates.SETTINGS_MENU, game);
         if (input.isKeyPressed(Input.KEY_F3)) showDebug=!showDebug;
-        if (input.isKeyPressed(Input.KEY_F7)) saveLoadManager.saveGame("save.dat", env, renderer.getChunkManager(), camera, player);
+        if (input.isKeyPressed(Input.KEY_F7)) saveLoadManager.saveGame("save.dat", env, chunkManager, camera, player);
         if (input.isKeyPressed(Input.KEY_F8)) {
             saveLoadManager.loadGame("save.dat", container, renderer, player);
             // Reassign variables after loading

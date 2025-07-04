@@ -3,8 +3,11 @@ package io.github.anthonyclemens.Player;
 import java.util.List;
 
 import org.newdawn.slick.Animation;
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Input;
+import org.newdawn.slick.geom.Circle;
+import org.newdawn.slick.geom.Line;
 import org.newdawn.slick.geom.Rectangle;
 
 import io.github.anthonyclemens.Settings;
@@ -38,13 +41,21 @@ public class Player {
     // Sand
     private final List<String> sandWalk = Utils.getFilePaths("sounds/Player/Walk/Sand/walk", 1, 8); // Sand walk sounds
     private final List<String> sandRun = Utils.getFilePaths("sounds/Player/Run/Sand/run", 1, 8); // Sand walk sounds
+    // Ouch sound
+    private final List<String> ouch = Utils.getFilePaths("sounds/Player/Hurt/ouch", 1, 2); // Ouch sounds
+    private Line raycastLine = new Line(0,0,0,0); // Stores the raycast line as a Slick2D Line object
+    private Circle playerReach = new Circle(0,0,0); // Circle representing the player's reach
+
+    private long lastDamageTime = 0; // Timestamp of last time damage was taken (milliseconds)
+    private long hurtFlashEndTime = 0; // Timestamp when hurt flash should end
+    private static final int HURT_FLASH_DURATION_MS = 250; // Duration of red flash in ms
 
     public Player(float startX, float startY, float speed, Animation[] animations, Animation[] idleAnimations) {
         Settings settings = Settings.getInstance(); // Get settings instance
         this.x = startX;
         this.y = startY;
-        this.health = 100; // Initialize health
         this.maxHealth = 100; // Initialize max health
+        this.health = this.maxHealth; // Initialize health
         this.defaultSpeed = speed;
         this.animations = animations;
         this.idleAnimations = idleAnimations;
@@ -55,6 +66,8 @@ public class Player {
 
         this.playerSoundBox.addSounds("sandWalk", sandWalk); // Add sand sounds to SoundBox
         this.playerSoundBox.addSounds("sandRun", sandRun); // Add sand sounds to SoundBox
+
+        this.playerSoundBox.addSounds("ouch", ouch); // Add ouch sounds to SoundBox
 
         this.playerSoundBox.setVolume(settings.getPlayerVolume()); // Set volume for player sounds
         this.hitbox = new Rectangle(this.x,this.y, animations[direction].getWidth(), animations[direction].getHeight());
@@ -132,29 +145,68 @@ public class Player {
     }
 
     public int updateDirection(float dx, float dy) {
-        if (dx == 0 && dy < 0) return 0; // Up
-        else if (dx > 0 && dy < 0) return 1; // Up-right
-        else if (dx > 0 && dy == 0) return 2; // Right
-        else if (dx > 0 && dy > 0) return 3; // Down-right
-        else if (dx == 0 && dy > 0) return 4; // Down
-        else if (dx < 0 && dy > 0) return 5; // Down-left
-        else if (dx < 0 && dy == 0) return 6; // Left
-        else if (dx < 0 && dy < 0) return 7; // Up-left
-        return 0;
+        if (dx == 0 && dy == 0) return 0; // Default to Up if no movement
+
+        int xDir = (dx > 0) ? 1 : (dx < 0) ? -1 : 0;
+        int yDir = (dy > 0) ? 1 : (dy < 0) ? -1 : 0;
+
+        // Direction lookup: [y+1][x+1]
+        int[][] directionTable = {
+            {7, 0, 1}, // dy < 0: Up-left, Up, Up-right
+            {6, -1, 2}, // dy == 0: Left, -, Right
+            {5, 4, 3}  // dy > 0: Down-left, Down, Down-right
+        };
+
+        int dir = directionTable[yDir + 1][xDir + 1];
+        return (dir == -1) ? 0 : dir;
     }
 
+    
     public void render(GameContainer container, float zoom, float cameraX, float cameraY) {
         renderX = (x - cameraX) * zoom + container.getWidth() / 2f;
         renderY = (y - cameraY) * zoom + container.getHeight() / 2f;
+        boolean flashRed = System.currentTimeMillis() < hurtFlashEndTime;
         if (dx == 0 && dy == 0) {
             idleAnimations[direction].draw(renderX, renderY, animations[direction].getWidth() * zoom, animations[direction].getHeight() * zoom); // Render idle animation
         } else {
             animations[direction].draw(renderX, renderY, animations[direction].getWidth() * zoom, animations[direction].getHeight() * zoom); // Render movement animation
         }
-        if(Game.showDebug){
-            container.getGraphics().drawRect(renderX, renderY, animations[direction].getWidth()*zoom, animations[direction].getHeight()*zoom);
+        if (flashRed) {
+            idleAnimations[direction].draw(renderX, renderY, animations[direction].getWidth() * zoom, animations[direction].getHeight() * zoom, new Color(255, 0, 0, 120));
+        }
+        if(Game.showDebug && raycastLine != null) {
+            container.getGraphics().draw(hitbox);
+            container.getGraphics().draw(raycastLine);
+            container.getGraphics().draw(playerReach);
         }
         hitbox.setBounds((int)renderX, (int)renderY, (int)(animations[direction].getWidth()*zoom), (int)(animations[direction].getHeight()*zoom));
+        // Update the raycast line to come out of the middle of the character hitbox and face the direction
+        float centerX = renderX + (animations[direction].getWidth() * zoom) / 2f;
+        float centerY = renderY + (animations[direction].getHeight() * zoom) / 2f;
+        float rayDx = 0, rayDy = 0;
+        switch (direction) {
+            case 0 -> { rayDx = 0; rayDy = -1; } // Up
+            case 1 -> { rayDx = 1; rayDy = -1; } // Up-right
+            case 2 -> { rayDx = 1; rayDy = 0; } // Right
+            case 3 -> { rayDx = 1; rayDy = 1; } // Down-right
+            case 4 -> { rayDx = 0; rayDy = 1; } // Down
+            case 5 -> { rayDx = -1; rayDy = 1; } // Down-left
+            case 6 -> { rayDx = -1; rayDy = 0; } // Left
+            case 7 -> { rayDx = -1; rayDy = -1; } // Up-left
+        }
+        // Normalize direction
+        float length = (float)Math.sqrt(rayDx * rayDx + rayDy * rayDy);
+        if (length != 0) {
+            rayDx /= length;
+            rayDy /= length;
+        }
+        float rayLength = 100 * zoom; // Set ray length as needed
+        float endX = centerX + rayDx * rayLength;
+        float endY = centerY + rayDy * rayLength;
+        playerReach.setCenterX(centerX);
+        playerReach.setCenterY(centerY);
+        playerReach.setRadius(rayLength); // Set the radius of the player's reach circle
+        raycastLine = new Line(centerX, centerY, endX, endY);
     }
 
     private String getBlockType(int tile){
@@ -232,10 +284,19 @@ public class Player {
     }
 
     public void subtractHealth(int subtract) {
-        if(this.health-subtract < 0){
-            this.health = 0; // Set player health to max if it exceeds
+        long now = System.currentTimeMillis();
+        if (now - lastDamageTime < 1000) {
+            return; // Only allow damage every 1 second
+        }
+        lastDamageTime = now;
+        hurtFlashEndTime = now + HURT_FLASH_DURATION_MS; // Set flash timer
+        if(this.health-subtract <= 0){
+            this.reset(); // Reset player state if health drops to 0
         } else {
-            this.health -= subtract; // Add health to player
+            this.health -= subtract; // Subtract health from player
+        }
+        if(!this.playerSoundBox.getCurrentCategory().equals("ouch")) {
+            this.playerSoundBox.playRandomSound("ouch"); // Play ouch sound when health is subtracted
         }
     }
 
@@ -253,5 +314,37 @@ public class Player {
 
     public void setPreviousY(float newY){
         this.previousY=newY;
+    }
+
+    public Line getRaycastLine() {
+        return raycastLine; // Getter for the raycast line
+    }
+
+    public int getDirection() {
+        return direction; // Get player's current direction
+    }
+
+    public String getSound() {
+        return playerSoundBox.getCurrentSound(); // Get the currently playing sound
+    }
+
+    /**
+     * Resets the player's stats and state to default values.
+     */
+    public void reset() {
+        this.x = 0;
+        this.y = 0;
+        this.dx = 0;
+        this.dy = 0;
+        this.previousX = 0;
+        this.previousY = 0;
+        this.health = 100;
+        this.maxHealth = 100;
+        this.direction = 0;
+        this.cameraLocked = true;
+        this.renderX = 0;
+        this.renderY = 0;
+        this.hitbox.setBounds(0, 0, animations[0].getWidth(), animations[0].getHeight());
+        this.lastDamageTime = 0;
     }
 }

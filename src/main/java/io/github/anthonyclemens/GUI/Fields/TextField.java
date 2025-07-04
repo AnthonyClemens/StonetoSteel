@@ -50,7 +50,10 @@ public class TextField extends GUIElement{
 
     @Override
     public void update(Input input) {
-        this.value = handleInput(input, this.value, this.maxChars);
+        this.focused = (this.getRect().contains(input.getMouseX(), input.getMouseY()) && input.isMousePressed(Input.MOUSE_LEFT_BUTTON)) ? !this.focused : this.focused;
+        if(this.focused){
+            this.value = this.handleInput(input, this.value, this.maxChars);
+        }
     }
 
     private String handleInput(Input input, String currentString, int maxCharacters) {

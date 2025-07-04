@@ -15,9 +15,11 @@ import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.GUI.Banner;
 import io.github.anthonyclemens.GUI.Buttons.ImageTextButton;
+import io.github.anthonyclemens.GameStates;
 import io.github.anthonyclemens.Math.TwoDimensionMath;
 import io.github.anthonyclemens.Rendering.RenderUtils;
 import io.github.anthonyclemens.Settings;
+import io.github.anthonyclemens.SharedData;
 import io.github.anthonyclemens.Sound.JukeBox;
 import io.github.anthonyclemens.Utils;
 
@@ -87,9 +89,16 @@ public class MainMenu extends BasicGameState{
             itb.update(input); // Sets the isClicked bool
             if(itb.isClicked()){
                 switch(itb.getText()){ // Figure out what button was pressed
-                    case "Start Game"-> game.enterState(2);
-                    case "Options"-> game.enterState(1);
-                    case "Exit"-> container.exit();
+                    case "Start Game"-> {
+                        menuJukeBox.stopMusic();
+                        SharedData.enterState(GameStates.NEW_GAME,game);
+                    }
+                    case "Options"-> SharedData.enterState(GameStates.SETTINGS_MENU, game);
+                    case "Exit"-> {
+                        menuJukeBox.stopMusic();
+                        menuJukeBox.clear();
+                        container.exit();
+                    }
                     case "Credits"->Log.debug("TODO");
                 }
             }

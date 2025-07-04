@@ -23,10 +23,12 @@ import io.github.anthonyclemens.GUI.Banner;
 import io.github.anthonyclemens.GUI.Buttons.Carousel;
 import io.github.anthonyclemens.GUI.Buttons.ImageTextButton;
 import io.github.anthonyclemens.GUI.Buttons.ToggleButton;
+import io.github.anthonyclemens.GameStates;
 import io.github.anthonyclemens.Main;
 import io.github.anthonyclemens.Math.TwoDimensionMath;
 import io.github.anthonyclemens.Rendering.RenderUtils;
 import io.github.anthonyclemens.Settings;
+import io.github.anthonyclemens.SharedData;
 import io.github.anthonyclemens.Utils;
 
 public class VideoSettings extends BasicGameState{
@@ -149,7 +151,7 @@ public class VideoSettings extends BasicGameState{
                         applySettings(container);
                         game.enterState(this.getID());
                     }
-                    case "Back"->game.enterState(1);
+                    case "Back"-> SharedData.enterState(GameStates.SETTINGS_MENU,game);
                 }
             }
         }

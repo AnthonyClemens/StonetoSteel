@@ -21,7 +21,7 @@ public class Mob extends GameObject {
     public Mob(String tileSheet, int x, int y, int chunkX, int chunkY, String objName, int wanderDistance) {
         super(tileSheet, x, y, chunkX, chunkY, objName);
         this.wanderDistance = wanderDistance;
-        this.rand = new Random(SharedData.seed);
+        this.rand = new Random(SharedData.getSeed());
     }
 
     public void setNewDestination() {

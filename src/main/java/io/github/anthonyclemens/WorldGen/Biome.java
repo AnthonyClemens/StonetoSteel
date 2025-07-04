@@ -1,5 +1,9 @@
 package io.github.anthonyclemens.WorldGen;
 
+/**
+ * Enum representing different biome types in the world.
+ * Provides a utility method to map noise values to biomes.
+ */
 public enum Biome {
     PLAINS,
     DESERT,
@@ -8,6 +12,11 @@ public enum Biome {
     BEACH,
     SWAMP;
 
+    /**
+     * Determines the biome type based on a noise value.
+     * @param noiseValue The noise value (typically between -1 and 1).
+     * @return The corresponding Biome.
+     */
     public static Biome getBiomeFromNoise(double noiseValue) {
         if (noiseValue < -0.2) return Biome.WATER;
         if (noiseValue < -0.15 && noiseValue >= -0.2) return Biome.BEACH;

@@ -1,6 +1,5 @@
 package io.github.anthonyclemens.states;
 
-import java.awt.Font;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,35 +9,31 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.TrueTypeFont;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
-import io.github.anthonyclemens.GUI.Buttons.ColorTextButton;
+import io.github.anthonyclemens.GUI.Banner;
+import io.github.anthonyclemens.GUI.Buttons.ImageTextButton;
 import io.github.anthonyclemens.GUI.Fields.NumberField;
 import io.github.anthonyclemens.GUI.Fields.TextField;
 import io.github.anthonyclemens.GUI.GUIElement;
+import io.github.anthonyclemens.GameStates;
 import io.github.anthonyclemens.Math.TwoDimensionMath;
 import io.github.anthonyclemens.Rendering.RenderUtils;
-import io.github.anthonyclemens.Settings;
+import io.github.anthonyclemens.SharedData;
+import io.github.anthonyclemens.Utils;
 
-public class NewGame extends BasicGameState{
-    //Variables
-    private Image backgroundImage;
+public class NewGame extends BasicGameState {
+    // Variables
     private Input input;
-    private ColorTextButton[] sectionButtons;
+    private Image backgroundImage;
+    private Banner titleBanner;
+    private final List<ImageTextButton> menuButtons = new ArrayList<>();
     private final List<GUIElement> fields = new ArrayList<>();
+
+    // Constants
     private static final String TITLE_STRING = "New Game";
-    private float titleX;
-
-
-
-    //Constants
-    private static final int SPACING = 64;
-    private static final int PADDING = 6;
-    private final TrueTypeFont titleF = new TrueTypeFont(new Font("Courier", Font.BOLD, 32), true);
-    private final TrueTypeFont menuOptionsF = new TrueTypeFont(new Font("Courier", Font.PLAIN, 32),true);
-    private final String[] menuOptions = {"Back", "Start Game"};
+    private static final String MAIN_FONT = "fonts/MedievalTimes.ttf";
 
     @Override
     public int getID() {
@@ -46,83 +41,90 @@ public class NewGame extends BasicGameState{
     }
 
     @Override
-    public void enter(GameContainer container, StateBasedGame game){
+    public void enter(GameContainer container, StateBasedGame game) throws SlickException {
         input = container.getInput();
-        //Create the Options Tabs
-        sectionButtons = new ColorTextButton[menuOptions.length];
-        for(int i=0; i<menuOptions.length; i++){
-            if(!"Start Game".equals(menuOptions[i])){
-                sectionButtons[i] = new ColorTextButton.Builder()
-                .textColor(Color.black)
-                .backgroundColor(Color.darkGray)
-                .font(menuOptionsF)
-                .buttonString(menuOptions[i])
-                .position(20, i*SPACING+200f)
-                .padding(PADDING)
-                .build();
-            }else{
-                sectionButtons[i] = new ColorTextButton.Builder()
-                .textColor(Color.black)
-                .backgroundColor(Color.green)
-                .font(menuOptionsF)
-                .buttonString(menuOptions[i])
-                .position(20, i*SPACING+200f)
-                .padding(PADDING)
-                .build();
-            }
-        }
-        //Move all of the options to the center
-        for(int i=0; i<menuOptions.length; i++){
-            sectionButtons[i].centerX(container,container.getHeight()-SPACING*(i+1));
-        }
+        // Set background image
+        backgroundImage = new Image("textures/Background.png");
+        // Create title banner
+        Image bannerImage = new Image("textures/GUI/TextField/UI_Paper_Banner_01_Downward.png", false, Image.FILTER_NEAREST);
+        titleBanner = new Banner(
+            bannerImage,
+            TITLE_STRING,
+            Utils.getFont(MAIN_FONT, 48f),
+            TwoDimensionMath.getMiddleX(720, container.getWidth()),
+            10,
+            720,
+            251
+        );
+        titleBanner.changeYOffset(120f);
 
-        TextField nameField = new TextField(0, 0, 20, Color.white, Color.lightGray, menuOptionsF, PADDING);
+        // Load button images
+        Image buttonImage = new Image("textures/GUI/TextField/UI_Paper_Textfield_01.png", false, Image.FILTER_NEAREST);
+
+        // Create menu buttons
+        ImageTextButton startGame = new ImageTextButton(
+            buttonImage, "Start Game", Utils.getFont(MAIN_FONT, 32f),
+            TwoDimensionMath.getMiddleX(342, container.getWidth()), 600, 342, 114
+        );
+        ImageTextButton backButton = new ImageTextButton(
+            buttonImage, "Back", Utils.getFont(MAIN_FONT, 40f),
+            10, 10, 240, 80
+        );
+        menuButtons.clear();
+        menuButtons.addAll(List.of(startGame, backButton));
+
+        // Create fields
+        fields.clear();
+        TextField nameField = new TextField(
+            TwoDimensionMath.getMiddleX(400, container.getWidth()), 300, 20,
+            Color.white, Color.lightGray, Utils.getFont(MAIN_FONT, 32f), 8
+        );
         nameField.setBgText("Enter World Name");
-        nameField.centerX(container, 164);
+        fields.add(nameField);
 
-        NumberField seedField = new NumberField(0, 0, 20, Color.white, Color.lightGray, menuOptionsF, PADDING);
+        NumberField seedField = new NumberField(
+            TwoDimensionMath.getMiddleX(400, container.getWidth()), 400, 20,
+            Color.white, Color.lightGray, Utils.getFont(MAIN_FONT, 32f), 8
+        );
         seedField.setBgText("Enter a Seed");
-        seedField.centerX(container, 228);
-        //fields.add(nameField);
         fields.add(seedField);
-        titleX=TwoDimensionMath.getMiddleX(titleF.getWidth(TITLE_STRING), container.getWidth());
     }
 
     @Override
     public void init(GameContainer container, StateBasedGame game) throws SlickException {
-        // Set background image
+        // Set background image (redundant, but for consistency)
         backgroundImage = new Image("textures/Background.png");
     }
 
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
-        RenderUtils.drawBackground(backgroundImage,container);
-        titleF.drawString(titleX, 100, TITLE_STRING, Color.black);
-
-        for(GUIElement gui: fields){
-            gui.render(g);
+        RenderUtils.drawBackground(backgroundImage, container);
+        titleBanner.render(g);
+        for (GUIElement field : fields) {
+            field.render(g);
         }
-        for(GUIElement gui: sectionButtons){
-            gui.render(g);
+        for (ImageTextButton itb : menuButtons) {
+            itb.render(g);
         }
     }
 
     @Override
     public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
-        for(GUIElement gui: fields){
-            gui.update(input);
+        for (GUIElement field : fields) {
+            field.update(input);
         }
-        // Handle button actions
-        for (ColorTextButton button : sectionButtons) {
+        for (ImageTextButton button : menuButtons) {
             button.update(input);
             if (button.isClicked()) {
                 switch (button.getText()) {
                     case "Start Game" -> {
+                        // Get the seed from the seedField and set SharedData.seed
+                        var seedField = (NumberField) fields.get(1);
+                        SharedData.setSeed(seedField.getNum());
                         MainMenu.menuJukeBox.stopMusic();
-                        game.enterState(99);
+                        SharedData.enterState(GameStates.GAME, game);
                     }
-                    case "Back" -> game.enterState(0);
-                    default -> {}
+                    case "Back" -> SharedData.enterState(GameStates.MAIN_MENU,game);
                 }
             }
         }

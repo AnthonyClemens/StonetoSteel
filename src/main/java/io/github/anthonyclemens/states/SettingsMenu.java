@@ -13,14 +13,14 @@ import org.newdawn.slick.state.StateBasedGame;
 
 import io.github.anthonyclemens.GUI.Banner;
 import io.github.anthonyclemens.GUI.Buttons.ImageTextButton;
+import io.github.anthonyclemens.GameStates;
 import io.github.anthonyclemens.Math.TwoDimensionMath;
 import io.github.anthonyclemens.Rendering.RenderUtils;
-import io.github.anthonyclemens.Settings;
+import io.github.anthonyclemens.SharedData;
 import io.github.anthonyclemens.Utils;
 
 public class SettingsMenu extends BasicGameState{
     //Variables
-    private Settings settings;
     private Input input;
     private Image backgroundImage;
     private Banner titleBanner;
@@ -57,8 +57,6 @@ public class SettingsMenu extends BasicGameState{
     @Override
     public void init(GameContainer container, StateBasedGame game) throws SlickException {
         input = container.getInput();
-        settings = Settings.getInstance();
-
     }
 
     @Override
@@ -76,10 +74,16 @@ public class SettingsMenu extends BasicGameState{
             itb.update(input); // Sets the isClicked bool
             if(itb.isClicked()){
                 switch(itb.getText()){ // Figure out what button was pressed
-                    case "Video Settings"-> game.enterState(10);
-                    case "Sound Settings"-> game.enterState(11);
-                    case "Control Settings"-> game.enterState(12);
-                    case "Back"->game.enterState(0);
+                    case "Video Settings"-> SharedData.enterState(GameStates.VIDEO_SETTINGS,game);
+                    case "Sound Settings"-> SharedData.enterState(GameStates.SOUND_SETTINGS,game);
+                    case "Control Settings"-> SharedData.enterState(GameStates.CONTROL_SETTINGS,game);
+                    case "Back"-> {
+                        if(SharedData.getLastState()==GameStates.GAME){
+                            SharedData.enterState(GameStates.GAME, game); // If hotstart, go to the game state
+                        }else{
+                            SharedData.enterState(GameStates.MAIN_MENU, game);
+                        }
+                    }
                 }
             }
         }
