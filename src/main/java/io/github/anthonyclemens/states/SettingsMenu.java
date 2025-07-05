@@ -61,7 +61,16 @@ public class SettingsMenu extends BasicGameState{
 
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
-        RenderUtils.drawBackground(backgroundImage,container);
+        if(SharedData.getLastState() == GameStates.PAUSE_MENU){
+            // Render the game state behind the menu
+            SharedData.getGameState().render(container, game, g);
+            // Draw a translucent overlay
+            g.setColor(new org.newdawn.slick.Color(0, 0, 0, 180));
+            g.fillRect(0, 0, container.getWidth(), container.getHeight());
+        } else {
+            RenderUtils.drawBackground(backgroundImage,container);
+        }
+        
         titleBanner.render(g);
         for(ImageTextButton itb : menuButtons){
             itb.render(g);
@@ -77,13 +86,7 @@ public class SettingsMenu extends BasicGameState{
                     case "Video Settings"-> SharedData.enterState(GameStates.VIDEO_SETTINGS,game);
                     case "Sound Settings"-> SharedData.enterState(GameStates.SOUND_SETTINGS,game);
                     case "Control Settings"-> SharedData.enterState(GameStates.CONTROL_SETTINGS,game);
-                    case "Back"-> {
-                        if(SharedData.getLastState()==GameStates.GAME){
-                            SharedData.enterState(GameStates.GAME, game); // If hotstart, go to the game state
-                        }else{
-                            SharedData.enterState(GameStates.MAIN_MENU, game);
-                        }
-                    }
+                    case "Back"-> SharedData.enterState(SharedData.getLastState(), game); // If hotstart, go to the game state
                 }
             }
         }

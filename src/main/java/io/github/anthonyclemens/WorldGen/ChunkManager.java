@@ -52,7 +52,7 @@ public class ChunkManager implements Serializable {
      * @return The Biome for the chunk.
      */
     public Biome getBiomeForChunk(int chunkX, int chunkY) {
-        double noiseValue = generateCombinedNoise(chunkX * 0.03, chunkY * 0.03, 7, 0.5);
+        double noiseValue = generateCombinedNoise(chunkX * 0.03, chunkY * 0.03, 8, 0.5);
         return Biome.getBiomeFromNoise(noiseValue);
     }
 
@@ -139,5 +139,9 @@ public class ChunkManager implements Serializable {
      */
     public void removeGameObject(int idx, int chunkX, int chunkY) {
         this.getChunk(chunkX, chunkY).removeGameObject(idx);
+    }
+
+    public int getSeed() {
+        return seed;
     }
 }

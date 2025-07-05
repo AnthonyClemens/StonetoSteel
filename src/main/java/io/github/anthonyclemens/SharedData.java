@@ -3,6 +3,13 @@ package io.github.anthonyclemens;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 
+import io.github.anthonyclemens.states.Game;
+import io.github.anthonyclemens.Rendering.IsoRenderer;
+import io.github.anthonyclemens.Player.Player;
+import io.github.anthonyclemens.Logic.DayNightCycle;
+import io.github.anthonyclemens.WorldGen.ChunkManager;
+import io.github.anthonyclemens.Rendering.Camera;
+
 
 public class SharedData {
     // Private constructor to prevent instantiation
@@ -11,6 +18,8 @@ public class SharedData {
     private static int seed = 0;
     private static boolean hotstart = false;
     private static GameStates lastState = null;
+
+    private static Game gameState;
 
     public static boolean isHotstart() {
         return hotstart;
@@ -47,4 +56,13 @@ public class SharedData {
     public static GameStates getLastState() {
         return lastState;
     }
+
+    public static void setGameState(Game g) { gameState = g; }
+    public static Game getGameState() { return gameState; }
+
+    public static IsoRenderer getRenderer() { return gameState != null ? gameState.getRenderer() : null; }
+    public static Player getPlayer() { return gameState != null ? gameState.getPlayer() : null; }
+    public static DayNightCycle getDayNightCycle() { return gameState != null ? gameState.getEnv() : null; }
+    public static ChunkManager getChunkManager() { return gameState != null ? gameState.getChunkManager() : null; }
+    public static Camera getCamera() { return gameState != null ? gameState.getCamera() : null; }
 }

@@ -13,6 +13,7 @@ import io.github.anthonyclemens.states.NewGame;
 import io.github.anthonyclemens.states.SettingsMenu;
 import io.github.anthonyclemens.states.SoundSettings;
 import io.github.anthonyclemens.states.VideoSettings;
+import io.github.anthonyclemens.states.PauseMenu;
 
 
 public class Main extends StateBasedGame{
@@ -54,6 +55,7 @@ public class Main extends StateBasedGame{
         addState(new VideoSettings());
         addState(new SoundSettings());
         addState(new ControlSettings());
+        addState(new PauseMenu());
     }
 
     public static void setSettings(Settings settings) throws SlickException{

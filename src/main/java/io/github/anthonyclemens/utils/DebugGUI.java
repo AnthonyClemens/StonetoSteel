@@ -46,6 +46,7 @@ public class DebugGUI {
         String playerSound = (player != null) ? player.getSound() : "N/A";
         String playerPos = (player != null) ? player.getX() + ", " + player.getY() : "N/A";
         String playerHealth = (player != null) ? String.valueOf(player.getHealth()) : "N/A";
+        String seed = (renderer != null ? String.valueOf(renderer.getChunkManager().getSeed()) : "N/A");
 
         String[] debugStrings = new String[] {
             "FPS: " + container.getFPS() + " FPS",
@@ -60,6 +61,7 @@ public class DebugGUI {
             "Player sound: " + playerSound,
             "Player position: " + playerPos,
             "Player health: " + playerHealth,
+            "World Seed: " + seed,
         };
 
         for (String s : debugStrings) {

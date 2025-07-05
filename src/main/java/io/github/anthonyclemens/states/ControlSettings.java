@@ -56,7 +56,15 @@ public class ControlSettings extends BasicGameState{
 
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
-        RenderUtils.drawBackground(backgroundImage, container); // Render the background to fit screen (no stretching)
+        if(SharedData.getLastState() == GameStates.PAUSE_MENU){
+            // Render the game state behind the menu
+            SharedData.getGameState().render(container, game, g);
+            // Draw a translucent overlay
+            g.setColor(new org.newdawn.slick.Color(0, 0, 0, 180));
+            g.fillRect(0, 0, container.getWidth(), container.getHeight());
+        } else {
+            RenderUtils.drawBackground(backgroundImage,container);
+        }
         titleBanner.render(g); // Render the Title banner
         for(ImageTextButton itb : menuButtons){
             itb.render(g);
@@ -69,7 +77,7 @@ public class ControlSettings extends BasicGameState{
             itb.update(container.getInput()); // Sets the isClicked bool
             if(itb.isClicked()){
                 switch(itb.getText()){ // Figure out what button was pressed
-                    case "Back"->SharedData.enterState(GameStates.SETTINGS_MENU,game);
+                    case "Back"->SharedData.enterState(SharedData.getLastState(), game);
                 }
             }
         }

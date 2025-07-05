@@ -10,7 +10,8 @@ public enum GameStates {
     GAME(99),
     VIDEO_SETTINGS(10),
     SOUND_SETTINGS(11),
-    CONTROL_SETTINGS(12);
+    CONTROL_SETTINGS(12),
+    PAUSE_MENU(101);
 
     private final int id;
 

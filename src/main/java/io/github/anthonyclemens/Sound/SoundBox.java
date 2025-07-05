@@ -146,7 +146,7 @@ public class SoundBox {
                 }
             }
         }
-        return null;
+        return "none";
     }
     /**
      * Releases all loaded sounds and clears resources.

@@ -61,6 +61,9 @@ public class AmbientSoundManager {
                 case PLAINS -> ambientSoundBox.playRandomSound("plainsSounds");
                 case WATER -> ambientSoundBox.playRandomSound("waterSounds");
                 case BEACH -> ambientSoundBox.playRandomSound("beachSounds");
+                case MOUNTAIN -> Log.error("Unimplemented case: " + currentBiome);
+                case SWAMP -> Log.error("Unimplemented case: " + currentBiome);
+                default -> Log.error("Unexpected value: " + currentBiome);
             }
         }
     }

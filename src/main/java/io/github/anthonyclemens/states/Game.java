@@ -92,6 +92,7 @@ public class Game extends BasicGameState{
             return;
         }
         SharedData.setHotstart(true);
+        SharedData.setGameState(this);
         //Initialize the ChunkManager with seed entered or randomly generate one
         if(SharedData.getSeed()!=0){
             chunkManager = new ChunkManager(SharedData.getSeed());
@@ -239,7 +240,7 @@ public class Game extends BasicGameState{
         if (input.isKeyDown(Input.KEY_RIGHT)) cameraX += delta * 0.1f * zoom;
         if (input.isKeyDown(Input.KEY_UP)) cameraY -= delta * 0.1f * zoom;
         if (input.isKeyDown(Input.KEY_DOWN)) cameraY += delta * 0.1f * zoom;
-        if (input.isKeyPressed(Input.KEY_ESCAPE)) SharedData.enterState(GameStates.SETTINGS_MENU, game);
+        if (input.isKeyPressed(Input.KEY_ESCAPE)) SharedData.enterState(GameStates.PAUSE_MENU, game); // <-- Change to PAUSE_MENU
         if (input.isKeyPressed(Input.KEY_F3)) showDebug=!showDebug;
         if (input.isKeyPressed(Input.KEY_F7)) saveLoadManager.saveGame("save.dat", env, chunkManager, camera, player);
         if (input.isKeyPressed(Input.KEY_F8)) {
@@ -275,4 +276,39 @@ public class Game extends BasicGameState{
             lastMouseY = currentMouseY;
         }
     }
+
+    public IsoRenderer getRenderer() {
+        return renderer;
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public DayNightCycle getEnv() {
+        return env;
+    }
+
+    public ChunkManager getChunkManager() {
+        return chunkManager;
+    }
+
+    public Camera getCamera() {
+        return camera;
+    }
+
+    public void loadGame(GameContainer container, String filepath){
+        saveLoadManager.loadGame(filepath, container, renderer, player);
+        // Reassign variables after loading
+        
+        renderer = saveLoadManager.getRenderer();
+        camera = saveLoadManager.getCamera();
+        player = saveLoadManager.getPlayer();
+        env = saveLoadManager.getDayNightCycle();
+    }
+
+    public void saveGame(String filepath) {
+        saveLoadManager.saveGame(filepath, env, chunkManager, camera, player);
+    }
+
 }
