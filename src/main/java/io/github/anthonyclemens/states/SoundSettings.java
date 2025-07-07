@@ -119,7 +119,13 @@ public class SoundSettings extends BasicGameState{
             if(itb.isClicked()){
                 switch(itb.getText()){ // Figure out what button was pressed
                     case "Apply"->applySoundSettings();
-                    case "Back"->SharedData.enterState(SharedData.getLastState(), game);
+                    case "Back"->{
+                        if(SharedData.getLastState() == GameStates.PAUSE_MENU) {
+                            SharedData.enterState(GameStates.PAUSE_MENU, game);
+                        } else {
+                            SharedData.enterState(GameStates.SETTINGS_MENU, game);
+                        }
+                    }
                 }
             }
         }

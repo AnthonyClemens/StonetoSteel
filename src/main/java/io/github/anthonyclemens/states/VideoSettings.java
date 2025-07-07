@@ -159,7 +159,13 @@ public class VideoSettings extends BasicGameState{
                         applySettings(container);
                         game.enterState(this.getID());
                     }
-                    case "Back"-> SharedData.enterState(SharedData.getLastState(), game);
+                    case "Back"-> {
+                        if(SharedData.getLastState() == GameStates.PAUSE_MENU) {
+                            SharedData.enterState(GameStates.PAUSE_MENU, game);
+                        } else {
+                            SharedData.enterState(GameStates.SETTINGS_MENU, game);
+                        }
+                    }
                 }
             }
         }

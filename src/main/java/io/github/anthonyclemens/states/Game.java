@@ -300,7 +300,6 @@ public class Game extends BasicGameState{
     public void loadGame(GameContainer container, String filepath){
         saveLoadManager.loadGame(filepath, container, renderer, player);
         // Reassign variables after loading
-        
         renderer = saveLoadManager.getRenderer();
         camera = saveLoadManager.getCamera();
         player = saveLoadManager.getPlayer();

@@ -86,7 +86,7 @@ public class SettingsMenu extends BasicGameState{
                     case "Video Settings"-> SharedData.enterState(GameStates.VIDEO_SETTINGS,game);
                     case "Sound Settings"-> SharedData.enterState(GameStates.SOUND_SETTINGS,game);
                     case "Control Settings"-> SharedData.enterState(GameStates.CONTROL_SETTINGS,game);
-                    case "Back"-> SharedData.enterState(SharedData.getLastState(), game); // If hotstart, go to the game state
+                    case "Back"-> SharedData.enterState(GameStates.MAIN_MENU, game);
                 }
             }
         }

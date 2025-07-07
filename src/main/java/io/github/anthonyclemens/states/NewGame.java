@@ -92,8 +92,6 @@ public class NewGame extends BasicGameState {
 
     @Override
     public void init(GameContainer container, StateBasedGame game) throws SlickException {
-        // Set background image (redundant, but for consistency)
-        backgroundImage = new Image("textures/Background.png");
     }
 
     @Override

@@ -77,7 +77,13 @@ public class ControlSettings extends BasicGameState{
             itb.update(container.getInput()); // Sets the isClicked bool
             if(itb.isClicked()){
                 switch(itb.getText()){ // Figure out what button was pressed
-                    case "Back"->SharedData.enterState(SharedData.getLastState(), game);
+                    case "Back"-> {
+                        if(SharedData.getLastState() == GameStates.PAUSE_MENU) {
+                            SharedData.enterState(GameStates.PAUSE_MENU, game);
+                        } else {
+                            SharedData.enterState(GameStates.SETTINGS_MENU, game);
+                        }
+                    }
                 }
             }
         }
