@@ -16,14 +16,14 @@ import io.github.anthonyclemens.Utils;
 import io.github.anthonyclemens.states.Game;
 
 public class Player {
+
+    // Player location and movement properties
     private float x;
     private float y;
     private float dx;
     private float dy;
     private float previousX; // Previous X position
     private float previousY; // Previous Y position
-    private int health; // Player health
-    private int maxHealth; // Maximum health
     private final float defaultSpeed; // Default movement speed
     private int direction; // Current look direction
     private boolean cameraLocked = true; // Lock camera to player when true
@@ -31,8 +31,20 @@ public class Player {
     private final Animation[] idleAnimations;
     private float renderX;
     private float renderY;
-    private final SoundBox playerSoundBox; // SoundBox for player sounds
     private Rectangle hitbox; // Hitbox for collision detection
+    private Line raycastLine = new Line(0,0,0,0); // Stores the raycast line as a Slick2D Line object
+    private Circle playerReach = new Circle(0,0,0); // Circle representing the player's reach
+    private final float reachLength = 200f; // Length of the player's reach in base scale pixels
+
+    // Player health properties    
+    private int health; // Player health
+    private int maxHealth; // Maximum health
+    private long lastDamageTime = 0; // Timestamp of last time damage was taken (milliseconds)
+    private long hurtFlashEndTime = 0; // Timestamp when hurt flash should end
+    private static final int HURT_FLASH_DURATION_MS = 250; // Duration of red flash in ms
+
+    // Player sound properties
+    private final SoundBox playerSoundBox; // SoundBox for player sounds
     // Grass
     private final List<String> grassWalk = Utils.getFilePaths("sounds/Player/Walk/Grass/walk", 1, 8); // Grass walk sounds
     private final List<String> grassRun = Utils.getFilePaths("sounds/Player/Run/Grass/run", 1, 8); // Grass walk sounds
@@ -43,12 +55,6 @@ public class Player {
     private final List<String> sandRun = Utils.getFilePaths("sounds/Player/Run/Sand/run", 1, 8); // Sand walk sounds
     // Ouch sound
     private final List<String> ouch = Utils.getFilePaths("sounds/Player/Hurt/ouch", 1, 2); // Ouch sounds
-    private Line raycastLine = new Line(0,0,0,0); // Stores the raycast line as a Slick2D Line object
-    private Circle playerReach = new Circle(0,0,0); // Circle representing the player's reach
-
-    private long lastDamageTime = 0; // Timestamp of last time damage was taken (milliseconds)
-    private long hurtFlashEndTime = 0; // Timestamp when hurt flash should end
-    private static final int HURT_FLASH_DURATION_MS = 250; // Duration of red flash in ms
 
     public Player(float startX, float startY, float speed, Animation[] animations, Animation[] idleAnimations) {
         Settings settings = Settings.getInstance(); // Get settings instance
@@ -200,7 +206,7 @@ public class Player {
             rayDx /= length;
             rayDy /= length;
         }
-        float rayLength = 100 * zoom; // Set ray length as needed
+        float rayLength = reachLength * zoom; // Length of the raycast line, scaled by zoom
         float endX = centerX + rayDx * rayLength;
         float endY = centerY + rayDy * rayLength;
         playerReach.setCenterX(centerX);
@@ -283,17 +289,17 @@ public class Player {
         }
     }
 
-    public void subtractHealth(int subtract) {
+    public void subtractHealth(int damage) {
         long now = System.currentTimeMillis();
         if (now - lastDamageTime < 1000) {
             return; // Only allow damage every 1 second
         }
         lastDamageTime = now;
         hurtFlashEndTime = now + HURT_FLASH_DURATION_MS; // Set flash timer
-        if(this.health-subtract <= 0){
+        if(this.health-damage <= 0){
             this.reset(); // Reset player state if health drops to 0
         } else {
-            this.health -= subtract; // Subtract health from player
+            this.health -= damage; // Subtract health from player
         }
         if(!this.playerSoundBox.getCurrentCategory().equals("ouch")) {
             this.playerSoundBox.playRandomSound("ouch"); // Play ouch sound when health is subtracted

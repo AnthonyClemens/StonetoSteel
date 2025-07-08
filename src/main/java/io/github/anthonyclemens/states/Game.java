@@ -50,6 +50,7 @@ public class Game extends BasicGameState{
     private Image backgroundImage;
     private static final int TILE_WIDTH = 18;
     private static final int TILE_HEIGHT = 18;
+    private final float minZoom = 0.40f;
 
     // Game Objects
     private Camera camera;
@@ -177,7 +178,7 @@ public class Game extends BasicGameState{
             @Override
             public void mouseWheelMoved(int change) {
                 zoom += change * 0.001f;
-                zoom = Math.min(Math.max(0.5f, zoom), 8f);
+                zoom = Math.min(Math.max(minZoom, zoom), 8f);
             }
         });
         calender = new Calender(16, 3, 2025);

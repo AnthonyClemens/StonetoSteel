@@ -52,7 +52,7 @@ public class ChunkManager implements Serializable {
      * @return The Biome for the chunk.
      */
     public Biome getBiomeForChunk(int chunkX, int chunkY) {
-        double noiseValue = generateCombinedNoise(chunkX * 0.03, chunkY * 0.03, 8, 0.5);
+        double noiseValue = generateCombinedNoise(chunkX * 0.03, chunkY * 0.03, 10, 0.5);
         return Biome.getBiomeFromNoise(noiseValue);
     }
 

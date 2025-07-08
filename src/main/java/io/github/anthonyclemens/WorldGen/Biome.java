@@ -21,7 +21,7 @@ public enum Biome {
         if (noiseValue < -0.2) return Biome.WATER;
         if (noiseValue < -0.15 && noiseValue >= -0.2) return Biome.BEACH;
         if (noiseValue < 0.2) return Biome.PLAINS;
-        if (noiseValue < 0.5) return Biome.DESERT;
+        if (noiseValue < 0.45) return Biome.DESERT;
         if (noiseValue < 0.7) return Biome.SWAMP;
         return Biome.MOUNTAIN;
     }
