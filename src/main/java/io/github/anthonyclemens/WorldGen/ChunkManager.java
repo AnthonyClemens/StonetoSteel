@@ -26,7 +26,7 @@ public class ChunkManager implements Serializable {
      */
     public ChunkManager(int seed) {
         this.seed = seed;
-        Log.info("ChunkManager initialized for infinite world generation with seed: " + seed);
+        Log.debug("ChunkManager initialized for infinite world generation with seed: " + seed);
     }
 
     /**

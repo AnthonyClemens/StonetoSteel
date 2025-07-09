@@ -97,7 +97,8 @@ public class Game extends BasicGameState{
         }
         SharedData.setHotstart(true);
         SharedData.setGameState(this);
-        if(SharedData.isNewGame()){
+        SharedData.setLoadingSave(false);
+        if(SharedData.isNewGame()|| !SaveLoadManager.exists(SharedData.getSaveFilePath())){
             //Initialize the ChunkManager with randomly generated seed
             Random r = new Random(Sys.getTime());
             chunkManager = new ChunkManager(r.nextInt());

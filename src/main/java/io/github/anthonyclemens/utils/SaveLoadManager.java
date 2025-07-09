@@ -6,6 +6,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -20,10 +23,6 @@ import io.github.anthonyclemens.WorldGen.ChunkManager;
 
 public class SaveLoadManager {
 
-    public static boolean exists(String savesSave1sav) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
     private DayNightCycle loadedEnv;
     private IsoRenderer loadedRenderer;
     private Camera loadedCamera;
@@ -32,6 +31,22 @@ public class SaveLoadManager {
 
 
     public void saveGame(String filePath, DayNightCycle env, ChunkManager chunkManager, Camera camera, Player player) {
+        Path path = Paths.get(filePath);
+
+        try {
+            // Create parent directories if they don't exist
+            Files.createDirectories(path.getParent());
+            // Create the file if it doesn't exist
+            if (!Files.exists(path)) {
+                Files.createFile(path);
+                System.out.println("File created successfully: " + path.toAbsolutePath());
+            } else {
+                System.out.println("File already exists: " + path.toAbsolutePath());
+            }
+        } catch (IOException e) {
+            System.err.println("Failed to create file: " + e.getMessage());
+        }
+
         try (FileOutputStream fos = new FileOutputStream(filePath);
              GZIPOutputStream gzos = new GZIPOutputStream(fos);
              ObjectOutputStream oos = new ObjectOutputStream(gzos)) {
@@ -45,7 +60,6 @@ public class SaveLoadManager {
         } catch (IOException e) {
             Log.error("Failed to save game: " + e.getMessage());
         }
-
         File saveFile = new File(filePath);
         if (saveFile.exists()) {
             long fileSize = saveFile.length();
@@ -100,6 +114,11 @@ public class SaveLoadManager {
             Log.warn("Save file not found: " + filePath);
             return "0";
         }
+    }
+
+    public static boolean exists(String filePath) {
+        File saveFile = new File(filePath);
+        return saveFile.exists();
     }
 
     public DayNightCycle getDayNightCycle() {
