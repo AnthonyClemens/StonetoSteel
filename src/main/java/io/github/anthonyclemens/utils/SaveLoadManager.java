@@ -20,10 +20,16 @@ import io.github.anthonyclemens.WorldGen.ChunkManager;
 
 public class SaveLoadManager {
 
+    public static boolean exists(String savesSave1sav) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
     private DayNightCycle loadedEnv;
     private IsoRenderer loadedRenderer;
     private Camera loadedCamera;
-    private Player loadedPlayer;
+    private float playerX, playerY, playerSpeed;
+    private int playerHealth;
+
 
     public void saveGame(String filePath, DayNightCycle env, ChunkManager chunkManager, Camera camera, Player player) {
         try (FileOutputStream fos = new FileOutputStream(filePath);
@@ -34,6 +40,8 @@ public class SaveLoadManager {
             oos.writeObject(camera);
             oos.writeFloat(player.getX());
             oos.writeFloat(player.getY());
+            oos.writeFloat(player.getSpeed());
+            oos.writeInt(player.getHealth());
         } catch (IOException e) {
             Log.error("Failed to save game: " + e.getMessage());
         }
@@ -51,22 +59,47 @@ public class SaveLoadManager {
         }
     }
 
-    public void loadGame(String filePath, GameContainer container, IsoRenderer renderer, Player player) {
+    public void loadGame(String filePath, GameContainer container) {
         try (FileInputStream fis = new FileInputStream(filePath);
              GZIPInputStream gzis = new GZIPInputStream(fis);
              ObjectInputStream ois = new ObjectInputStream(gzis)) {
             loadedEnv = (DayNightCycle) ois.readObject();
             ChunkManager newChunkManager = (ChunkManager) ois.readObject();
-            loadedRenderer = new IsoRenderer(renderer.getZoom(), "main", newChunkManager, container);
+            loadedRenderer = new IsoRenderer(1f, "main", newChunkManager, container);
             newChunkManager.attachRenderer(loadedRenderer);
             loadedCamera = (Camera) ois.readObject();
-            loadedPlayer = player;
-            loadedPlayer.setX(ois.readFloat());
-            loadedPlayer.setY(ois.readFloat());
+            playerX = ois.readFloat();
+            playerY = ois.readFloat();
+            playerSpeed = ois.readFloat();
+            playerHealth = ois.readInt();
         } catch (IOException | ClassNotFoundException e) {
             Log.error("Failed to load game "+filePath+": " + e.getMessage());
         }
         Log.debug("Game "+filePath+" loaded.");
+    }
+
+    public static void deleteSave(String filePath) {
+        File saveFile = new File(filePath);
+        if (saveFile.exists() && saveFile.delete()) {
+            Log.debug("Save file " + filePath + " deleted successfully.");
+        } else {
+            Log.error("Failed to delete save file: " + filePath);
+        }
+    }
+
+    public static String getSize(String filePath) {
+        File saveFile = new File(filePath);
+        if (saveFile.exists()) {
+            long fileSize = saveFile.length();
+            if (fileSize < 1024 * 1024) {
+                return (fileSize / 1024) + " KB";
+            } else {
+                return (fileSize / (1024 * 1024)) + " MB";
+            }
+        } else {
+            Log.warn("Save file not found: " + filePath);
+            return "0";
+        }
     }
 
     public DayNightCycle getDayNightCycle() {
@@ -81,7 +114,16 @@ public class SaveLoadManager {
         return loadedCamera;
     }
 
-    public Player getPlayer() {
-        return loadedPlayer;
+    public float getPlayerX() {
+        return playerX;
+    }
+    public float getPlayerY() {
+        return playerY;
+    }
+    public float getPlayerSpeed() {
+        return playerSpeed;
+    }
+    public int getPlayerHealth() {
+        return playerHealth;
     }
 }

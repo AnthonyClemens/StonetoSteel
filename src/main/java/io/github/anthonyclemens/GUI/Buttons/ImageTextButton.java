@@ -9,10 +9,10 @@ import io.github.anthonyclemens.Math.TwoDimensionMath;
 
 public class ImageTextButton extends Button{
     private Image image;
-    private final String text;
+    private String text;
     private Color textColor;
     private final TrueTypeFont ttf;
-    private final float textWidth;
+    private float textWidth;
 
     public ImageTextButton(Image i, String text, TrueTypeFont ttf, float x, float y, float width, float height) {
         super(x, y, width, height);
@@ -21,10 +21,12 @@ public class ImageTextButton extends Button{
         this.textColor=Color.black;
         this.ttf=ttf;
         this.textWidth=ttf.getWidth(text);
+        this.name = text;
     }
 
     @Override
     public void render(Graphics g){
+        if(!this.render) return;
         this.image.draw(this.getX(), this.getY(), this.getWidth(), this.getHeight());
         g.setColor(this.textColor);
         this.ttf.drawString(TwoDimensionMath.getMiddleX(this.textWidth, this.getWidth())+this.getX(), TwoDimensionMath.getMiddleX(this.ttf.getHeight(), this.getHeight())+this.getY(), this.text, this.textColor);
@@ -40,6 +42,11 @@ public class ImageTextButton extends Button{
 
     public void setImage(Image i){
         this.image = i;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+        this.textWidth = this.ttf.getWidth(text);
     }
 
 }

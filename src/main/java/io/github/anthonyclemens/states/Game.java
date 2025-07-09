@@ -16,6 +16,7 @@ import org.newdawn.slick.SpriteSheet;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.InputAdapter;
+import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.GameObjects.MultiTileObject;
 import io.github.anthonyclemens.GameStates;
@@ -89,21 +90,49 @@ public class Game extends BasicGameState{
     @Override
     public void enter(GameContainer container, StateBasedGame game) throws SlickException {
         Settings settings = Settings.getInstance();
-        if(SharedData.isHotstart()){
+        Log.debug("Entering Game State with hotstart: " + SharedData.isHotstart() + ", loading save: " + SharedData.isLoadingSave()
+                + ", new game: " + SharedData.isNewGame());
+        if(SharedData.isHotstart() && !SharedData.isLoadingSave()){
             return;
         }
         SharedData.setHotstart(true);
         SharedData.setGameState(this);
-        //Initialize the ChunkManager with seed entered or randomly generate one
-        if(SharedData.getSeed()!=0){
-            chunkManager = new ChunkManager(SharedData.getSeed());
-        }else{
+        if(SharedData.isNewGame()){
+            //Initialize the ChunkManager with randomly generated seed
             Random r = new Random(Sys.getTime());
             chunkManager = new ChunkManager(r.nextInt());
+            createNewPlayer(container.getWidth()/2f, container.getHeight()/2f, 0.075f, 100);
+        }else{
+            saveLoadManager.loadGame(SharedData.getSaveFilePath(), container);
+            chunkManager = saveLoadManager.getRenderer().getChunkManager();
+            createNewPlayer(saveLoadManager.getPlayerX(), saveLoadManager.getPlayerY(), saveLoadManager.getPlayerSpeed(), saveLoadManager.getPlayerHealth());
         }
         renderer = new IsoRenderer(zoom, "main", chunkManager, container);
         chunkManager.attachRenderer(renderer);
         ambientSoundManager.attacheRenderer(renderer);
+        camera = new Camera(player.getX(), player.getY());
+
+        ambientSoundBox.setVolume(settings.getMainVolume()*settings.getAmbientVolume());
+        jukeBox.setVolume(settings.getMainVolume()*settings.getMusicVolume());
+        player.setVolume(settings.getMainVolume()*settings.getPlayerVolume());
+        MultiTileObject test = new MultiTileObject("main", 8, 8, 0, 0, "test");
+        test.addBlock(30, 2, 2, 0);
+        test.addBlock(30, 2, 2, 1);
+        test.addBlock(30, 2, 2, 2);
+        test.addBlock(40, 2, 2, 4);
+        test.addBlock(40, 3, 2, 3);
+        test.addBlock(40, 3, 3, 3);
+        test.addBlock(40, 2, 3, 3);
+        test.addBlock(40, 1, 3, 3);
+        test.addBlock(40, 1, 1, 3);
+        test.addBlock(40, 1, 2, 3);
+        test.addBlock(40, 2, 1, 3);
+        test.addBlock(40, 3, 3, 3);
+        test.addBlock(40, 3, 1, 3);
+        chunkManager.addGameObject(test);
+    }
+
+    private void createNewPlayer(float x, float y, float speed, int health) throws SlickException{
         SpriteSheet playerSheet = new SpriteSheet("textures/Player/test.png", 16, 17);
         // Define animations for the player
         Animation[] animations = new Animation[8];
@@ -128,27 +157,8 @@ public class Game extends BasicGameState{
         idleAnimations[6] = new Animation(playerSheet, 6, 1, 6, 1, false, animationDuration, true); // Idle Left
         idleAnimations[7] = new Animation(playerSheet, 7, 1, 7, 1, false, animationDuration, true); // Idle Up-left
 
-        player = new Player(container.getWidth()/2f, container.getHeight()/2f, 0.075f, animations, idleAnimations);
-        camera = new Camera(container.getWidth()/2f, container.getHeight()/2f);
-
-        ambientSoundBox.setVolume(settings.getMainVolume()*settings.getAmbientVolume());
-        jukeBox.setVolume(settings.getMainVolume()*settings.getMusicVolume());
-        player.setVolume(settings.getMainVolume()*settings.getPlayerVolume());
-        MultiTileObject test = new MultiTileObject("main", 8, 8, 0, 0, "test");
-        test.addBlock(30, 2, 2, 0);
-        test.addBlock(30, 2, 2, 1);
-        test.addBlock(30, 2, 2, 2);
-        test.addBlock(40, 2, 2, 4);
-        test.addBlock(40, 3, 2, 3);
-        test.addBlock(40, 3, 3, 3);
-        test.addBlock(40, 2, 3, 3);
-        test.addBlock(40, 1, 3, 3);
-        test.addBlock(40, 1, 1, 3);
-        test.addBlock(40, 1, 2, 3);
-        test.addBlock(40, 2, 1, 3);
-        test.addBlock(40, 3, 3, 3);
-        test.addBlock(40, 3, 1, 3);
-        chunkManager.addGameObject(test);
+        player = new Player(x, y, speed, animations, idleAnimations);
+        player.setHealth(health);
     }
 
     @Override
@@ -213,7 +223,7 @@ public class Game extends BasicGameState{
         ambientSoundManager.playAmbientMusic(env);
         ambientSoundManager.playAmbientSounds(env, player);
 
-        updateKeyboard(game, delta, input, container);
+        updateKeyboard(game, delta, input);
         updateMouse(input);
         player.update(input, delta, chunkManager.getChunk(playerLoc[2], playerLoc[3]).getTile(playerLoc[0], playerLoc[1]));
         collisionHandler.checkPlayerCollision(player, chunkManager.getChunk(playerLoc[2], playerLoc[3]));
@@ -236,22 +246,13 @@ public class Game extends BasicGameState{
         if (showDebug) debugGUI.renderDebugGUI(g, container, renderer, player, zoom, jukeBox, ambientSoundBox);
     }
 
-    private void updateKeyboard(StateBasedGame game, int delta, Input input, GameContainer container) throws SlickException{
+    private void updateKeyboard(StateBasedGame game, int delta, Input input) throws SlickException{
         if (input.isKeyDown(Input.KEY_LEFT)) cameraX -= delta * 0.1f * zoom;
         if (input.isKeyDown(Input.KEY_RIGHT)) cameraX += delta * 0.1f * zoom;
         if (input.isKeyDown(Input.KEY_UP)) cameraY -= delta * 0.1f * zoom;
         if (input.isKeyDown(Input.KEY_DOWN)) cameraY += delta * 0.1f * zoom;
-        if (input.isKeyPressed(Input.KEY_ESCAPE)) SharedData.enterState(GameStates.PAUSE_MENU, game); // <-- Change to PAUSE_MENU
+        if (input.isKeyPressed(Input.KEY_ESCAPE)) SharedData.enterState(GameStates.PAUSE_MENU, game);
         if (input.isKeyPressed(Input.KEY_F3)) showDebug=!showDebug;
-        if (input.isKeyPressed(Input.KEY_F7)) saveLoadManager.saveGame("save.dat", env, chunkManager, camera, player);
-        if (input.isKeyPressed(Input.KEY_F8)) {
-            saveLoadManager.loadGame("save.dat", container, renderer, player);
-            // Reassign variables after loading
-            renderer = saveLoadManager.getRenderer();
-            camera = saveLoadManager.getCamera();
-            player = saveLoadManager.getPlayer();
-            env = saveLoadManager.getDayNightCycle();
-        }
         if (input.isKeyPressed(Input.KEY_F11)){
             boolean toggleFullscreen = !game.getContainer().isFullscreen();
             game.getContainer().setFullscreen(toggleFullscreen);
@@ -296,15 +297,6 @@ public class Game extends BasicGameState{
 
     public Camera getCamera() {
         return camera;
-    }
-
-    public void loadGame(GameContainer container, String filepath){
-        saveLoadManager.loadGame(filepath, container, renderer, player);
-        // Reassign variables after loading
-        renderer = saveLoadManager.getRenderer();
-        camera = saveLoadManager.getCamera();
-        player = saveLoadManager.getPlayer();
-        env = saveLoadManager.getDayNightCycle();
     }
 
     public void saveGame(String filepath) {

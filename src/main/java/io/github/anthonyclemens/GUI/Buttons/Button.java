@@ -11,15 +11,19 @@ public class Button extends GUIElement {
     protected Color c;
     protected boolean clicked;
     protected OnClickListener onClickListener;
+    protected String name;
+    protected boolean render;
 
     public Button(float x, float y, float w, float h){
         super(x,y,w,h);
         this.c = null;
         this.onClickListener = null;
+        this.render = true;
     }
 
     @Override
     public void render(Graphics g){
+        if(!this.render) return;
         if(this.c!=null){
             g.setColor(this.c);
             g.fill(this.getRect());
@@ -47,6 +51,14 @@ public class Button extends GUIElement {
         return this.c;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setRender(boolean render) {
+        this.render = render;
+    }
+
     //Setters
     public void setColor(Color c){
         this.c=c;
@@ -58,6 +70,10 @@ public class Button extends GUIElement {
 
     public OnClickListener getOnClickListener() {
         return this.onClickListener;
+    }
+
+    public String getName() {
+        return this.name;
     }
 
 }

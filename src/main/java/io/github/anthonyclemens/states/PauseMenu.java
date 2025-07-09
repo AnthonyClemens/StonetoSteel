@@ -83,13 +83,17 @@ public class PauseMenu extends BasicGameState {
             itb.update(input);
             if (itb.isClicked()) {
                 switch (itb.getText()) {
-                    case "Save" -> SharedData.getGameState().saveGame("save.dat");
-                    case "Load" -> SharedData.getGameState().loadGame(container, "save.dat");
+                    case "Save" -> SharedData.getGameState().saveGame(SharedData.getSaveFilePath());
+                    case "Load" -> {
+                        SharedData.setLoadingSave(true);
+                        SharedData.setNewGame(false);
+                        SharedData.enterState(GameStates.GAME, game);
+                    }
                     case "Video Settings" -> SharedData.enterState(GameStates.VIDEO_SETTINGS, game);
                     case "Sound Settings" -> SharedData.enterState(GameStates.SOUND_SETTINGS, game);
                     case "Control Settings" -> SharedData.enterState(GameStates.CONTROL_SETTINGS, game);
                     case "Save and Exit" -> {
-                        SharedData.getGameState().saveGame("save.dat");
+                        SharedData.getGameState().saveGame(SharedData.getSaveFilePath());
                         SharedData.setHotstart(false);
                         SharedData.enterState(GameStates.MAIN_MENU, game);
                     }

@@ -10,7 +10,7 @@ import io.github.anthonyclemens.Math.TwoDimensionMath;
 
 public class Banner extends GUIElement{
     private final Image image;
-    private final String text;
+    private String text;
     private final TrueTypeFont ttf;
     private Color color;
     private int textWidth;
@@ -55,5 +55,9 @@ public class Banner extends GUIElement{
 
     public void changeXOffset(float offset){
         this.xOffset=offset;
+    }
+
+    public void setText(String text){
+        this.text = text;
     }
 }

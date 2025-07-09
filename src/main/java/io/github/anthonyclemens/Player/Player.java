@@ -9,6 +9,7 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.geom.Circle;
 import org.newdawn.slick.geom.Line;
 import org.newdawn.slick.geom.Rectangle;
+import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.Sound.SoundBox;
@@ -24,17 +25,17 @@ public class Player {
     private float dy;
     private float previousX; // Previous X position
     private float previousY; // Previous Y position
-    private final float defaultSpeed; // Default movement speed
+    private float defaultSpeed; // Default movement speed
     private int direction; // Current look direction
     private boolean cameraLocked = true; // Lock camera to player when true
     private final Animation[] animations; // Array of animations for 8 directions
     private final Animation[] idleAnimations;
     private float renderX;
     private float renderY;
-    private Rectangle hitbox; // Hitbox for collision detection
+    private final Rectangle hitbox; // Hitbox for collision detection
     private Line raycastLine = new Line(0,0,0,0); // Stores the raycast line as a Slick2D Line object
-    private Circle playerReach = new Circle(0,0,0); // Circle representing the player's reach
-    private final float reachLength = 200f; // Length of the player's reach in base scale pixels
+    private final Circle playerReach = new Circle(0,0,0); // Circle representing the player's reach
+    private static final float REACH = 128f; // Length of the player's reach in base scale pixels
 
     // Player health properties    
     private int health; // Player health
@@ -52,7 +53,7 @@ public class Player {
     private final List<String> waterWalk = Utils.getFilePaths("sounds/Player/Walk/Water/walk", 1, 8); // Water walk sounds
     // Sand
     private final List<String> sandWalk = Utils.getFilePaths("sounds/Player/Walk/Sand/walk", 1, 8); // Sand walk sounds
-    private final List<String> sandRun = Utils.getFilePaths("sounds/Player/Run/Sand/run", 1, 8); // Sand walk sounds
+    private final List<String> sandRun = Utils.getFilePaths("sounds/Player/Run/Sand/run", 5, 8); // Sand walk sounds
     // Ouch sound
     private final List<String> ouch = Utils.getFilePaths("sounds/Player/Hurt/ouch", 1, 2); // Ouch sounds
 
@@ -76,7 +77,14 @@ public class Player {
         this.playerSoundBox.addSounds("ouch", ouch); // Add ouch sounds to SoundBox
 
         this.playerSoundBox.setVolume(settings.getPlayerVolume()); // Set volume for player sounds
-        this.hitbox = new Rectangle(this.x,this.y, animations[direction].getWidth(), animations[direction].getHeight());
+        if(animations != null && animations.length > 0) {
+            // Initialize hitbox based on the first animation's dimensions
+            this.hitbox = new Rectangle(this.x, this.y, animations[0].getWidth(), animations[0].getHeight());
+        } else {
+            // Fallback if animations are not provided
+            Log.warn("Animations not provided or empty. Using default hitbox size.");
+            this.hitbox = new Rectangle(this.x, this.y, 16, 16); // Default size
+        }
     }
 
     public void update(Input input, int delta, int tile) {
@@ -206,7 +214,7 @@ public class Player {
             rayDx /= length;
             rayDy /= length;
         }
-        float rayLength = reachLength * zoom; // Length of the raycast line, scaled by zoom
+        float rayLength = REACH * zoom; // Length of the raycast line, scaled by zoom
         float endX = centerX + rayDx * rayLength;
         float endY = centerY + rayDy * rayLength;
         playerReach.setCenterX(centerX);
@@ -279,6 +287,18 @@ public class Player {
 
     public int getHealth() {
         return health; // Get player health
+    }
+
+    public void setHealth(int health) {
+        if(health > this.maxHealth){
+            this.health = this.maxHealth; // Set player health to max if it exceeds
+        } else {
+            this.health = health; // Set player health
+        }
+    }
+
+    public void setSpeed(float speed) {
+        this.defaultSpeed = speed; // Set player speed
     }
 
     public void addHealth(int add) {

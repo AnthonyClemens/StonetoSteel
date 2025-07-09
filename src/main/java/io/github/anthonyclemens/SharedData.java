@@ -3,12 +3,12 @@ package io.github.anthonyclemens;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 
-import io.github.anthonyclemens.states.Game;
-import io.github.anthonyclemens.Rendering.IsoRenderer;
-import io.github.anthonyclemens.Player.Player;
 import io.github.anthonyclemens.Logic.DayNightCycle;
-import io.github.anthonyclemens.WorldGen.ChunkManager;
+import io.github.anthonyclemens.Player.Player;
 import io.github.anthonyclemens.Rendering.Camera;
+import io.github.anthonyclemens.Rendering.IsoRenderer;
+import io.github.anthonyclemens.WorldGen.ChunkManager;
+import io.github.anthonyclemens.states.Game;
 
 
 public class SharedData {
@@ -18,6 +18,9 @@ public class SharedData {
     private static int seed = 0;
     private static boolean hotstart = false;
     private static GameStates lastState = null;
+    private static String saveFilePath = null;
+    private static boolean newGame = true;
+    private static boolean loadingSave = false;
 
     private static Game gameState;
 
@@ -35,6 +38,30 @@ public class SharedData {
 
     public static int getSeed() {
         return seed;
+    }
+
+    public static void setSaveFilePath(String path) {
+        saveFilePath = path;
+    }
+
+    public static String getSaveFilePath() {
+        return saveFilePath;
+    }
+
+    public static boolean isNewGame() {
+        return newGame;
+    }
+
+    public static void setNewGame(boolean isNew) {
+        newGame = isNew;
+    }
+
+    public static boolean isLoadingSave() {
+        return loadingSave;
+    }
+
+    public static void setLoadingSave(boolean loading) {
+        loadingSave = loading;
     }
 
     public static void enterState(GameStates state, StateBasedGame game) {
