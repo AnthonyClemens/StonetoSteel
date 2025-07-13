@@ -1,8 +1,5 @@
 package io.github.anthonyclemens.states;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 
 import org.lwjgl.Sys;
@@ -51,7 +48,7 @@ public class Game extends BasicGameState{
     private Image backgroundImage;
     private static final int TILE_WIDTH = 18;
     private static final int TILE_HEIGHT = 18;
-    private final float minZoom = 0.40f;
+    private static final float minZoom = 0.40f;
 
     // Game Objects
     private Camera camera;
@@ -59,22 +56,12 @@ public class Game extends BasicGameState{
     private DayNightCycle env;
     private Calender calender;
     private IsoRenderer renderer;
-    private JukeBox jukeBox;
-    private SoundBox ambientSoundBox;
+    public static JukeBox jukeBox;
+    public static SoundBox ambientSoundBox;
     ChunkManager chunkManager;
 
     // Debug Related Variables
     public static boolean showDebug = true;
-
-    // Music and Sound Definitions
-    private final List<String> dayMusic = new ArrayList<>(Arrays.asList("music/day/ForestWalk.ogg","music/day/SpringFlowers.ogg"));
-    private final List<String> nightMusic = new ArrayList<>(Arrays.asList("music/night/Moonlight-ScottBuckley.ogg","music/night/AdriftAmongInfiniteStars-ScottBuckley.ogg"));
-
-    private final List<String> plainsSounds = new ArrayList<>(Arrays.asList("sounds/Plains/birds.ogg", "sounds/Plains/birds1.ogg"));
-    private final List<String> nightSounds = new ArrayList<>(Arrays.asList("sounds/Night/crickets.ogg", "sounds/Night/cicadas.ogg"));
-    private final List<String> desertSounds = new ArrayList<>(Arrays.asList("sounds/Desert/wind.ogg"));
-    private final List<String> waterSounds = new ArrayList<>(Arrays.asList("sounds/Water/flowingwater.ogg"));
-    private final List<String> beachSounds = new ArrayList<>(Arrays.asList("sounds/Beach/waves.ogg"));
 
     private CollisionHandler collisionHandler;
     private DebugGUI debugGUI;
@@ -107,15 +94,18 @@ public class Game extends BasicGameState{
             saveLoadManager.loadGame(SharedData.getSaveFilePath(), container);
             chunkManager = saveLoadManager.getRenderer().getChunkManager();
             createNewPlayer(saveLoadManager.getPlayerX(), saveLoadManager.getPlayerY(), saveLoadManager.getPlayerSpeed(), saveLoadManager.getPlayerHealth());
+            env = saveLoadManager.getDayNightCycle();
         }
         renderer = new IsoRenderer(zoom, "main", chunkManager, container);
         chunkManager.attachRenderer(renderer);
-        ambientSoundManager.attacheRenderer(renderer);
+        ambientSoundManager = new AmbientSoundManager(jukeBox, ambientSoundBox);
+        ambientSoundManager.attachRenderer(renderer);
         camera = new Camera(player.getX(), player.getY());
 
         ambientSoundBox.setVolume(settings.getMainVolume()*settings.getAmbientVolume());
         jukeBox.setVolume(settings.getMainVolume()*settings.getMusicVolume());
         player.setVolume(settings.getMainVolume()*settings.getPlayerVolume());
+
         MultiTileObject test = new MultiTileObject("main", 8, 8, 0, 0, "test");
         test.addBlock(30, 2, 2, 0);
         test.addBlock(30, 2, 2, 1);
@@ -194,24 +184,13 @@ public class Game extends BasicGameState{
         });
         calender = new Calender(16, 3, 2025);
         env = new DayNightCycle(4f, 6f, 19f, calender);
-
-        jukeBox = new JukeBox();
-        jukeBox.addSongs("dayMusic", dayMusic);
-        jukeBox.addSongs("nightMusic", nightMusic);
-
-        ambientSoundBox = new SoundBox();
-        ambientSoundBox.addSounds("plainsSounds", plainsSounds);
-        ambientSoundBox.addSounds("desertSounds", desertSounds);
-        ambientSoundBox.addSounds("waterSounds", waterSounds);
-        ambientSoundBox.addSounds("beachSounds", beachSounds);
-        ambientSoundBox.addSounds("nightSounds", nightSounds);
+        
 
         this.backgroundImage = new Image("textures/MissingTexture.png");
 
         collisionHandler = new CollisionHandler();
         debugGUI = new DebugGUI();
         displayHUD = new DisplayHUD();
-        ambientSoundManager = new AmbientSoundManager(jukeBox, ambientSoundBox);
         saveLoadManager = new SaveLoadManager();
     }
 
@@ -302,6 +281,14 @@ public class Game extends BasicGameState{
 
     public void saveGame(String filepath) {
         saveLoadManager.saveGame(filepath, env, chunkManager, camera, player);
+    }
+
+    public JukeBox getJukeBox() {
+        return jukeBox;
+    }
+
+    public SoundBox getAmbientSoundManager() {
+        return ambientSoundBox;
     }
 
 }

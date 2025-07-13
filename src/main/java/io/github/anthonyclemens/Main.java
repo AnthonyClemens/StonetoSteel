@@ -8,12 +8,13 @@ import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.states.ControlSettings;
 import io.github.anthonyclemens.states.Game;
+import io.github.anthonyclemens.states.LoadingScreen;
 import io.github.anthonyclemens.states.MainMenu;
 import io.github.anthonyclemens.states.NewGame;
+import io.github.anthonyclemens.states.PauseMenu;
 import io.github.anthonyclemens.states.SettingsMenu;
 import io.github.anthonyclemens.states.SoundSettings;
 import io.github.anthonyclemens.states.VideoSettings;
-import io.github.anthonyclemens.states.PauseMenu;
 
 
 public class Main extends StateBasedGame{
@@ -56,6 +57,7 @@ public class Main extends StateBasedGame{
         addState(new SoundSettings());
         addState(new ControlSettings());
         addState(new PauseMenu());
+        addState(new LoadingScreen());
     }
 
     public static void setSettings(Settings settings) throws SlickException{

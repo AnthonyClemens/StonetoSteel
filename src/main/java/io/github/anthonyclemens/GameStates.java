@@ -11,7 +11,9 @@ public enum GameStates {
     VIDEO_SETTINGS(10),
     SOUND_SETTINGS(11),
     CONTROL_SETTINGS(12),
-    PAUSE_MENU(101);
+    PAUSE_MENU(101),
+    LOADING_SCREEN(98);
+
 
     private final int id;
 

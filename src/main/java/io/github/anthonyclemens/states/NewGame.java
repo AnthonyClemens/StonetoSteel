@@ -180,7 +180,7 @@ public class NewGame extends BasicGameState {
                         SharedData.setNewGame(true);
                         Log.debug("Starting new game with save file: " + SharedData.getSaveFilePath());
                     }
-                    SharedData.enterState(GameStates.GAME, game);
+                    SharedData.enterState(GameStates.LOADING_SCREEN, game);
                 }else if (name.equals("Delete World")) {
                     delete = true;
                     titleBanner.setText("Delete World?");

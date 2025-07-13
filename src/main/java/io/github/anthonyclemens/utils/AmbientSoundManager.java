@@ -21,7 +21,7 @@ public class AmbientSoundManager {
         this.ambientSoundBox = ambientSoundBox;
     }
 
-    public void attacheRenderer(IsoRenderer renderer) {
+    public void attachRenderer(IsoRenderer renderer) {
         this.renderer = renderer;
     }
 
