@@ -79,12 +79,15 @@ public class GameObjectGenerator {
      */
     private static List<GameObject> generatePlainsObjects(Random rand, int chunkX, int chunkY, int chunkSize) {
         List<GameObject> gobs = new ArrayList<>();
+        int id = 0;
         for (int y = 0; y < chunkSize - 1; y++) {
             for (int x = 0; x < chunkSize - 1; x++) {
                 if (rand.nextFloat() < PLAINS_TREE_DENSITY) {
                     SingleTileObject newObject = createPlainsObject(rand, x, y, chunkX, chunkY);
+                    newObject.setID(id);
                     if (newObject != null && !isOverlapping(newObject, gobs)) {
                         gobs.add(newObject);
+                        id++;
                     }
                 }
             }

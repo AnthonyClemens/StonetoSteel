@@ -13,7 +13,9 @@ import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.Sound.SoundBox;
+import io.github.anthonyclemens.WorldGen.ChunkManager;
 import io.github.anthonyclemens.Utils;
+import io.github.anthonyclemens.GameObjects.GameObject;
 import io.github.anthonyclemens.states.Game;
 
 public class Player {
@@ -372,5 +374,20 @@ public class Player {
         this.renderY = 0;
         this.hitbox.setBounds(0, 0, animations[0].getWidth(), animations[0].getHeight());
         this.lastDamageTime = 0;
+    }
+
+    public void interact(Input input, ChunkManager cm) {
+        int[] clickedLoc = new int[2];
+        if(playerReach.contains(input.getMouseX(), input.getMouseY())){
+            if(input.isMousePressed(Input.MOUSE_LEFT_BUTTON)){
+                clickedLoc = cm.getIsoRenderer().screenToIsometric(input.getMouseX(), input.getMouseY());
+                Log.debug("Clicked location: "+clickedLoc[0]+", "+clickedLoc[1]);
+                for(int i = 0; i <cm.getChunk(clickedLoc[2],clickedLoc[3]).getGameObjects().size(); i++){
+                    if(cm.getChunk(clickedLoc[2],clickedLoc[3]).getGameObjects().get(i).getHitbox().contains(input.getMouseX(), input.getMouseY())){
+                        cm.getChunk(clickedLoc[2], clickedLoc[3]).getGameObjects().remove(i);
+                    }
+                }
+            }
+        }
     }
 }

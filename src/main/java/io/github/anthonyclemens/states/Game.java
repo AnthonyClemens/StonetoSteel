@@ -211,6 +211,7 @@ public class Game extends BasicGameState{
         camera.update(player, input, cameraX, cameraY);
         cameraX = camera.getX();
         cameraY = camera.getY();
+        player.interact(input, chunkManager);
 
         renderer.update(container, zoom, cameraX, cameraY);
         renderer.updateVisibleChunks(delta);

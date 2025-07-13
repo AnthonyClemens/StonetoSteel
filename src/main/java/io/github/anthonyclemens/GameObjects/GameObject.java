@@ -15,6 +15,7 @@ public abstract class GameObject implements Serializable{
     protected int chunkX;
     protected int chunkY;
     protected String name;
+    protected int id;
     protected Rectangle hitbox;
     protected String tileSheet;
     protected Biome biome; // Optional: to associate a biome with the game object
@@ -87,6 +88,14 @@ public abstract class GameObject implements Serializable{
 
     public Biome getBiome() {
         return this.biome;
+    }
+
+    public void setID(int nid){
+        this.id=nid;
+    }
+
+    public int getID(){
+        return this.id;
     }
 
     public void calculateHitbox(float zoom) {
