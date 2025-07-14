@@ -43,6 +43,7 @@ public class Game extends BasicGameState{
     private boolean dragging = false;
     private float lastMouseX;
     private float lastMouseY;
+    private boolean showHUD = true;
 
     // Game Constants
     private Image backgroundImage;
@@ -223,7 +224,7 @@ public class Game extends BasicGameState{
         renderer.render(player);
         player.render(container, zoom, camera.getX(), camera.getY());
         env.renderOverlay(container, g);
-        displayHUD.renderHUD(container, g, calender, env);
+        if (showHUD) displayHUD.renderHUD(container, g, calender, env);
         if (showDebug) debugGUI.renderDebugGUI(g, container, renderer, player, zoom, jukeBox, ambientSoundBox);
     }
 
@@ -233,11 +234,14 @@ public class Game extends BasicGameState{
         if (input.isKeyDown(Input.KEY_UP)) cameraY -= delta * 0.1f * zoom;
         if (input.isKeyDown(Input.KEY_DOWN)) cameraY += delta * 0.1f * zoom;
         if (input.isKeyPressed(Input.KEY_ESCAPE)) SharedData.enterState(GameStates.PAUSE_MENU, game);
+        if (input.isKeyPressed(Input.KEY_F1)) showHUD=!showHUD;
         if (input.isKeyPressed(Input.KEY_F3)) showDebug=!showDebug;
         if (input.isKeyPressed(Input.KEY_F11)){
             boolean toggleFullscreen = !game.getContainer().isFullscreen();
             game.getContainer().setFullscreen(toggleFullscreen);
         }
+        if(input.isKeyPressed(Input.KEY_ADD)) IsoRenderer.setRenderDistance(IsoRenderer.getRenderDistance()+8);
+        if(input.isKeyPressed(Input.KEY_SUBTRACT)) IsoRenderer.setRenderDistance(IsoRenderer.getRenderDistance()-8);
     }
 
     private void updateMouse(Input input){

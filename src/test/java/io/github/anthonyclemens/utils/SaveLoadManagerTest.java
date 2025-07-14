@@ -24,9 +24,9 @@ public class SaveLoadManagerTest {
         preSavePlayer = new Player(123, 123, 123, null, null);
         preSavePlayer.setVolume(0f);
         preSavePlayer.subtractHealth(99);
-        saveLoadManager.saveGame("saves/testSave.sav",null,chunkManager,null,preSavePlayer);
+        saveLoadManager.saveGame("saves/testSave",null,chunkManager,null,preSavePlayer);
 
-        saveLoadManager.loadGame("saves/testSave.sav", null);
+        saveLoadManager.loadGame("saves/testSave", null);
         postLoadRenderer = saveLoadManager.getRenderer();
         postLoadPlayer = new Player(saveLoadManager.getPlayerX(), saveLoadManager.getPlayerY(), saveLoadManager.getPlayerSpeed(), null, null);
         postLoadPlayer.setHealth(saveLoadManager.getPlayerHealth());
@@ -51,6 +51,6 @@ public class SaveLoadManagerTest {
 
     @After
     public void cleanup() {
-        SaveLoadManager.deleteSave("testSave.sav");
+        SaveLoadManager.deleteSave("saves/testSave");
     }
 }

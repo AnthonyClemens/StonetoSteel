@@ -1,9 +1,6 @@
 package io.github.anthonyclemens.states;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
@@ -23,6 +20,7 @@ import io.github.anthonyclemens.SharedData;
 import io.github.anthonyclemens.Sound.JukeBox;
 import io.github.anthonyclemens.Sound.SoundBox;
 import io.github.anthonyclemens.Utils;
+import io.github.anthonyclemens.utils.AssetLoader;
 
 public class LoadingScreen extends BasicGameState {
 
@@ -35,69 +33,41 @@ public class LoadingScreen extends BasicGameState {
 
     private boolean doneLoading = false;
     private int frameCount = 0;
-    private int completedSteps = 0;
+    private int completedSteps;
     private int totalSteps = 0;
     private final Queue<Runnable> loadingSteps = new LinkedList<>();
 
-    private final List<String> dayMusic = new ArrayList<>(Arrays.asList(
-    "music/day/ForestWalk.ogg",
-    "music/day/SpringFlowers.ogg"
-    ));
-
-    private final List<String> nightMusic = new ArrayList<>(Arrays.asList(
-        "music/night/Moonlight-ScottBuckley.ogg",
-        "music/night/AdriftAmongInfiniteStars-ScottBuckley.ogg"
-    ));
-
-    private final List<String> plainsSounds = new ArrayList<>(Arrays.asList(
-    "sounds/Plains/birds.ogg",
-    "sounds/Plains/birds1.ogg"
-    ));
-
-    private final List<String> nightSounds = new ArrayList<>(Arrays.asList(
-        "sounds/Night/crickets.ogg",
-        "sounds/Night/cicadas.ogg"
-    ));
-
-    private final List<String> desertSounds = new ArrayList<>(Arrays.asList(
-        "sounds/Desert/wind.ogg"
-    ));
-
-    private final List<String> waterSounds = new ArrayList<>(Arrays.asList(
-        "sounds/Water/flowingwater.ogg"
-    ));
-
-    private final List<String> beachSounds = new ArrayList<>(Arrays.asList(
-        "sounds/Beach/waves.ogg"
-    ));
+    private String soundPack;
 
     @Override
     public void enter(GameContainer container, StateBasedGame game) throws SlickException {
         Log.debug("Loading Screen entered.");
         mainFont = Utils.getFont(MAIN_FONT, 48f);
+        soundPack = SharedData.getSoundPack();
+        completedSteps = 0;
+        doneLoading=false;
     }
 
     @Override
     public void init(GameContainer container, StateBasedGame game) throws SlickException {
         loadingImage = new Image("textures/Background.png");
         loadingSteps.add(() -> Game.jukeBox = new JukeBox());
-        loadingSteps.add(() -> Game.jukeBox.addSongs("dayMusic", dayMusic));
-        loadingSteps.add(() -> Game.jukeBox.addSongs("nightMusic", nightMusic));
+        loadingSteps.add(() -> Game.jukeBox.addSongs("dayMusic", AssetLoader.loadListFromFile(soundPack, "dayMusic")));
+        loadingSteps.add(() -> Game.jukeBox.addSongs("nightMusic", AssetLoader.loadListFromFile(soundPack, "nightMusic")));
         loadingSteps.add(() -> Game.ambientSoundBox = new SoundBox());
-        loadingSteps.add(() -> Game.ambientSoundBox.addSounds("plainsSounds", plainsSounds));
-        loadingSteps.add(() -> Game.ambientSoundBox.addSounds("desertSounds", desertSounds));
-        loadingSteps.add(() -> Game.ambientSoundBox.addSounds("waterSounds", waterSounds));
-        loadingSteps.add(() -> Game.ambientSoundBox.addSounds("beachSounds", beachSounds));
-        loadingSteps.add(() -> Game.ambientSoundBox.addSounds("nightSounds", nightSounds));
+        loadingSteps.add(() -> Game.ambientSoundBox.addSounds("plainsSounds", AssetLoader.loadListFromFile(soundPack, "plainsSounds")));
+        loadingSteps.add(() -> Game.ambientSoundBox.addSounds("desertSounds", AssetLoader.loadListFromFile(soundPack, "desertSounds")));
+        loadingSteps.add(() -> Game.ambientSoundBox.addSounds("waterSounds", AssetLoader.loadListFromFile(soundPack, "waterSounds")));
+        loadingSteps.add(() -> Game.ambientSoundBox.addSounds("beachSounds", AssetLoader.loadListFromFile(soundPack, "beachSounds")));
+        loadingSteps.add(() -> Game.ambientSoundBox.addSounds("nightSounds", AssetLoader.loadListFromFile(soundPack, "nightSounds")));
         totalSteps = loadingSteps.size(); // Save initial size
-
     }
 
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
         //RenderUtils.drawBackground(loadingImage,container);
-        g.setColor(Color.white);
-        mainFont.drawString(TwoDimensionMath.getMiddleX(mainFont.getWidth(MAIN_FONT), container.getWidth()), 10, TITLE_STRING);
+        //g.setColor(Color.white);
+        //mainFont.drawString(TwoDimensionMath.getMiddleX(mainFont.getWidth(MAIN_FONT), container.getWidth()), 10, TITLE_STRING);
         // Dimensions and position
         int barX = (container.getWidth() - BAR_WIDTH) / 2;
         int barY = container.getHeight() - 80;
@@ -117,8 +87,8 @@ public class LoadingScreen extends BasicGameState {
 
     @Override
     public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
-        Log.debug("Progress: " + completedSteps + "/" + totalSteps + ", Queue left: " + loadingSteps.size());
-        if (!doneLoading && frameCount > 1 && !loadingSteps.isEmpty()) {
+        if (!doneLoading && frameCount % 2 == 0 && !loadingSteps.isEmpty()) {
+            Log.debug("Progress: " + completedSteps + "/" + totalSteps + ", Queue left: " + loadingSteps.size());
             loadingSteps.poll().run(); // Execute next step
             completedSteps++;          // Update progress bar
         } else if (!doneLoading && loadingSteps.isEmpty()) {

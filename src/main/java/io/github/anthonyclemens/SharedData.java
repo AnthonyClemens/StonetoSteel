@@ -15,6 +15,8 @@ public class SharedData {
     // Private constructor to prevent instantiation
     private SharedData() {}
 
+    private static String soundPack = "soundPacks/default/assets.json";
+    private static String texturePack = "texturePacks/default/assets.json";
     private static int seed = 0;
     private static boolean hotstart = false;
     private static GameStates lastState = null;
@@ -29,11 +31,11 @@ public class SharedData {
     }
 
     public static void setHotstart(boolean value) {
-        hotstart = value;
+        SharedData.hotstart = value;
     }
 
     public static void setSeed(int newSeed) {
-        seed = newSeed;
+        SharedData.seed = newSeed;
     }
 
     public static int getSeed() {
@@ -41,7 +43,7 @@ public class SharedData {
     }
 
     public static void setSaveFilePath(String path) {
-        saveFilePath = path;
+        SharedData.saveFilePath = path;
     }
 
     public static String getSaveFilePath() {
@@ -53,7 +55,7 @@ public class SharedData {
     }
 
     public static void setNewGame(boolean isNew) {
-        newGame = isNew;
+        SharedData.newGame = isNew;
     }
 
     public static boolean isLoadingSave() {
@@ -61,13 +63,29 @@ public class SharedData {
     }
 
     public static void setLoadingSave(boolean loading) {
-        loadingSave = loading;
+        SharedData.loadingSave = loading;
+    }
+
+    public static String getSoundPack() {
+        return soundPack;
+    }
+
+    public static void setSoundPack(String soundPack) {
+        SharedData.soundPack = soundPack;
+    }
+
+    public static String getTexturePack(){
+        return texturePack;
+    }
+
+    public static void setTexturePack(String texturePack){
+        SharedData.texturePack=texturePack;
     }
 
     public static void enterState(GameStates state, StateBasedGame game) {
         // Assign lastState to the current state before switching
         GameStates currentState = getCurrentState(game);
-        lastState = currentState;
+        SharedData.lastState = currentState;
         Log.debug("Entering state: " + state + " from " + (lastState != null ? lastState : "none"));
         game.enterState(state.getID());
     }

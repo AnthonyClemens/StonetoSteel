@@ -1,0 +1,30 @@
+{
+    "dayMusic": [
+      "music/day/ForestWalk.ogg",
+      "music/day/SpringFlowers.ogg"
+    ],
+    "nightMusic": [
+      "music/night/Moonlight-ScottBuckley.ogg",
+      "music/night/AdriftAmongInfiniteStars-ScottBuckley.ogg"
+    ],
+    "plainsSounds": [
+      "sounds/Plains/birds.ogg",
+      "sounds/Plains/birds1.ogg"
+    ],
+    "nightSounds": [
+      "sounds/Night/crickets.ogg",
+      "sounds/Night/cicadas.ogg"
+    ],
+    "desertSounds": [
+      "sounds/Desert/wind.ogg"
+    ],
+    "waterSounds": [
+      "sounds/Water/flowingwater.ogg"
+    ],
+    "beachSounds": [
+      "sounds/Beach/waves.ogg"
+    ],
+    "menuMusic": [
+      
+    ]
+}

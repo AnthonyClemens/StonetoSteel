@@ -11,11 +11,12 @@ import org.newdawn.slick.geom.Line;
 import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.util.Log;
 
+import io.github.anthonyclemens.GameObjects.GameObject;
 import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.Sound.SoundBox;
-import io.github.anthonyclemens.WorldGen.ChunkManager;
 import io.github.anthonyclemens.Utils;
-import io.github.anthonyclemens.GameObjects.GameObject;
+import io.github.anthonyclemens.WorldGen.Chunk;
+import io.github.anthonyclemens.WorldGen.ChunkManager;
 import io.github.anthonyclemens.states.Game;
 
 public class Player {
@@ -39,9 +40,9 @@ public class Player {
     private final Circle playerReach = new Circle(0,0,0); // Circle representing the player's reach
     private static final float REACH = 128f; // Length of the player's reach in base scale pixels
 
-    // Player health properties    
-    private int health; // Player health
-    private int maxHealth; // Maximum health
+    // Player health properties
+    private byte health; // Player health
+    private byte maxHealth; // Maximum health
     private long lastDamageTime = 0; // Timestamp of last time damage was taken (milliseconds)
     private long hurtFlashEndTime = 0; // Timestamp when hurt flash should end
     private static final int HURT_FLASH_DURATION_MS = 250; // Duration of red flash in ms
@@ -295,7 +296,7 @@ public class Player {
         if(health > this.maxHealth){
             this.health = this.maxHealth; // Set player health to max if it exceeds
         } else {
-            this.health = health; // Set player health
+            this.health = (byte) health; // Set player health
         }
     }
 
@@ -333,7 +334,7 @@ public class Player {
     }
 
     public void setMaxHealth(int maxHealth) {
-        this.maxHealth = maxHealth; // Set player max health
+        this.maxHealth = (byte) maxHealth; // Set player max health
     }
 
     public void setPreviousX(float newX){
@@ -377,16 +378,21 @@ public class Player {
     }
 
     public void interact(Input input, ChunkManager cm) {
-        int[] clickedLoc = new int[2];
-        if(playerReach.contains(input.getMouseX(), input.getMouseY())){
-            if(input.isMousePressed(Input.MOUSE_LEFT_BUTTON)){
-                clickedLoc = cm.getIsoRenderer().screenToIsometric(input.getMouseX(), input.getMouseY());
-                Log.debug("Clicked location: "+clickedLoc[0]+", "+clickedLoc[1]);
-                for(int i = 0; i <cm.getChunk(clickedLoc[2],clickedLoc[3]).getGameObjects().size(); i++){
-                    if(cm.getChunk(clickedLoc[2],clickedLoc[3]).getGameObjects().get(i).getHitbox().contains(input.getMouseX(), input.getMouseY())){
-                        cm.getChunk(clickedLoc[2], clickedLoc[3]).getGameObjects().remove(i);
-                    }
-                }
+        int mouseX = input.getMouseX();
+        int mouseY = input.getMouseY();
+        if (!playerReach.contains(mouseX, mouseY)) return;
+        if (!input.isMousePressed(Input.MOUSE_LEFT_BUTTON)) return;
+
+        int[] clickedLoc = cm.getIsoRenderer().screenToIsometric(mouseX, mouseY);
+
+        Chunk chunk = cm.getChunk(clickedLoc[2], clickedLoc[3]);
+        if (chunk == null) return; // Safety check
+
+        List<GameObject> objects = chunk.getGameObjects();
+        for (int i = 0; i < objects.size(); i++) {
+            if (objects.get(i).getHitbox().contains(mouseX, mouseY)) {
+                objects.remove(i);
+                break;
             }
         }
     }

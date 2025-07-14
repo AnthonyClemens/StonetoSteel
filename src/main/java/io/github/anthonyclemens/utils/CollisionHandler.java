@@ -22,6 +22,7 @@ public class CollisionHandler {
             return;
         }
         for (GameObject gob : gameObjects) {
+            if (gob.getHitbox()==null) return;
             if (gob.getHitbox().intersects(player.getHitbox())) {
                 Rectangle playerHit = player.getHitbox();
                 Rectangle objectHit = gob.getHitbox();

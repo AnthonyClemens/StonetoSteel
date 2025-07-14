@@ -1,14 +1,20 @@
 package io.github.anthonyclemens.utils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -19,6 +25,7 @@ import io.github.anthonyclemens.Logic.DayNightCycle;
 import io.github.anthonyclemens.Player.Player;
 import io.github.anthonyclemens.Rendering.Camera;
 import io.github.anthonyclemens.Rendering.IsoRenderer;
+import io.github.anthonyclemens.WorldGen.Chunk;
 import io.github.anthonyclemens.WorldGen.ChunkManager;
 
 public class SaveLoadManager {
@@ -29,120 +36,245 @@ public class SaveLoadManager {
     private float playerX, playerY, playerSpeed;
     private int playerHealth;
 
-
-    public void saveGame(String filePath, DayNightCycle env, ChunkManager chunkManager, Camera camera, Player player) {
-        Path path = Paths.get(filePath);
-
+    public void saveGame(String folderPath, DayNightCycle env, ChunkManager chunkManager, Camera camera, Player player) {
+        Path saveRoot = Paths.get(folderPath);
         try {
-            // Create parent directories if they don't exist
-            Files.createDirectories(path.getParent());
-            // Create the file if it doesn't exist
-            if (!Files.exists(path)) {
-                Files.createFile(path);
-                System.out.println("File created successfully: " + path.toAbsolutePath());
-            } else {
-                System.out.println("File already exists: " + path.toAbsolutePath());
-            }
+            Files.createDirectories(saveRoot);
         } catch (IOException e) {
-            System.err.println("Failed to create file: " + e.getMessage());
+            Log.error("Failed to create save folder: " + e.getMessage());
+            return;
+        }
+        Log.debug("Environment size: " + getSerializedSize(env));
+        Log.debug("Camera size: " + getSerializedSize(camera));
+        Log.debug("Player data size: " + getSerializedSize(new float[]{player.getX(), player.getY(), player.getSpeed()}));
+        Log.debug("Player health size: " + getSerializedSize(player.getHealth()));
+
+        // Save individual components
+        saveGzippedObject(saveRoot.resolve("environment.dat"), env);
+        saveGzippedObject(saveRoot.resolve("camera.dat"), camera);
+        saveGzippedObject(saveRoot.resolve("player.dat"), player.getX(), player.getY(), player.getSpeed(), player.getHealth());
+        saveGzippedObject(saveRoot.resolve("seed.dat"), chunkManager.getSeed());
+
+        // Save chunks in 32x32 region groups
+        saveChunkRegions(chunkManager, saveRoot.resolve("regions"));
+
+        Log.debug("Save completed at " + folderPath + " total size: "+formatSize((int)getFolderSize(saveRoot.toFile())));
+    }
+
+    private void saveChunkRegions(ChunkManager chunkManager, Path regionFolder) {
+        try {
+            Files.createDirectories(regionFolder);
+        } catch (IOException e) {
+            Log.error("Failed to create region folder: " + e.getMessage());
+            return;
         }
 
-        try (FileOutputStream fos = new FileOutputStream(filePath);
+        Map<String, List<Chunk>> groupedChunks = new HashMap<>();
+        for (Chunk chunk : chunkManager.getChunks().values()) {
+            int cx = chunk.getChunkX();
+            int cy = chunk.getChunkY();
+            String regionKey = (cx / 32) + "_" + (cy / 32);
+            groupedChunks.computeIfAbsent(regionKey, k -> new ArrayList<>()).add(chunk);
+        }
+
+        for (Map.Entry<String, List<Chunk>> entry : groupedChunks.entrySet()) {
+            String regionKey = entry.getKey();
+            Path regionFile = regionFolder.resolve("region_" + regionKey + ".dat");
+            saveGzippedObject(regionFile, entry.getValue());
+
+            String label = "Chunks - region_" + regionKey;
+            Log.debug(label + " total size: " + getSerializedSize(entry.getValue()));
+
+            int tileBytes = 0;
+            int gameObjectBytes = 0;
+
+            for (Chunk c : entry.getValue()) {
+                tileBytes += getSerializedSizeBytes(c.getTiles());
+                gameObjectBytes += getSerializedSizeBytes(c.getGameObjects());
+            }
+
+            Log.debug(label + " tiles: " + formatSize(tileBytes));
+            Log.debug(label + " gameObjects: " + formatSize(gameObjectBytes));
+        }
+    }
+
+    private void saveGzippedObject(Path file, Object... objects) {
+        try (FileOutputStream fos = new FileOutputStream(file.toFile());
              GZIPOutputStream gzos = new GZIPOutputStream(fos);
              ObjectOutputStream oos = new ObjectOutputStream(gzos)) {
-            oos.writeObject(env);
-            oos.writeObject(chunkManager);
-            oos.writeObject(camera);
-            oos.writeFloat(player.getX());
-            oos.writeFloat(player.getY());
-            oos.writeFloat(player.getSpeed());
-            oos.writeInt(player.getHealth());
+
+            for (Object obj : objects) {
+                oos.writeObject(obj);
+            }
+
         } catch (IOException e) {
-            Log.error("Failed to save game: " + e.getMessage());
-        }
-        File saveFile = new File(filePath);
-        if (saveFile.exists()) {
-            long fileSize = saveFile.length();
-            if (fileSize < 1024 * 1024) {
-                Log.debug("Game "+filePath+" saved. File size: " + (fileSize / 1024) + " KB.");
-            } else {
-                Log.debug("Game "+filePath+" saved. File size: " + (fileSize / (1024 * 1024)) + " MB.");
-            }
-        } else {
-            Log.error("Save file not found after saving.");
+            Log.error("Failed to save " + file.getFileName() + ": " + e.getMessage());
         }
     }
 
-    public void loadGame(String filePath, GameContainer container) {
-        try (FileInputStream fis = new FileInputStream(filePath);
-             GZIPInputStream gzis = new GZIPInputStream(fis);
-             ObjectInputStream ois = new ObjectInputStream(gzis)) {
-            loadedEnv = (DayNightCycle) ois.readObject();
-            ChunkManager newChunkManager = (ChunkManager) ois.readObject();
-            loadedRenderer = new IsoRenderer(1f, "main", newChunkManager, container);
-            newChunkManager.attachRenderer(loadedRenderer);
-            loadedCamera = (Camera) ois.readObject();
-            playerX = ois.readFloat();
-            playerY = ois.readFloat();
-            playerSpeed = ois.readFloat();
-            playerHealth = ois.readInt();
+    public void loadGame(String folderPath, GameContainer container) {
+        Path saveRoot = Paths.get(folderPath);
+
+        try (ObjectInputStream envIn = openGzippedInput(saveRoot.resolve("environment.dat"));
+             ObjectInputStream camIn = openGzippedInput(saveRoot.resolve("camera.dat"));
+             ObjectInputStream playerIn = openGzippedInput(saveRoot.resolve("player.dat"));
+             ObjectInputStream seedIn = openGzippedInput(saveRoot.resolve("seed.dat"))) {
+
+            this.loadedEnv = (DayNightCycle) envIn.readObject();
+            Log.debug("Loaded DayNightCycle");
+            this.loadedCamera = (Camera) camIn.readObject();
+            Log.debug("Loaded Camera");
+
+            this.playerX = (float) playerIn.readObject();
+            this.playerY = (float) playerIn.readObject();
+            this.playerSpeed = (float) playerIn.readObject();
+            this.playerHealth = (int) playerIn.readObject();
+            Log.debug("Loaded Player");
+
+            int seed = (int) seedIn.readObject();
+
+            // Load chunks from grouped regions
+            ChunkManager cm = new ChunkManager(seed);
+            loadChunkRegions(cm, saveRoot.resolve("regions"));
+            Log.debug("Loaded ChunkManager");
+
+            this.loadedRenderer = new IsoRenderer(1f, "main", cm, container);
+            cm.attachRenderer(loadedRenderer);
+            Log.debug("Loaded IsoRenderer");
+
         } catch (IOException | ClassNotFoundException e) {
-            Log.error("Failed to load game "+filePath+": " + e.getMessage());
-        }
-        Log.debug("Game "+filePath+" loaded.");
-    }
-
-    public static void deleteSave(String filePath) {
-        File saveFile = new File(filePath);
-        if (saveFile.exists() && saveFile.delete()) {
-            Log.debug("Save file " + filePath + " deleted successfully.");
-        } else {
-            Log.error("Failed to delete save file: " + filePath);
+            Log.error("Failed to load game: " + e.getMessage());
         }
     }
 
-    public static String getSize(String filePath) {
-        File saveFile = new File(filePath);
-        if (saveFile.exists()) {
-            long fileSize = saveFile.length();
-            if (fileSize < 1024 * 1024) {
-                return (fileSize / 1024) + " KB";
+    private void loadChunkRegions(ChunkManager chunkManager, Path regionFolder) {
+        try (DirectoryStream<Path> files = Files.newDirectoryStream(regionFolder, "*.dat")) {
+            for (Path regionFile : files) {
+                try (ObjectInputStream ois = openGzippedInput(regionFile)) {
+                    List<Chunk> chunkList = (List<Chunk>) ois.readObject();
+                    for (Chunk c : chunkList) {
+                        chunkManager.addChunk(c);
+                    }
+                } catch (IOException | ClassNotFoundException e) {
+                    Log.error("Failed to load region " + regionFile.getFileName() + ": " + e.getMessage());
+                }
+            }
+        } catch (IOException e) {
+            Log.error("Region folder missing: " + e.getMessage());
+        }
+    }
+
+    private ObjectInputStream openGzippedInput(Path file) throws IOException {
+        return new ObjectInputStream(new GZIPInputStream(new FileInputStream(file.toFile())));
+    }
+
+    private String getSerializedSize(Object obj) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+            oos.writeObject(obj);
+            oos.flush();
+            return formatSize(baos.size());
+        } catch (IOException e) {
+            Log.error("Size check failed: " + e.getMessage());
+            return "null";
+        }
+    }
+
+    private static String formatSize(int byteSize) {
+        if (byteSize < 1024) return byteSize + " bytes";
+        if (byteSize < 1024 * 1024) return String.format("%.2f KB", byteSize / 1024f);
+        return String.format("%.2f MB", byteSize / (1024f * 1024f));
+    }
+
+    private int getSerializedSizeBytes(Object obj) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+            oos.writeObject(obj);
+            oos.flush();
+            return baos.size();
+        } catch (IOException e) {
+            Log.error("Size measurement failed: " + e.getMessage());
+            return 0;
+        }
+    }
+
+    public static boolean exists(String folderPath) {
+        File saveFolder = new File(folderPath);
+        return saveFolder.exists() && saveFolder.isDirectory();
+    }
+
+    public static void deleteSave(String folderPath) {
+        File folder = new File(folderPath);
+        if (folder.exists()) {
+            deleteRecursive(folder);
+
+            if (folder.delete()) {
+                Log.debug("Save folder " + folderPath + " deleted.");
             } else {
-                return (fileSize / (1024 * 1024)) + " MB";
+                Log.error("Could not delete folder: " + folderPath);
             }
         } else {
-            Log.warn("Save file not found: " + filePath);
+            Log.error("Save folder not found: " + folderPath);
+        }
+    }
+
+    private static void deleteRecursive(File file) {
+        if (file.isDirectory()) {
+            File[] children = file.listFiles();
+            if (children != null) {
+                for (File child : children) {
+                    deleteRecursive(child);
+                }
+            }
+        }
+        if (!file.delete()) {
+            Log.error("Failed to delete file or directory: " + file.getAbsolutePath());
+        }
+    }
+
+    private static long getFolderSize(File folder) {
+        long size = 0;
+        File[] contents = folder.listFiles();
+        if (contents != null) {
+            for (File f : contents) {
+                if (f.isFile()) {
+                    size += f.length();
+                } else {
+                    size += getFolderSize(f);
+                }
+            }
+        }
+        return size;
+    }
+
+    public static String getSize(String folderPath) {
+        File saveFolder = new File(folderPath);
+        if (!saveFolder.exists() || !saveFolder.isDirectory()) {
+            Log.warn("Save folder not found: " + folderPath);
             return "0";
         }
+
+        long totalSize = 0;
+
+        File[] files = saveFolder.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    totalSize += file.length();
+                } else if (file.isDirectory()) {
+                    totalSize += getFolderSize(file);
+                }
+            }
+        }
+
+        return formatSize((int) totalSize);
     }
 
-    public static boolean exists(String filePath) {
-        File saveFile = new File(filePath);
-        return saveFile.exists();
-    }
-
-    public DayNightCycle getDayNightCycle() {
-        return loadedEnv;
-    }
-
-    public IsoRenderer getRenderer() {
-        return loadedRenderer;
-    }
-
-    public Camera getCamera() {
-        return loadedCamera;
-    }
-
-    public float getPlayerX() {
-        return playerX;
-    }
-    public float getPlayerY() {
-        return playerY;
-    }
-    public float getPlayerSpeed() {
-        return playerSpeed;
-    }
-    public int getPlayerHealth() {
-        return playerHealth;
-    }
+    public DayNightCycle getDayNightCycle() { return loadedEnv; }
+    public IsoRenderer getRenderer() { return loadedRenderer; }
+    public Camera getCamera() { return loadedCamera; }
+    public float getPlayerX() { return playerX; }
+    public float getPlayerY() { return playerY; }
+    public float getPlayerSpeed() { return playerSpeed; }
+    public int getPlayerHealth() { return playerHealth; }
 }

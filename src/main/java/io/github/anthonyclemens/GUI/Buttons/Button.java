@@ -36,6 +36,7 @@ public class Button extends GUIElement {
 
     @Override
     public void update(Input input){
+        if(!this.render) return;
         if(this.clicked){
             this.clicked=!this.clicked;
         }

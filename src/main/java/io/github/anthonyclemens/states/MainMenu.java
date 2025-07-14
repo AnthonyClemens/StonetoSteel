@@ -90,7 +90,6 @@ public class MainMenu extends BasicGameState{
             if(itb.isClicked()){
                 switch(itb.getText()){ // Figure out what button was pressed
                     case "Start Game"-> {
-                        menuJukeBox.stopMusic();
                         SharedData.enterState(GameStates.NEW_GAME,game);
                     }
                     case "Options"-> SharedData.enterState(GameStates.SETTINGS_MENU, game);

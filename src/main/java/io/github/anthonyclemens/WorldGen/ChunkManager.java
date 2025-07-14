@@ -1,6 +1,7 @@
 package io.github.anthonyclemens.WorldGen;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,7 +16,7 @@ import io.github.anthonyclemens.Rendering.IsoRenderer;
  * Handles chunk caching and provides utilities for chunk/block lookup.
  */
 public class ChunkManager implements Serializable {
-    private static final int CHUNK_SIZE = 16;
+    public static final int CHUNK_SIZE = 16;
     private final Map<String, Chunk> chunks = new ConcurrentHashMap<>();
     private final int seed;
     private transient IsoRenderer isoRenderer;
@@ -90,11 +91,16 @@ public class ChunkManager implements Serializable {
      */
     public Chunk getChunk(int chunkX, int chunkY) {
         String key = chunkX + "," + chunkY;
-        // Check if the chunk already exists in the map
-        return chunks.computeIfAbsent(key, k -> {
+        Chunk chunk = chunks.computeIfAbsent(key, k -> {
             Biome biome = getBiomeForChunk(chunkX, chunkY);
-            return new Chunk(CHUNK_SIZE, biome, this, chunkX, chunkY, this.seed + chunks.size());
+            return new Chunk(CHUNK_SIZE, biome, this, chunkX, chunkY, seed + chunks.size());
         });
+
+        if (chunk.getChunkManager() == null) {
+            chunk.attachChunkManager(this);
+        }
+
+        return chunk;
     }
 
     /**
@@ -144,4 +150,14 @@ public class ChunkManager implements Serializable {
     public int getSeed() {
         return seed;
     }
+
+    public Map<String, Chunk> getChunks() {
+        return Collections.unmodifiableMap(chunks);
+    }
+
+    public void addChunk(Chunk chunk) {
+        String key = chunk.getChunkX() + "," + chunk.getChunkY();
+        chunks.put(key, chunk);
+    }
+
 }

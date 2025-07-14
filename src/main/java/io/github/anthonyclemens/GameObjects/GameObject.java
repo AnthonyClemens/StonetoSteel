@@ -10,15 +10,15 @@ import io.github.anthonyclemens.WorldGen.Biome;
 public abstract class GameObject implements Serializable{
     protected int x;
     protected int y;
-    protected float previousX;
-    protected float previousY;
+    protected transient float previousX;
+    protected transient float previousY;
     protected int chunkX;
     protected int chunkY;
     protected String name;
     protected int id;
-    protected Rectangle hitbox;
+    protected transient Rectangle hitbox;
     protected String tileSheet;
-    protected Biome biome; // Optional: to associate a biome with the game object
+    protected Biome biome;
 
     protected GameObject(String tileSheet, int x, int y, int chunkX, int chunkY, String objName) {
         this.x = x;
@@ -100,6 +100,7 @@ public abstract class GameObject implements Serializable{
 
     public void calculateHitbox(float zoom) {
         // Calculate the hitbox based on the object's position and size
+        if(this.hitbox==null) this.hitbox = new Rectangle(0,0,0,0);
         this.hitbox.setBounds(x * zoom, y * zoom, hitbox.getWidth(), hitbox.getHeight());
     }
 

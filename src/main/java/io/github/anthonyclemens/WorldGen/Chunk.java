@@ -16,14 +16,14 @@ import io.github.anthonyclemens.Rendering.IsoRenderer;
  */
 public class Chunk implements Serializable {
     private final int chunkSize;
-    private final int[][] tiles;
     private final List<GameObject> gameObjects;
     private final Random rand;
-    private int[][] lod1Tiles;
     private final Biome biome;
     private final int chunkX;
     private final int chunkY;
-    private final ChunkManager chunkManager;
+    private transient ChunkManager chunkManager;
+    private final byte[][] tiles;
+    private transient byte[][] lod1Tiles;
 
     /**
      * Constructs a Chunk with the specified parameters.
@@ -31,7 +31,7 @@ public class Chunk implements Serializable {
     public Chunk(int chunkSize, Biome biome, ChunkManager chunkManager, int chunkX, int chunkY, int seed){
         this.rand = new Random(seed);
         this.chunkSize = chunkSize;
-        this.tiles = new int[chunkSize][chunkSize];
+        this.tiles = new byte[chunkSize][chunkSize];
         this.gameObjects = new ArrayList<>();
         this.biome = biome;
         this.chunkX = chunkX;
@@ -59,10 +59,10 @@ public class Chunk implements Serializable {
 
                 if (blendingBiome != null) {
                     // Blend with the neighboring biome
-                    this.tiles[x][y] = generateTileForBiomeWithBlending(this.biome, blendingBiome);
+                    this.tiles[x][y] = (byte) generateTileForBiomeWithBlending(this.biome, blendingBiome);
                 } else {
                     // No blending needed, generate tile for the main biome
-                    this.tiles[x][y] = generateTileForBiome(this.biome);
+                    this.tiles[x][y] = (byte) generateTileForBiome(this.biome);
                 }
             }
         }
@@ -119,11 +119,18 @@ public class Chunk implements Serializable {
      */
     private void generateLODs() {
         int lod1Size = chunkSize / 2;
-        this.lod1Tiles = new int[lod1Size][lod1Size];
+        this.lod1Tiles = new byte[lod1Size][lod1Size];
 
         for (int x = 0; x < lod1Size; x++) {
             for (int y = 0; y < lod1Size; y++) {
-                this.lod1Tiles[x][y] = aggregateRegion(x * 2, y * 2, 2, 2);
+                int aggregatedValue = aggregateRegion(x * 2, y * 2, 2, 2);
+
+                // Clamp or validate the value if needed
+                if (aggregatedValue < 0 || aggregatedValue > 255) {
+                    aggregatedValue = 0; // Or use a default fallback
+                }
+
+                this.lod1Tiles[x][y] = (byte) aggregatedValue;
             }
         }
     }
@@ -166,8 +173,8 @@ public class Chunk implements Serializable {
      * @return Tile value.
      */
     public int getLODTile(int lodLevel, int x, int y) {
-        if (lodLevel == 1) return lod1Tiles[x][y];
-        return tiles[x][y]; // Full detail
+        if (lodLevel == 1) return getLod1Tiles()[x][y] & 0xFF;
+        return tiles[x][y] & 0xFF;
     }
 
     /**
@@ -235,6 +242,33 @@ public class Chunk implements Serializable {
      * Gets the tile value at the specified coordinates.
      */
     public int getTile(int x, int y) {
-        return tiles[x][y];
+        return tiles[x][y] & 0xFF;
+    }
+
+    public byte[][] getTiles(){
+        return this.tiles;
+    }
+
+    private byte[][] getLod1Tiles() {
+        if (lod1Tiles == null) {
+            generateLODs();
+        }
+        return lod1Tiles;
+    }
+
+    public int getChunkX(){
+        return chunkX;
+    }
+
+    public int getChunkY(){
+        return chunkY;
+    }
+
+    public void attachChunkManager(ChunkManager cm){
+        chunkManager=cm;
+    }
+
+    public ChunkManager getChunkManager() {
+        return chunkManager;
     }
 }

@@ -11,5 +11,8 @@ public class Fish extends Mob{
         super(tileSheet, x, y, chunkX, chunkY, objName, 8);
         this.currentAnimation = new Animation(new Image[] { SpriteManager.getSpriteSheet("fishes").getSprite(0, 0) }, new int[] { 100 }, true);
         this.biome = Biome.WATER;
+        this.mobSpeed=2f;
+        this.smoothness=0.02f;
+        this.setSway(1000f);
     }
 }

@@ -59,5 +59,7 @@ public class Banner extends GUIElement{
 
     public void setText(String text){
         this.text = text;
+        this.textWidth = this.ttf.getWidth(this.text);
+        this.xOffset = TwoDimensionMath.getMiddleX(this.textWidth, this.getWidth());
     }
 }
