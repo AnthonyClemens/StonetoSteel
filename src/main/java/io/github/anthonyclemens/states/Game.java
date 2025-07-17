@@ -215,13 +215,13 @@ public class Game extends BasicGameState{
         player.interact(input, chunkManager);
 
         renderer.update(container, zoom, cameraX, cameraY);
-        renderer.updateVisibleChunks(delta);
+        renderer.updateVisibleChunks(delta,player);
     }
 
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
         backgroundImage.draw(0, 0, container.getWidth(), container.getHeight());
-        renderer.render(player);
+        renderer.render();
         player.render(container, zoom, camera.getX(), camera.getY());
         env.renderOverlay(container, g);
         if (showHUD) displayHUD.renderHUD(container, g, calender, env);

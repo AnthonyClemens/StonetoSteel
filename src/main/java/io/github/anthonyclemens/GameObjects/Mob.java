@@ -1,6 +1,7 @@
 package io.github.anthonyclemens.GameObjects;
 
 import java.util.Random;
+import java.util.function.Supplier;
 
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
@@ -11,10 +12,12 @@ import io.github.anthonyclemens.WorldGen.Biome;
 import io.github.anthonyclemens.states.Game;
 
 public class Mob extends GameObject {
-    // 🧍 Animation & Visual State
+    // Animation & Visual State
     protected transient Animation currentAnimation;
+    protected Supplier<Animation> animationLoader;
     private transient float renderX;                // Final screen-space X position
     private transient float renderY;                // Final screen-space Y position
+    private Color colorOverlay;          // Optional color tint for the mob
 
     // Logical Positioning
     private float fx;                     // Internal float X position
@@ -29,7 +32,7 @@ public class Mob extends GameObject {
     // Sway & Movement Styling
     protected float mobSpeed = 4f;       // Movement speed (pixels per second?)
     protected float smoothness = 0.15f;  // Easing factor for render interpolation
-    protected float sway = 1000f;        // Sway cycle range (for offset randomness)
+    protected float sway = 0f;        // Sway cycle range (for offset randomness)
     private transient float swayTime = 0f;         // Time accumulator for sine/cos motion
     private float swayOffset;            // Phase offset per mob for unique motion
 
@@ -123,11 +126,21 @@ public class Mob extends GameObject {
     }
 
     @Override
-    public void render(IsoRenderer r) {
-        if (currentAnimation != null) {
+    public void render(IsoRenderer r, int lodLevel) {
+        if (currentAnimation == null && animationLoader != null) {
+            currentAnimation = animationLoader.get();
+        }
+        if (currentAnimation == null) return;
+
+        if (colorOverlay == null) {
             currentAnimation.draw(renderX, renderY,
-                currentAnimation.getWidth() * r.getZoom(),
-                currentAnimation.getHeight() * r.getZoom());
+            currentAnimation.getWidth() * r.getZoom(),
+            currentAnimation.getHeight() * r.getZoom());
+        } else {
+            currentAnimation.draw(renderX, renderY,
+            currentAnimation.getWidth() * r.getZoom(),
+            currentAnimation.getHeight() * r.getZoom(),
+            colorOverlay);
         }
 
         if (Game.showDebug&&this.hitbox!=null) {
@@ -145,6 +158,10 @@ public class Mob extends GameObject {
 
             r.getGraphics().setColor(Color.black);
         }
+    }
+
+    public void setColorOverlay(Color color) {
+        this.colorOverlay = color;
     }
 
     public float getRenderX() { return renderX; }

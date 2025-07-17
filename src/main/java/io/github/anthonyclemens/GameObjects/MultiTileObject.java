@@ -102,7 +102,7 @@ public class MultiTileObject extends GameObject{
     }
 
     @Override
-    public void render(IsoRenderer r) {
+    public void render(IsoRenderer r, int lodLevel) {
         blocks.stream()
               .sorted((b,a) -> {
               int cmpY = Integer.compare(b.getY(), a.getY());

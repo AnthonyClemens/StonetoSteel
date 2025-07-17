@@ -21,7 +21,7 @@ public class SingleTileObject extends GameObject{
     }
 
     @Override
-    public void render(IsoRenderer r) {
+    public void render(IsoRenderer r, int lodLevel) {
         r.drawScaledTile(tileSheet,i,x,y,chunkX,chunkY);
         if(Game.showDebug){
             r.getGraphics().setColor(Color.black);

@@ -24,6 +24,7 @@ public class Chunk implements Serializable {
     private transient ChunkManager chunkManager;
     private final byte[][] tiles;
     private transient byte[][] lod1Tiles;
+    private transient byte[][] lod2Tiles; // Add LOD2 storage
 
     /**
      * Constructs a Chunk with the specified parameters.
@@ -120,17 +121,24 @@ public class Chunk implements Serializable {
     private void generateLODs() {
         int lod1Size = chunkSize / 2;
         this.lod1Tiles = new byte[lod1Size][lod1Size];
-
         for (int x = 0; x < lod1Size; x++) {
             for (int y = 0; y < lod1Size; y++) {
                 int aggregatedValue = aggregateRegion(x * 2, y * 2, 2, 2);
-
-                // Clamp or validate the value if needed
                 if (aggregatedValue < 0 || aggregatedValue > 255) {
-                    aggregatedValue = 0; // Or use a default fallback
+                    aggregatedValue = 0;
                 }
-
                 this.lod1Tiles[x][y] = (byte) aggregatedValue;
+            }
+        }
+        int lod2Size = chunkSize / 8;
+        this.lod2Tiles = new byte[lod2Size][lod2Size];
+        for (int x = 0; x < lod2Size; x++) {
+            for (int y = 0; y < lod2Size; y++) {
+                int aggregatedValue = aggregateRegion(x * 8, y * 8, 8, 8);
+                if (aggregatedValue < 0 || aggregatedValue > 255) {
+                    aggregatedValue = 0;
+                }
+                this.lod2Tiles[x][y] = (byte) aggregatedValue;
             }
         }
     }
@@ -167,13 +175,14 @@ public class Chunk implements Serializable {
 
     /**
      * Gets a tile value at a given LOD level.
-     * @param lodLevel 0 for full detail, 1 for LOD1.
+     * @param lodLevel 0 for full detail, 1 for LOD1, 2 for LOD2.
      * @param x        X coordinate.
      * @param y        Y coordinate.
      * @return Tile value.
      */
     public int getLODTile(int lodLevel, int x, int y) {
         if (lodLevel == 1) return getLod1Tiles()[x][y] & 0xFF;
+        if (lodLevel == 2) return getLod2Tiles()[x][y] & 0xFF;
         return tiles[x][y] & 0xFF;
     }
 
@@ -209,9 +218,9 @@ public class Chunk implements Serializable {
     /**
      * Renders all GameObjects in this chunk.
      */
-    public void render(IsoRenderer r) {
+    public void render(IsoRenderer r, int lodLevel) {
         for (GameObject obj : gameObjects) {
-            obj.render(r);
+            obj.render(r, lodLevel);
         }
     }
 
@@ -254,6 +263,21 @@ public class Chunk implements Serializable {
             generateLODs();
         }
         return lod1Tiles;
+    }
+
+    public byte[][] getLOD1() {
+        return lod1Tiles;
+    }
+
+    private byte[][] getLod2Tiles() {
+        if (lod2Tiles == null) {
+            generateLODs();
+        }
+        return lod2Tiles;
+    }
+
+    public byte[][] getLOD2() {
+        return lod2Tiles;
     }
 
     public int getChunkX(){

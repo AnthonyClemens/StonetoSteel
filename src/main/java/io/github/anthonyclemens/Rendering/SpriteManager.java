@@ -2,6 +2,7 @@ package io.github.anthonyclemens.Rendering;
 
 import java.util.HashMap;
 
+import org.newdawn.slick.Animation;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
 import org.newdawn.slick.util.Log;
@@ -57,6 +58,15 @@ public class SpriteManager {
             return null;
         }
         return spriteSheets.get(name);
+    }
+
+    public static Animation getAnimation(String name, int sx, int sy, int ex, int ey, int frameDuration){
+        SpriteSheet spriteSheet = getSpriteSheet(name);
+        if (spriteSheet == null) {
+            Log.error("Cannot create animation, sprite sheet is null: " + name);
+            return null;
+        }
+        return new Animation(spriteSheet, sx, sy, ex, ey, false, frameDuration, false);
     }
 
     /**

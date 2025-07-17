@@ -104,7 +104,7 @@ public abstract class GameObject implements Serializable{
         this.hitbox.setBounds(x * zoom, y * zoom, hitbox.getWidth(), hitbox.getHeight());
     }
 
-    public abstract void render(IsoRenderer r);
+    public abstract void render(IsoRenderer r, int lodLevel);
 
     public abstract void update(IsoRenderer r, int deltaTime);
 }

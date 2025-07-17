@@ -26,18 +26,11 @@ public class AmbientSoundManager {
     }
 
     public void playAmbientMusic(DayNightCycle env) {
-        if (env.isSunDown()) {
-            if (!dayNightSwitch) {
-                Log.debug("Switching to night music...");
-                jukeBox.playRandomSong("nightMusic");
-                dayNightSwitch = true;
-            }
-        } else {
-            if (dayNightSwitch) {
-                Log.debug("Switching to day music...");
-                jukeBox.playRandomSong("dayMusic");
-                dayNightSwitch = false;
-            }
+        boolean isNight = env.isSunDown();
+        if (isNight != dayNightSwitch) {
+            Log.debug("Switching to " + (isNight ? "night" : "day") + " music...");
+            jukeBox.playRandomSong(isNight ? "nightMusic" : "dayMusic");
+            dayNightSwitch = isNight;
         }
     }
 

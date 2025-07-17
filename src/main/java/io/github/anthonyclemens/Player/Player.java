@@ -322,6 +322,7 @@ public class Player {
         if(this.health-damage <= 0){
             this.reset(); // Reset player state if health drops to 0
         } else {
+            this.cameraLocked = true;
             this.health -= damage; // Subtract health from player
         }
         if(!this.playerSoundBox.getCurrentCategory().equals("ouch")) {
