@@ -2,6 +2,7 @@
 /target
 /target/*
 /saves
+/libraries
 *.py
 *.dat
 *.dll

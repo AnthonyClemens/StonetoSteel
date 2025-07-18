@@ -19,21 +19,29 @@ import io.github.anthonyclemens.states.VideoSettings;
 
 public class Main extends StateBasedGame{
 
-        private static AppGameContainer app;
+    private static AppGameContainer app;
 
-        public Main() {
-            super("Stone to Steel");
-        }
-        public static void main(String[] args){
+    public Main() {
+        super("Stone to Steel");
+    }
+    public static void main(String[] args){
+        Settings settings = Settings.getInstance();
         try {
-            Settings settings = Settings.getInstance();
             //Initialize the Slick2d engine
             app = new AppGameContainer(new Main());
             setSettings(settings);
             //app.setIcon("");
             app.start();
         } catch (SlickException e){
+            try {
+                Log.debug("Failed to initialize Slick2D, creating default settings file.");
+                settings.writeDefaultOptions();
+                main(args); // Retry after creating default settings
+            } catch (Exception e1) {
+                Log.error("Default settings file creation failed.", e1);
+            }
             Log.error("Failed to create Slick2D Container");
+            Log.error(e);
         }
     }
 

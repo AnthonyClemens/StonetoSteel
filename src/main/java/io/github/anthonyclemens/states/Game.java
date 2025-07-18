@@ -27,6 +27,7 @@ import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.SharedData;
 import io.github.anthonyclemens.Sound.JukeBox;
 import io.github.anthonyclemens.Sound.SoundBox;
+import io.github.anthonyclemens.Utils;
 import io.github.anthonyclemens.WorldGen.ChunkManager;
 import io.github.anthonyclemens.utils.AmbientSoundManager;
 import io.github.anthonyclemens.utils.CollisionHandler;
@@ -49,7 +50,7 @@ public class Game extends BasicGameState{
     private Image backgroundImage;
     private static final int TILE_WIDTH = 18;
     private static final int TILE_HEIGHT = 18;
-    private static final float minZoom = 0.40f;
+    private static final float MIN_ZOOM = 0.40f;
 
     // Game Objects
     private Camera camera;
@@ -72,7 +73,7 @@ public class Game extends BasicGameState{
 
     @Override
     public int getID() {
-        return 99;
+        return GameStates.GAME.getID();
     }
 
     @Override
@@ -85,7 +86,6 @@ public class Game extends BasicGameState{
         }
         SharedData.setHotstart(true);
         SharedData.setGameState(this);
-        SharedData.setLoadingSave(false);
         if(SharedData.isNewGame()|| !SaveLoadManager.exists(SharedData.getSaveFilePath())){
             //Initialize the ChunkManager with randomly generated seed
             Random r = new Random(Sys.getTime());
@@ -97,6 +97,7 @@ public class Game extends BasicGameState{
             createNewPlayer(saveLoadManager.getPlayerX(), saveLoadManager.getPlayerY(), saveLoadManager.getPlayerSpeed(), saveLoadManager.getPlayerHealth());
             env = saveLoadManager.getDayNightCycle();
         }
+        SharedData.setLoadingSave(false);
         renderer = new IsoRenderer(zoom, "main", chunkManager, container);
         chunkManager.attachRenderer(renderer);
         ambientSoundManager = new AmbientSoundManager(jukeBox, ambientSoundBox);
@@ -180,7 +181,7 @@ public class Game extends BasicGameState{
             @Override
             public void mouseWheelMoved(int change) {
                 zoom += change * 0.001f;
-                zoom = Math.min(Math.max(minZoom, zoom), 8f);
+                zoom = Math.min(Math.max(MIN_ZOOM, zoom), 8f);
             }
         });
         calender = new Calender(16, 3, 2025);
@@ -235,6 +236,7 @@ public class Game extends BasicGameState{
         if (input.isKeyDown(Input.KEY_DOWN)) cameraY += delta * 0.1f * zoom;
         if (input.isKeyPressed(Input.KEY_ESCAPE)) SharedData.enterState(GameStates.PAUSE_MENU, game);
         if (input.isKeyPressed(Input.KEY_F1)) showHUD=!showHUD;
+        if (input.isKeyPressed(Input.KEY_F2)) Utils.takeScreenShot(game.getContainer().getGraphics(), game.getContainer());
         if (input.isKeyPressed(Input.KEY_F3)) showDebug=!showDebug;
         if (input.isKeyPressed(Input.KEY_F11)){
             boolean toggleFullscreen = !game.getContainer().isFullscreen();

@@ -18,7 +18,6 @@ public class SoundBox {
     private HashMap<String, HashMap<String, Sound>> sounds;
     private final Random random;
     private float volume;
-    private boolean playing;
 
     /**
      * Constructs a new SoundBox.
@@ -26,7 +25,6 @@ public class SoundBox {
     public SoundBox() {
         this.sounds = new HashMap<>();
         this.random = new Random();
-        this.playing = false;
     }
 
     /**
@@ -64,7 +62,6 @@ public class SoundBox {
                 sound.stop();
             }
         }
-        this.playing = false;
     }
 
     /**

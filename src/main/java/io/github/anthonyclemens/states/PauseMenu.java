@@ -31,7 +31,7 @@ public class PauseMenu extends BasicGameState {
 
     @Override
     public int getID() {
-        return 101;
+        return GameStates.PAUSE_MENU.getID();
     }
 
     @Override

@@ -28,7 +28,7 @@ public class ControlSettings extends BasicGameState{
 
     @Override
     public int getID() {
-        return 12;
+        return GameStates.SETTINGS_MENU.getID();
     }
 
     @Override

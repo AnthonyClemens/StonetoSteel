@@ -10,12 +10,14 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.GUI.Banner;
 import io.github.anthonyclemens.GUI.Buttons.ImageTextButton;
 import io.github.anthonyclemens.GameStates;
 import io.github.anthonyclemens.Math.TwoDimensionMath;
 import io.github.anthonyclemens.Rendering.RenderUtils;
+import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.SharedData;
 import io.github.anthonyclemens.Utils;
 
@@ -25,6 +27,7 @@ public class SettingsMenu extends BasicGameState{
     private Image backgroundImage;
     private Banner titleBanner;
     private final List<ImageTextButton> menuButtons = new ArrayList<>();
+    private Settings settings;
 
     //Constants
     private static final String TITLE_STRING = "Options";
@@ -32,11 +35,13 @@ public class SettingsMenu extends BasicGameState{
 
     @Override
     public int getID() {
-        return 1;
+        return GameStates.SETTINGS_MENU.getID();
     }
 
     @Override
     public void enter(GameContainer container, StateBasedGame game) throws SlickException {
+        input = container.getInput();
+        settings = Settings.getInstance();
         // Set background image
         backgroundImage = new Image("textures/Background.png");
         // Create title banner
@@ -50,13 +55,13 @@ public class SettingsMenu extends BasicGameState{
         ImageTextButton soundSettings = new ImageTextButton(buttonImage, "Sound Settings", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(342, container.getWidth()), 450, 342, 114);
         ImageTextButton controlSettings = new ImageTextButton(buttonImage, "Control Settings", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(342, container.getWidth()), 600, 342, 114);
         ImageTextButton backButton = new ImageTextButton(buttonImage, "Back", Utils.getFont(MAIN_FONT, 40f), 10, 10, 240, 80);
+        ImageTextButton resetButton = new ImageTextButton(buttonImage, "Reset Settings", Utils.getFont(MAIN_FONT, 32f), container.getWidth()-250f, 10, 240, 80);
         menuButtons.clear();
-        menuButtons.addAll(List.of(videoSettings,soundSettings,controlSettings,backButton));
+        menuButtons.addAll(List.of(videoSettings,soundSettings,controlSettings,backButton,resetButton));
     }
 
     @Override
     public void init(GameContainer container, StateBasedGame game) throws SlickException {
-        input = container.getInput();
     }
 
     @Override
@@ -87,6 +92,11 @@ public class SettingsMenu extends BasicGameState{
                     case "Sound Settings"-> SharedData.enterState(GameStates.SOUND_SETTINGS,game);
                     case "Control Settings"-> SharedData.enterState(GameStates.CONTROL_SETTINGS,game);
                     case "Back"-> SharedData.enterState(GameStates.MAIN_MENU, game);
+                    case "Reset Settings" -> {
+                        settings.writeDefaultOptions();
+                        Log.info("Settings reset to default.");
+                        settings.applyToGameContainer(container);
+                    }
                 }
             }
         }

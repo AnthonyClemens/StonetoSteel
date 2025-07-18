@@ -38,7 +38,7 @@ public class MainMenu extends BasicGameState{
 
     @Override
     public int getID() {
-        return 0;
+        return GameStates.MAIN_MENU.getID();
     }
 
     @Override

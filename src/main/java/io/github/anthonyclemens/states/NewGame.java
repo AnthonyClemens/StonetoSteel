@@ -46,7 +46,7 @@ public class NewGame extends BasicGameState {
 
     @Override
     public int getID() {
-        return 2;
+        return GameStates.NEW_GAME.getID();
     }
 
     @Override
@@ -83,33 +83,16 @@ public class NewGame extends BasicGameState {
             buttonImage, "Delete World", Utils.getFont(MAIN_FONT, 32f),
             TwoDimensionMath.getMiddleX(342, container.getWidth()), container.getHeight()-120f, 342, 60
         );
-        ImageTextButton slot1 = new ImageTextButton(
+        ImageTextButton[] slots = new ImageTextButton[5];
+        for (int i = 0; i < slots.length; i++) {
+            slots[i] = new ImageTextButton(
             buttonImage, "", Utils.getFont(MAIN_FONT, 32f),
-            TwoDimensionMath.getMiddleX(342, container.getWidth()), 220, 342, 60
-        );
-        slot1.setName("Slot1");
-        ImageTextButton slot2 = new ImageTextButton(
-            buttonImage, "", Utils.getFont(MAIN_FONT, 32f),
-            TwoDimensionMath.getMiddleX(342, container.getWidth()), 300, 342, 60
-        );
-        slot2.setName("Slot2");
-        ImageTextButton slot3 = new ImageTextButton(
-            buttonImage, "", Utils.getFont(MAIN_FONT, 32f),
-            TwoDimensionMath.getMiddleX(342, container.getWidth()), 380, 342, 60
-        );
-        slot3.setName("Slot3");
-        ImageTextButton slot4 = new ImageTextButton(
-            buttonImage, "", Utils.getFont(MAIN_FONT, 32f),
-            TwoDimensionMath.getMiddleX(342, container.getWidth()), 460, 342, 60
-        );
-        slot4.setName("Slot4");
-        ImageTextButton slot5 = new ImageTextButton(
-            buttonImage, "", Utils.getFont(MAIN_FONT, 32f),
-            TwoDimensionMath.getMiddleX(342, container.getWidth()), 540, 342, 60
-        );
-        slot5.setName("Slot5");
+            TwoDimensionMath.getMiddleX(342, container.getWidth()), 220 + i * 80, 342, 60
+            );
+            slots[i].setName("Slot" + (i + 1));
+        }
         menuButtons.clear();
-        menuButtons.addAll(List.of(slot1,slot2,slot3,slot4,slot5,backButton,deleteWorldButton,cancelButton));
+        menuButtons.addAll(List.of(slots[0],slots[1],slots[2],slots[3],slots[4],backButton,deleteWorldButton,cancelButton));
         initButtons();
     }
 
@@ -155,6 +138,7 @@ public class NewGame extends BasicGameState {
                             case "Slot5" -> SaveLoadManager.deleteSave(SAVES[4]);
                         }
                         initButtons();
+                        delete = false;
                         return;
                     } else if (name.equals("Cancel")) {
                         delete = false;

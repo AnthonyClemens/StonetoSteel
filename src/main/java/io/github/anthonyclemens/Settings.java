@@ -10,6 +10,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.util.Log;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -137,6 +138,22 @@ public class Settings {
         return getVolume("EnemyVolume");
     }
 
+    public void setTexturePack(String texturePack) {
+        writeToFile("texturePack", texturePack);
+    }
+
+    public String getTexturePack() {
+        return readFromFile("texturePack");
+    }
+
+    public void setSoundPack(String soundPack) {
+        writeToFile("soundPack", soundPack);
+    }
+
+    public String getSoundPack() {
+        return readFromFile("soundPack");
+    }
+
     public String getUpKey() {
         return readFromFile("UpKey");
     }
@@ -163,7 +180,7 @@ public class Settings {
                 return nodes.item(0).getTextContent();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.error(e);
         }
         return "";
     }
@@ -202,7 +219,7 @@ public class Settings {
 
             transformer.transform(source, result);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.error(e);
         }
     }
 
@@ -212,7 +229,7 @@ public class Settings {
             try {
                 return Integer.parseInt(parts[index]);
             } catch (NumberFormatException e) {
-                e.printStackTrace();
+                Log.error(e);
                 return -1;
             }
         }
@@ -235,5 +252,22 @@ public class Settings {
         }catch(Exception e){
             return 1f;
         }
+    }
+
+    public void writeDefaultOptions() {
+        Settings settings = getInstance();
+        settings.setMaxFPS(60);
+        settings.setVsync(true);
+        settings.setFullscreen(false);
+        settings.setResolution("1024x768");
+        settings.setTexturePack("texturePacks/default/assets.json");
+        settings.setSoundPack("soundPacks/default/assets.json");
+        settings.setMainVolume(1f);
+        settings.setMusicVolume(1f);
+        settings.setAmbientVolume(1f);
+        settings.setPlayerVolume(1f);
+        settings.setFriendlyVolume(1f);
+        settings.setEnemyVolume(1f);
+        settings.setUpKey("W");
     }
 }

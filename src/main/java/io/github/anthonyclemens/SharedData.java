@@ -15,8 +15,6 @@ public class SharedData {
     // Private constructor to prevent instantiation
     private SharedData() {}
 
-    private static String soundPack = "soundPacks/default/assets.json";
-    private static String texturePack = "texturePacks/default/assets.json";
     private static int seed = 0;
     private static boolean hotstart = false;
     private static GameStates lastState = null;
@@ -64,22 +62,6 @@ public class SharedData {
 
     public static void setLoadingSave(boolean loading) {
         SharedData.loadingSave = loading;
-    }
-
-    public static String getSoundPack() {
-        return soundPack;
-    }
-
-    public static void setSoundPack(String soundPack) {
-        SharedData.soundPack = soundPack;
-    }
-
-    public static String getTexturePack(){
-        return texturePack;
-    }
-
-    public static void setTexturePack(String texturePack){
-        SharedData.texturePack=texturePack;
     }
 
     public static void enterState(GameStates state, StateBasedGame game) {

@@ -40,7 +40,7 @@ public class SoundSettings extends BasicGameState{
 
     @Override
     public int getID() {
-        return 11;
+        return GameStates.SOUND_SETTINGS.getID();
     }
 
     @Override

@@ -2,7 +2,6 @@ package io.github.anthonyclemens.states;
 
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.TimeUnit;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -16,6 +15,7 @@ import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.GameStates;
 import io.github.anthonyclemens.Math.TwoDimensionMath;
+import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.SharedData;
 import io.github.anthonyclemens.Sound.JukeBox;
 import io.github.anthonyclemens.Sound.SoundBox;
@@ -43,7 +43,7 @@ public class LoadingScreen extends BasicGameState {
     public void enter(GameContainer container, StateBasedGame game) throws SlickException {
         Log.debug("Loading Screen entered.");
         mainFont = Utils.getFont(MAIN_FONT, 48f);
-        soundPack = SharedData.getSoundPack();
+        soundPack = Settings.getInstance().getSoundPack();
         completedSteps = 0;
         doneLoading=false;
     }
@@ -93,11 +93,6 @@ public class LoadingScreen extends BasicGameState {
             completedSteps++;          // Update progress bar
         } else if (!doneLoading && loadingSteps.isEmpty()) {
             Log.debug("All resources loaded. Transitioning...");
-            try {
-                TimeUnit.SECONDS.sleep(2);
-            } catch (InterruptedException e) {
-                Log.error("Loading interrupted", e);
-            }
             SharedData.enterState(GameStates.GAME, game);
             doneLoading = true;
         }
@@ -105,6 +100,6 @@ public class LoadingScreen extends BasicGameState {
 
     @Override
     public int getID() {
-        return 98;
+        return GameStates.LOADING_SCREEN.getID();
     }
 }

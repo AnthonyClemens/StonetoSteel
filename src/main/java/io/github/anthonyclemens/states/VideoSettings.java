@@ -44,7 +44,7 @@ public class VideoSettings extends BasicGameState{
 
     @Override
     public int getID() {
-        return 10;
+        return GameStates.VIDEO_SETTINGS.getID();
     }
 
     @Override

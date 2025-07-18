@@ -1,7 +1,6 @@
 package io.github.anthonyclemens.GameObjects;
 
 import java.util.Random;
-import java.util.function.Supplier;
 
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
@@ -14,7 +13,7 @@ import io.github.anthonyclemens.states.Game;
 public class Mob extends GameObject {
     // Animation & Visual State
     protected transient Animation currentAnimation;
-    protected Supplier<Animation> animationLoader;
+    protected SerializableSupplier<Animation> animationLoader;
     private transient float renderX;                // Final screen-space X position
     private transient float renderY;                // Final screen-space Y position
     private Color colorOverlay;          // Optional color tint for the mob
