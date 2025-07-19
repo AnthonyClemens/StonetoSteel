@@ -68,7 +68,6 @@ public class Utils {
         BufferedImage screenshot = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         ByteBuffer buffer = ByteBuffer.allocateDirect(width * height * 4);
         gfx.getArea(0,0, width, height, buffer);
-        buffer.flip();
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 byte r = buffer.get();
@@ -76,13 +75,14 @@ public class Utils {
                 byte b = buffer.get();
                 byte a = buffer.get();
 
-                // Convert byte values (0-255) to int and combine into ARGB format
-                int argb = ((a & 0xFF) << 24) |
+                // Combine byte values into a single pixel integer
+                int pixel = ((a & 0xFF) << 24) |
                         ((r & 0xFF) << 16) |
                         ((g & 0xFF) << 8) |
                         (b & 0xFF);
 
-                screenshot.setRGB(x, y, argb);
+                // Flip the image vertically when setting the pixel
+                screenshot.setRGB(x, height - y - 1, pixel);
             }
         }
         String filePath = "screenshot_" + System.currentTimeMillis() + ".png";
