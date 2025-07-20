@@ -67,6 +67,10 @@ public class IsoRenderer {
         for (int chunkX = this.visibleChunks[0]; chunkX <= this.visibleChunks[2]; chunkX++) {
             for (int chunkY = this.visibleChunks[1]; chunkY <= this.visibleChunks[3]; chunkY++) {
                 renderChunk(chunkX, chunkY);
+            }
+        }
+        for (int chunkX = this.visibleChunks[0]; chunkX <= this.visibleChunks[2]; chunkX++) {
+            for (int chunkY = this.visibleChunks[1]; chunkY <= this.visibleChunks[3]; chunkY++) {
                 this.chunkManager.getChunk(chunkX, chunkY).render(this, lodLevel); // Pass LOD level
             }
         }
@@ -75,10 +79,7 @@ public class IsoRenderer {
     public void updateVisibleChunks(int deltaTime, Player player) {
         if (this.visibleChunks == null) return;
 
-        float renderRadiusSquared = (renderDistance * zoom * TILE_SIZE) * (renderDistance * zoom * TILE_SIZE);
-
-        // Cache chunk size for efficiency
-        int chunkSize = ChunkManager.CHUNK_SIZE;
+        float updateRadiusSquared = (renderDistance * zoom * TILE_SIZE) * (renderDistance * zoom * TILE_SIZE);
 
         for (int chunkX = this.visibleChunks[0]; chunkX <= this.visibleChunks[2]; chunkX++) {
             for (int chunkY = this.visibleChunks[1]; chunkY <= this.visibleChunks[3]; chunkY++) {
@@ -88,13 +89,13 @@ public class IsoRenderer {
                 chunk.update(this, deltaTime);
 
                 // Calculate chunk center only once
-                float centerX = calculateIsoX(chunkSize / 2, chunkSize / 2, chunkX, chunkY);
-                float centerY = calculateIsoY(chunkSize / 2, chunkSize / 2, chunkX, chunkY);
+                float centerX = calculateIsoX(ChunkManager.CHUNK_SIZE / 2, ChunkManager.CHUNK_SIZE / 2, chunkX, chunkY);
+                float centerY = calculateIsoY(ChunkManager.CHUNK_SIZE / 2, ChunkManager.CHUNK_SIZE / 2, chunkX, chunkY);
 
                 float dx = centerX - player.getRenderX();
                 float dy = centerY - player.getRenderY();
 
-                if ((dx * dx + dy * dy) <= renderRadiusSquared) {
+                if ((dx * dx + dy * dy) <= updateRadiusSquared) {
                     chunk.update(this, deltaTime);
                 }
             }

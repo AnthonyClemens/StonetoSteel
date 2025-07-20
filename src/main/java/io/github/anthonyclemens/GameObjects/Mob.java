@@ -2,12 +2,15 @@ package io.github.anthonyclemens.GameObjects;
 
 import java.util.Random;
 
+import org.lwjgl.Sys;
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
+import org.newdawn.slick.geom.Rectangle;
 
 import io.github.anthonyclemens.Rendering.IsoRenderer;
 import io.github.anthonyclemens.SharedData;
 import io.github.anthonyclemens.WorldGen.Biome;
+import io.github.anthonyclemens.WorldGen.ChunkManager;
 import io.github.anthonyclemens.states.Game;
 
 public class Mob extends GameObject {
@@ -38,7 +41,7 @@ public class Mob extends GameObject {
     public Mob(String tileSheet, int x, int y, int chunkX, int chunkY, String objName, int wanderDistance) {
         super(tileSheet, x, y, chunkX, chunkY, objName);
         this.wanderDistance = wanderDistance;
-        this.rand = new Random(SharedData.getSeed());
+        this.rand = new Random(SharedData.getSeed()+Sys.getTime());
         this.swayOffset = this.rand.nextFloat()* sway;
         this.fx = x;
         this.fy = y;
@@ -87,13 +90,54 @@ public class Mob extends GameObject {
         fx += dirX * mobSpeed * deltaTime / 1000f;
         fy += dirY * mobSpeed * deltaTime / 1000f;
 
-        // Sync with inherited int coordinates
-        x = Math.round(fx);
-        y = Math.round(fy);
+        int tileSize = ChunkManager.CHUNK_SIZE;
+
+        int oldChunkX = chunkX;
+        int oldChunkY = chunkY;
+        int newChunkX = chunkX;
+        int newChunkY = chunkY;
+        // Wrap for left/right boundaries
+        while (fx < 0) {
+            newChunkX -= 1;
+            x += tileSize;
+            fx += tileSize;
+            destinationX += tileSize;
+        }
+        while (fx >= tileSize) {
+            newChunkX += 1;
+            x -= tileSize;
+            fx -= tileSize;
+            destinationX -= tileSize;
+        }
+
+        // Wrap for top/bottom boundaries
+        while (fy < 0) {
+            newChunkY -= 1;
+            y += tileSize;
+            fy += tileSize;
+            destinationY += tileSize;
+        }
+        while (fy >= tileSize) {
+            newChunkY += 1;
+            y -= tileSize;
+            fy -= tileSize;
+            destinationY -= tileSize;
+        }
+        if(newChunkX != oldChunkX || newChunkY != oldChunkY) {
+            // This candidate is out of chunk, calculate move to new chunk
+            chunkX = newChunkX;
+            chunkY = newChunkY;
+            r.getChunkManager().moveGameObjectToChunk(this, oldChunkX, oldChunkY, chunkX, chunkY);
+        }
+
     }
 
     @Override
     public void update(IsoRenderer r, int deltaTime) {
+        if (currentAnimation == null && animationLoader != null) {
+            currentAnimation = animationLoader.get();
+        }
+        if(this.hitbox==null) this.hitbox = new Rectangle(0,0,0,0);
         moveTowardsDestination(deltaTime,r);
         if (r.isCameraMoving()) {
             renderX = r.calculateIsoX((int) fx, (int) fy, chunkX, chunkY);
@@ -126,21 +170,18 @@ public class Mob extends GameObject {
 
     @Override
     public void render(IsoRenderer r, int lodLevel) {
-        if (currentAnimation == null && animationLoader != null) {
-            currentAnimation = animationLoader.get();
-        }
-        if (currentAnimation == null) return;
+        if (currentAnimation == null || r == null) return;
 
-        if (colorOverlay == null) {
+        //if (colorOverlay == null) {
             currentAnimation.draw(renderX, renderY,
             currentAnimation.getWidth() * r.getZoom(),
             currentAnimation.getHeight() * r.getZoom());
-        } else {
+        /* } else {
             currentAnimation.draw(renderX, renderY,
             currentAnimation.getWidth() * r.getZoom(),
             currentAnimation.getHeight() * r.getZoom(),
             colorOverlay);
-        }
+        }*/
 
         if (Game.showDebug&&this.hitbox!=null) {
             r.getGraphics().setColor(Color.green);

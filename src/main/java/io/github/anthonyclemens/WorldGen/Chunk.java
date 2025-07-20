@@ -21,15 +21,16 @@ public class Chunk implements Serializable {
     private final Biome biome;
     private final int chunkX;
     private final int chunkY;
-    private transient ChunkManager chunkManager;
     private final byte[][] tiles;
     private transient byte[][] lod1Tiles;
     private transient byte[][] lod2Tiles; // Add LOD2 storage
 
     /**
      * Constructs a Chunk with the specified parameters.
+     * Now requires neighbor biomes to be passed in.
      */
-    public Chunk(int chunkSize, Biome biome, ChunkManager chunkManager, int chunkX, int chunkY, int seed){
+    public Chunk(int chunkSize, Biome biome, int chunkX, int chunkY, int seed,
+                 Biome[] neighborBiomes){
         this.rand = new Random(seed);
         this.chunkSize = chunkSize;
         this.tiles = new byte[chunkSize][chunkSize];
@@ -37,22 +38,16 @@ public class Chunk implements Serializable {
         this.biome = biome;
         this.chunkX = chunkX;
         this.chunkY = chunkY;
-        this.chunkManager = chunkManager;
-        this.generateTiles();
+        this.generateTiles(neighborBiomes[0], neighborBiomes[1], neighborBiomes[2], neighborBiomes[3]);
         this.generateLODs();
         this.generateGameObjects();
     }
 
     /**
      * Generates the tile map for this chunk, blending with neighboring biomes.
+     * Now requires neighbor biomes as parameters.
      */
-    private void generateTiles() {
-        // Fetch neighboring biomes for blending
-        Biome northBiome = getNeighborBiome(0, -1); // Top
-        Biome southBiome = getNeighborBiome(0, 1);  // Bottom
-        Biome westBiome = getNeighborBiome(-1, 0);  // Left
-        Biome eastBiome = getNeighborBiome(1, 0);   // Right
-
+    private void generateTiles(Biome northBiome, Biome southBiome, Biome westBiome, Biome eastBiome) {
         for (int x = 0; x < this.chunkSize; x++) {
             for (int y = 0; y < this.chunkSize; y++) {
                 // Determine which neighbor biome to blend with based on the tile's position
@@ -89,15 +84,6 @@ public class Chunk implements Serializable {
         if (x < 2 && westBiome != this.biome) return westBiome;
         if (x >= chunkSize - 2 && eastBiome != this.biome) return eastBiome;
         return null;
-    }
-
-    /**
-     * Gets the biome of a neighboring chunk.
-     */
-    public Biome getNeighborBiome(int offsetX, int offsetY) {
-        int neighborChunkX = this.chunkX + offsetX;
-        int neighborChunkY = this.chunkY + offsetY;
-        return chunkManager.getBiomeForChunk(neighborChunkX, neighborChunkY);
     }
 
     /**
@@ -215,6 +201,17 @@ public class Chunk implements Serializable {
         return gameObjects;
     }
 
+    public GameObject getGameObject(int idx) {
+        if (idx < 0 || idx >= gameObjects.size()) {
+            return null; // Index out of bounds
+        }
+        return gameObjects.get(idx);
+    }
+
+    public void deleteGameObject(GameObject obj) {
+        gameObjects.remove(obj);
+    }
+
     /**
      * Renders all GameObjects in this chunk.
      */
@@ -228,7 +225,8 @@ public class Chunk implements Serializable {
      * Updates all GameObjects in this chunk.
      */
     public void update(IsoRenderer r, int deltaTime) {
-        for (GameObject obj : gameObjects) {
+        List<GameObject> objectsCopy = new ArrayList<>(gameObjects);
+        for (GameObject obj : objectsCopy) {
             obj.update(r, deltaTime);
         }
     }
@@ -286,13 +284,5 @@ public class Chunk implements Serializable {
 
     public int getChunkY(){
         return chunkY;
-    }
-
-    public void attachChunkManager(ChunkManager cm){
-        chunkManager=cm;
-    }
-
-    public ChunkManager getChunkManager() {
-        return chunkManager;
     }
 }

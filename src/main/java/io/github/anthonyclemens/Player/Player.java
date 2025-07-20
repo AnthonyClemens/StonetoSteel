@@ -70,19 +70,19 @@ public class Player {
         this.animations = animations;
         this.idleAnimations = idleAnimations;
         this.playerSoundBox = new SoundBox(); // Initialize SoundBox
-        this.playerSoundBox.addSounds("grassWalk", grassWalk); // Add walk sounds to SoundBox
-        this.playerSoundBox.addSounds("grassRun", grassRun); // Add run sounds to SoundBox
-        this.playerSoundBox.addSounds("waterWalk", waterWalk); // Add water sounds to SoundBox
-
-        this.playerSoundBox.addSounds("sandWalk", sandWalk); // Add sand sounds to SoundBox
-        this.playerSoundBox.addSounds("sandRun", sandRun); // Add sand sounds to SoundBox
-
-        this.playerSoundBox.addSounds("ouch", ouch); // Add ouch sounds to SoundBox
-
-        this.playerSoundBox.setVolume(settings.getPlayerVolume()); // Set volume for player sounds
         if(animations != null && animations.length > 0) {
             // Initialize hitbox based on the first animation's dimensions
             this.hitbox = new Rectangle(this.x, this.y, animations[0].getWidth(), animations[0].getHeight());
+            this.playerSoundBox.addSounds("grassWalk", grassWalk); // Add walk sounds to SoundBox
+            this.playerSoundBox.addSounds("grassRun", grassRun); // Add run sounds to SoundBox
+            this.playerSoundBox.addSounds("waterWalk", waterWalk); // Add water sounds to SoundBox
+
+            this.playerSoundBox.addSounds("sandWalk", sandWalk); // Add sand sounds to SoundBox
+            this.playerSoundBox.addSounds("sandRun", sandRun); // Add sand sounds to SoundBox
+
+            this.playerSoundBox.addSounds("ouch", ouch); // Add ouch sounds to SoundBox
+
+            this.playerSoundBox.setVolume(settings.getPlayerVolume()); // Set volume for player sounds
         } else {
             // Fallback if animations are not provided
             Log.warn("Animations not provided or empty. Using default hitbox size.");

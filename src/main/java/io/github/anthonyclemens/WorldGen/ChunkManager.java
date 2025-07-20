@@ -91,16 +91,15 @@ public class ChunkManager implements Serializable {
      */
     public Chunk getChunk(int chunkX, int chunkY) {
         String key = chunkX + "," + chunkY;
-        Chunk chunk = chunks.computeIfAbsent(key, k -> {
+        return chunks.computeIfAbsent(key, k -> {
             Biome biome = getBiomeForChunk(chunkX, chunkY);
-            return new Chunk(CHUNK_SIZE, biome, this, chunkX, chunkY, seed + chunks.size());
+            Biome northBiome = getBiomeForChunk(chunkX, chunkY - 1);
+            Biome southBiome = getBiomeForChunk(chunkX, chunkY + 1);
+            Biome westBiome = getBiomeForChunk(chunkX - 1, chunkY);
+            Biome eastBiome = getBiomeForChunk(chunkX + 1, chunkY);
+            return new Chunk(CHUNK_SIZE, biome, chunkX, chunkY, seed + chunks.size(),
+                            new Biome[] {northBiome, southBiome, westBiome, eastBiome});
         });
-
-        if (chunk.getChunkManager() == null) {
-            chunk.attachChunkManager(this);
-        }
-
-        return chunk;
     }
 
     /**
@@ -158,6 +157,16 @@ public class ChunkManager implements Serializable {
     public void addChunk(Chunk chunk) {
         String key = chunk.getChunkX() + "," + chunk.getChunkY();
         chunks.put(key, chunk);
+    }
+
+    public void moveGameObjectToChunk(GameObject obj, int oldChunkX, int oldChunkY, int newChunkX, int newChunkY) {
+        Chunk oldChunk = getChunk(oldChunkX, oldChunkY);
+        if (obj != null && oldChunk.getGameObjects().contains(obj)) {
+            oldChunk.deleteGameObject(obj);
+            getChunk(newChunkX, newChunkY).addGameObject(obj);
+        } else {
+            Log.warn("GameObject not found in chunk (" + oldChunkX + ", " + oldChunkY + ")");
+        }
     }
 
 }
