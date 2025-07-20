@@ -37,6 +37,10 @@ public class Mob extends GameObject {
     protected float sway = 0f;        // Sway cycle range (for offset randomness)
     private transient float swayTime = 0f;         // Time accumulator for sine/cos motion
     private float swayOffset;            // Phase offset per mob for unique motion
+    private long lastDamageTime = 0; // Timestamp of last time damage was taken (milliseconds)
+    private long hurtFlashEndTime = 0; // Timestamp when hurt flash should end
+    private long damageCooldown = 1000; // Cooldown time between damage in milliseconds
+    private static final int HURT_FLASH_DURATION_MS = 250; // Duration of red flash in ms
 
     public Mob(String tileSheet, int x, int y, int chunkX, int chunkY, String objName, int wanderDistance) {
         super(tileSheet, x, y, chunkX, chunkY, objName);
@@ -51,7 +55,7 @@ public class Mob extends GameObject {
         this.swayOffset = this.rand.nextFloat()* newSway;
     }
 
-    public void setNewDestination(IsoRenderer renderer) {
+    public void wander(IsoRenderer renderer) {
         int tries = 20;
         while (tries-- > 0) {
             int candidateX = x + rand.nextInt(wanderDistance * 2) - wanderDistance;
@@ -79,8 +83,8 @@ public class Mob extends GameObject {
         float dy = destinationY - fy;
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
 
-        if (distance < 1f) {
-            setNewDestination(r);
+        if (distance < 1f && peaceful) {
+            wander(r);
             return;
         }
 
@@ -172,18 +176,19 @@ public class Mob extends GameObject {
     public void render(IsoRenderer r, int lodLevel) {
         if (currentAnimation == null || r == null) return;
 
-        //if (colorOverlay == null) {
+        if(System.currentTimeMillis() < hurtFlashEndTime){
+            currentAnimation.draw(renderX, renderY,
+            currentAnimation.getWidth() * r.getZoom(),
+            currentAnimation.getHeight() * r.getZoom(), new Color(255, 0, 0, 120));
+        }else{
             currentAnimation.draw(renderX, renderY,
             currentAnimation.getWidth() * r.getZoom(),
             currentAnimation.getHeight() * r.getZoom());
-        /* } else {
-            currentAnimation.draw(renderX, renderY,
-            currentAnimation.getWidth() * r.getZoom(),
-            currentAnimation.getHeight() * r.getZoom(),
-            colorOverlay);
-        }*/
+        }
 
         if (Game.showDebug&&this.hitbox!=null) {
+            r.getGraphics().setColor(Color.red);
+            r.getGraphics().drawString("Health: "+this.health+"/"+this.maxHealth, renderX, renderY);
             r.getGraphics().setColor(Color.green);
             r.getGraphics().draw(hitbox);
 
@@ -191,7 +196,7 @@ public class Mob extends GameObject {
             float destRenderY = r.calculateIsoY(destinationX, destinationY, chunkX, chunkY);
 
             r.getGraphics().setColor(Color.red);
-            r.getGraphics().drawLine(renderX, renderY, destRenderX, destRenderY);
+            r.getGraphics().drawLine(renderX+r.getZoom()*this.currentAnimation.getWidth()/2, renderY+r.getZoom()*this.currentAnimation.getHeight()/2, destRenderX, destRenderY);
 
             r.getGraphics().setColor(Color.blue);
             r.getGraphics().fillOval(destRenderX - 3, destRenderY - 3, 6, 6);
@@ -202,6 +207,17 @@ public class Mob extends GameObject {
 
     public void setColorOverlay(Color color) {
         this.colorOverlay = color;
+    }
+
+    @Override
+    public void removeHealth(int amount){
+        long now = System.currentTimeMillis();
+        if (now - lastDamageTime < damageCooldown) {
+            return; // Only allow damage every 1 second
+        }
+        super.removeHealth(amount);
+        lastDamageTime = now;
+        hurtFlashEndTime = now + HURT_FLASH_DURATION_MS; // Set flash timer
     }
 
     public float getRenderX() { return renderX; }

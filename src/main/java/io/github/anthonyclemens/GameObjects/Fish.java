@@ -3,7 +3,6 @@ package io.github.anthonyclemens.GameObjects;
 import java.util.Random;
 
 import org.newdawn.slick.Animation;
-import org.newdawn.slick.Color;
 
 import io.github.anthonyclemens.Rendering.SpriteManager;
 import io.github.anthonyclemens.WorldGen.Biome;
@@ -19,6 +18,7 @@ public class Fish extends Mob{
         this.mobSpeed=1f;
         this.smoothness=0.02f;
         this.setSway(1000f);
-        this.setColorOverlay(new Color(113, 181, 219));
+        this.maxHealth = 10;
+        this.health = this.maxHealth;
     }
 }

@@ -8,16 +8,22 @@ import io.github.anthonyclemens.Rendering.SpriteManager;
 import io.github.anthonyclemens.states.Game;
 
 public class SingleTileObject extends GameObject{
-    protected final byte i;
-    protected final int tileWidth;
-    protected final int tileHeight;
+    protected byte i;
+    protected int tileWidth;
+    protected int tileHeight;
 
     public SingleTileObject(String tileSheet, String name, int i, int x, int y, int chunkX, int chunkY) {
             super(tileSheet, x, y, chunkX, chunkY, name);
             this.i = (byte) i;
-            this.tileWidth = SpriteManager.getSpriteWidth(tileSheet);
-            this.tileHeight = SpriteManager.getSpriteHeight(tileSheet);
-            this.hitbox.setBounds(0, 0, tileWidth, tileHeight);
+            if(tileSheet != null){
+                this.tileWidth = SpriteManager.getSpriteWidth(tileSheet);
+                this.tileHeight = SpriteManager.getSpriteHeight(tileSheet);
+                this.hitbox.setBounds(0, 0, tileWidth, tileHeight);
+            }else{
+                this.tileWidth = 0;
+                this.tileHeight = 0;
+                this.hitbox = new Rectangle(0, 0, 0, 0);
+            }
     }
 
     @Override

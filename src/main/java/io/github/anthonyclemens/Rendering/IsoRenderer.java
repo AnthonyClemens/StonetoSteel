@@ -17,10 +17,10 @@ import io.github.anthonyclemens.WorldGen.ChunkManager;
 public class IsoRenderer {
     private static int renderDistance = 64; // Render distance in blocks
     private static final int TILE_SIZE = 18; // Size of the tile in pixels
-    private float zoom; // Zoom level for rendering
+    private static float zoom; // Zoom level for rendering
     private SpriteSheet worldTileSheet;
-    private int offsetX;
-    private int offsetY;
+    private static int offsetX;
+    private static int offsetY;
     private final ChunkManager chunkManager; // Reference to the chunk manager
     private int[] visibleChunks; // Array to store the visible chunks
     private boolean firstFrame = true; // Flag to check if it's the first frame
@@ -188,14 +188,14 @@ public class IsoRenderer {
         return new int[]{minChunkX, minChunkY, maxChunkX, maxChunkY};
     }
 
-    public float calculateIsoX(int x, int y, int chunkX, int chunkY) {
+    public static float calculateIsoX(int x, int y, int chunkX, int chunkY) {
         int halfTileWidth = (TILE_SIZE / 2);
-        return (((x - y) * halfTileWidth + (chunkX - chunkY) * chunkSize * halfTileWidth) * zoom) + this.offsetX;
+        return (((x - y) * halfTileWidth + (chunkX - chunkY) * ChunkManager.CHUNK_SIZE * halfTileWidth) * zoom) + offsetX;
     }
 
-    public float calculateIsoY(int x, int y, int chunkX, int chunkY) {
+    public static float calculateIsoY(int x, int y, int chunkX, int chunkY) {
         int quarterTileHeight = (TILE_SIZE / 4);
-        return (((x + y) * quarterTileHeight + (chunkX + chunkY) * chunkSize * quarterTileHeight) * zoom) + this.offsetY;
+        return (((x + y) * quarterTileHeight + (chunkX + chunkY) * ChunkManager.CHUNK_SIZE * quarterTileHeight) * zoom) + offsetY;
     }
 
     private Image getTile(String tileSheet, int tileType) {
@@ -215,6 +215,10 @@ public class IsoRenderer {
 
     public void drawScaledTile(String tileSheet, int tileType, int xPos, int yPos, int chunkX, int chunkY){
         this.getTile(tileSheet, tileType).draw(calculateIsoX(xPos, yPos, chunkX, chunkY), calculateIsoY(xPos, yPos, chunkX, chunkY), SpriteManager.getSpriteWidth(tileSheet)*zoom, SpriteManager.getSpriteHeight(tileSheet)*zoom);
+    }
+
+    public void drawTileIso(String tileSheet, int tileType, float xReal, float yReal){
+        this.getTile(tileSheet, tileType).draw(xReal, yReal, SpriteManager.getSpriteWidth(tileSheet)*zoom, SpriteManager.getSpriteHeight(tileSheet)*zoom);
     }
 
     public void drawHeightedTile(String tileSheet, int tileType, int xPos, int yPos, int chunkX, int chunkY, int height){

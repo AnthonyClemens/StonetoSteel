@@ -392,8 +392,17 @@ public class Player {
         List<GameObject> objects = chunk.getGameObjects();
         for (int i = 0; i < objects.size(); i++) {
             if (objects.get(i).getHitbox().contains(mouseX, mouseY)) {
-                objects.remove(i);
-                break;
+                switch(objects.get(i).getName()){
+                    case "bigtree":
+                        objects.get(i).removeHealth(10);
+                        break;
+                    case "smalltree":
+                        objects.get(i).removeHealth(5);
+                        break;
+                    case "fish":
+                        objects.get(i).removeHealth(5);
+                        break;
+                }
             }
         }
     }

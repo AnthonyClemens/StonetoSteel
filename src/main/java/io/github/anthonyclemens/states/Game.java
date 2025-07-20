@@ -236,7 +236,16 @@ public class Game extends BasicGameState{
         if (input.isKeyDown(Input.KEY_DOWN)) cameraY += delta * 0.1f * zoom;
         if (input.isKeyPressed(Input.KEY_ESCAPE)) SharedData.enterState(GameStates.PAUSE_MENU, game);
         if (input.isKeyPressed(Input.KEY_F1)) showHUD=!showHUD;
-        if (input.isKeyPressed(Input.KEY_F2)) Utils.takeScreenShot(game.getContainer().getGraphics(), game.getContainer());
+        if (input.isKeyPressed(Input.KEY_F2)) {
+            boolean oldShowDebug = showDebug;
+            boolean oldShowHUD = showHUD;
+            showDebug = false;
+            showHUD = false;
+            this.render(game.getContainer(),game,game.getContainer().getGraphics());
+            Utils.takeScreenShot(game.getContainer().getGraphics(), game.getContainer());
+            showDebug = oldShowDebug;
+            showHUD = oldShowHUD;
+        }
         if (input.isKeyPressed(Input.KEY_F3)) showDebug=!showDebug;
         if (input.isKeyPressed(Input.KEY_F11)){
             boolean toggleFullscreen = !game.getContainer().isFullscreen();

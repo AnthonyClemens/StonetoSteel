@@ -228,6 +228,9 @@ public class Chunk implements Serializable {
         List<GameObject> objectsCopy = new ArrayList<>(gameObjects);
         for (GameObject obj : objectsCopy) {
             obj.update(r, deltaTime);
+            if(obj.getHealth() == 0 && obj.getHealth() > -1) {
+                deleteGameObject(obj);
+            }
         }
     }
 

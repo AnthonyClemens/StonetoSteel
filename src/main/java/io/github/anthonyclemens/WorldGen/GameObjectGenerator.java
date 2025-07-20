@@ -7,6 +7,7 @@ import java.util.Random;
 import io.github.anthonyclemens.GameObjects.Fish;
 import io.github.anthonyclemens.GameObjects.GameObject;
 import io.github.anthonyclemens.GameObjects.SingleTileObject;
+import io.github.anthonyclemens.GameObjects.Tree;
 
 /**
  * Utility class for generating game objects for different biomes.
@@ -17,7 +18,6 @@ public class GameObjectGenerator {
     private static final double DESERT_CACTUS_DENSITY = 0.04; // 4% density for cactus
     private static final double WATER_FISH_DENSITY = 0.01; // 1% density for fish
     private static final double PLAINS_TREE_DENSITY = 0.3; // 30% density for trees
-    private static final double PLAINS_BIG_TREE_PROBABILITY = 0.75; // 75% probability for big trees
 
     /**
      * Generates a list of GameObjects for a given biome and chunk.
@@ -61,11 +61,14 @@ public class GameObjectGenerator {
      */
     private static List<GameObject> generateWaterObjects(Random rand, int chunkX, int chunkY, int chunkSize) {
         List<GameObject> gobs = new ArrayList<>();
+        int id = 0;
         for (int y = 0; y < chunkSize - 1; y++) {
             for (int x = 0; x < chunkSize - 1; x++) {
                 if (rand.nextFloat() < WATER_FISH_DENSITY) {
                     Fish newObject = new Fish("fishes", x, y, chunkX, chunkY, "fish");
+                    newObject.setID(id);
                     if (!isOverlapping(newObject, gobs)) {
+                        id++;
                         gobs.add(newObject); // Add only if no overlap
                     }
                 }
@@ -83,7 +86,7 @@ public class GameObjectGenerator {
         for (int y = 0; y < chunkSize - 1; y++) {
             for (int x = 0; x < chunkSize - 1; x++) {
                 if (rand.nextFloat() < PLAINS_TREE_DENSITY) {
-                    SingleTileObject newObject = createPlainsObject(rand, x, y, chunkX, chunkY);
+                    Tree newObject = new Tree(rand, x, y, chunkX, chunkY);
                     newObject.setID(id);
                     if (newObject != null && !isOverlapping(newObject, gobs)) {
                         gobs.add(newObject);
@@ -93,17 +96,6 @@ public class GameObjectGenerator {
             }
         }
         return gobs;
-    }
-
-    /**
-     * Creates a plains tree object, choosing between big and small trees.
-     */
-    private static SingleTileObject createPlainsObject(Random rand, int x, int y, int chunkX, int chunkY) {
-        if (rand.nextFloat() < PLAINS_BIG_TREE_PROBABILITY) {
-            return new SingleTileObject("bigtrees", "tree", rand.nextInt(4), x, y, chunkX, chunkY);
-        } else {
-            return new SingleTileObject("smalltrees", "tree", rand.nextInt(8), x, y, chunkX, chunkY);
-        }
     }
 
     /**

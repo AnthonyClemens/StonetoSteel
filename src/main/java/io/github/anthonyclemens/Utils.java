@@ -86,7 +86,9 @@ public class Utils {
             }
         }
         String filePath = "screenshot_" + System.currentTimeMillis() + ".png";
-
+        if(!new File("screenshots").exists()){
+            new File("screenshots").mkdirs();
+        }
         try {
             File outputFile = new File("screenshots/"+filePath);
             ImageIO.write(screenshot, "png", outputFile);
