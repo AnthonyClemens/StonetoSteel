@@ -3,11 +3,9 @@ package io.github.anthonyclemens.GameObjects;
 import java.io.Serializable;
 
 import org.newdawn.slick.geom.Rectangle;
-import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.Rendering.IsoRenderer;
 import io.github.anthonyclemens.WorldGen.Biome;
-import io.github.anthonyclemens.states.Game;
 
 public abstract class GameObject implements Serializable{
     protected int x;

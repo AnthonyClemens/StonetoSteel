@@ -95,6 +95,7 @@ public class PauseMenu extends BasicGameState {
                     case "Save and Exit" -> {
                         SharedData.getGameState().saveGame(SharedData.getSaveFilePath());
                         SharedData.setHotstart(false);
+                        Game.stopAllSounds();
                         SharedData.enterState(GameStates.MAIN_MENU, game);
                     }
                     case "Resume" -> SharedData.enterState(GameStates.GAME, game);

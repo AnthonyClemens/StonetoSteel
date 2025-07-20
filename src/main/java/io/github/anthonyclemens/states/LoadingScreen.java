@@ -15,6 +15,7 @@ import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.GameStates;
 import io.github.anthonyclemens.Math.TwoDimensionMath;
+import io.github.anthonyclemens.Rendering.SpriteManager;
 import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.SharedData;
 import io.github.anthonyclemens.Sound.JukeBox;
@@ -38,14 +39,28 @@ public class LoadingScreen extends BasicGameState {
     private final Queue<Runnable> loadingSteps = new LinkedList<>();
 
     private String soundPack;
+    private String lastSoundPack;
 
     @Override
     public void enter(GameContainer container, StateBasedGame game) throws SlickException {
         Log.debug("Loading Screen entered.");
         mainFont = Utils.getFont(MAIN_FONT, 48f);
-        soundPack = Settings.getInstance().getSoundPack();
-        completedSteps = 0;
-        doneLoading=false;
+        if(!Settings.getInstance().getSoundPack().equals(lastSoundPack)){
+            Log.debug("Sound pack changed from " + lastSoundPack + " to " + Settings.getInstance().getSoundPack());
+            soundPack = Settings.getInstance().getSoundPack();
+            lastSoundPack = soundPack;
+            loadingSteps.clear();
+            totalSteps = 0;
+            init(container, game);
+            completedSteps = 0;
+            doneLoading=false;
+        }else{
+            Log.debug("Sound pack unchanged: " + soundPack);
+            if(doneLoading){
+                Log.debug("Already loaded, skipping loading steps.");
+                SharedData.enterState(GameStates.GAME, game);
+            }
+        }
     }
 
     @Override
@@ -60,6 +75,16 @@ public class LoadingScreen extends BasicGameState {
         loadingSteps.add(() -> Game.ambientSoundBox.addSounds("waterSounds", AssetLoader.loadListFromFile(soundPack, "waterSounds")));
         loadingSteps.add(() -> Game.ambientSoundBox.addSounds("beachSounds", AssetLoader.loadListFromFile(soundPack, "beachSounds")));
         loadingSteps.add(() -> Game.ambientSoundBox.addSounds("nightSounds", AssetLoader.loadListFromFile(soundPack, "nightSounds")));
+        loadingSteps.add(() -> Game.passiveMobSoundBox = new SoundBox());
+        loadingSteps.add(() -> Game.passiveMobSoundBox.addSounds("fishHurt", AssetLoader.loadListFromFile(soundPack, "fishHurtSounds")));
+        loadingSteps.add(() -> Game.enemyMobSoundBox = new SoundBox());
+        loadingSteps.add(() -> Game.gameObjectSoundBox = new SoundBox());
+        loadingSteps.add(() -> Game.gameObjectSoundBox.addSounds("bigTreeHitSounds", AssetLoader.loadListFromFile(soundPack, "bigTreeHitSounds")));
+        loadingSteps.add(() -> Game.gameObjectSoundBox.addSounds("smallTreeHitSounds", AssetLoader.loadListFromFile(soundPack, "smallTreeHitSounds")));
+        loadingSteps.add(() -> SpriteManager.addSpriteSheet("main", "textures/World/18x18.png", 18, 18));
+        loadingSteps.add(() -> SpriteManager.addSpriteSheet("fishes", "textures/Organisms/fish.png", 16, 16));
+        loadingSteps.add(() -> SpriteManager.addSpriteSheet("bigtrees", "textures/World/48x48.png", 48, 48));
+        loadingSteps.add(() -> SpriteManager.addSpriteSheet("smalltrees", "textures/World/16x32.png", 16, 32));
         totalSteps = loadingSteps.size(); // Save initial size
     }
 
@@ -88,7 +113,7 @@ public class LoadingScreen extends BasicGameState {
     @Override
     public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
         if (!doneLoading && frameCount % 2 == 0 && !loadingSteps.isEmpty()) {
-            Log.debug("Progress: " + completedSteps + "/" + totalSteps + ", Queue left: " + loadingSteps.size());
+            Log.debug("Progress: " + completedSteps + "/" + totalSteps);
             loadingSteps.poll().run(); // Execute next step
             completedSteps++;          // Update progress bar
         } else if (!doneLoading && loadingSteps.isEmpty()) {

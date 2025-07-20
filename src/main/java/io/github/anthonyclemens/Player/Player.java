@@ -393,15 +393,10 @@ public class Player {
         for (int i = 0; i < objects.size(); i++) {
             if (objects.get(i).getHitbox().contains(mouseX, mouseY)) {
                 switch(objects.get(i).getName()){
-                    case "bigtree":
-                        objects.get(i).removeHealth(10);
-                        break;
-                    case "smalltree":
-                        objects.get(i).removeHealth(5);
-                        break;
-                    case "fish":
-                        objects.get(i).removeHealth(5);
-                        break;
+                    case "bigTree" -> objects.get(i).removeHealth(10);
+                    case "smallTree" -> objects.get(i).removeHealth(5);
+                    case "fish" -> objects.get(i).removeHealth(5);
+                    default -> Log.debug(objects.get(i).getName()+" clicked on");
                 }
             }
         }

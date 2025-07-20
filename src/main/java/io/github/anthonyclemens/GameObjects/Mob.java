@@ -9,6 +9,7 @@ import org.newdawn.slick.geom.Rectangle;
 
 import io.github.anthonyclemens.Rendering.IsoRenderer;
 import io.github.anthonyclemens.SharedData;
+import io.github.anthonyclemens.Sound.SoundBox;
 import io.github.anthonyclemens.WorldGen.Biome;
 import io.github.anthonyclemens.WorldGen.ChunkManager;
 import io.github.anthonyclemens.states.Game;
@@ -17,8 +18,10 @@ public class Mob extends GameObject {
     // Animation & Visual State
     protected transient Animation currentAnimation;
     protected SerializableSupplier<Animation> animationLoader;
-    private transient float renderX;                // Final screen-space X position
-    private transient float renderY;                // Final screen-space Y position
+    protected SerializableSupplier<SoundBox> soundLoader;
+    protected transient SoundBox soundBox;
+    protected transient float renderX;                // Final screen-space X position
+    protected transient float renderY;                // Final screen-space Y position
     private Color colorOverlay;          // Optional color tint for the mob
 
     // Logical Positioning
@@ -37,10 +40,10 @@ public class Mob extends GameObject {
     protected float sway = 0f;        // Sway cycle range (for offset randomness)
     private transient float swayTime = 0f;         // Time accumulator for sine/cos motion
     private float swayOffset;            // Phase offset per mob for unique motion
-    private long lastDamageTime = 0; // Timestamp of last time damage was taken (milliseconds)
-    private long hurtFlashEndTime = 0; // Timestamp when hurt flash should end
-    private long damageCooldown = 1000; // Cooldown time between damage in milliseconds
-    private static final int HURT_FLASH_DURATION_MS = 250; // Duration of red flash in ms
+    protected long lastDamageTime = 0; // Timestamp of last time damage was taken (milliseconds)
+    protected long hurtFlashEndTime = 0; // Timestamp when hurt flash should end
+    protected long damageCooldown = 1000; // Cooldown time between damage in milliseconds
+    protected static final int HURT_FLASH_DURATION_MS = 250; // Duration of red flash in ms
 
     public Mob(String tileSheet, int x, int y, int chunkX, int chunkY, String objName, int wanderDistance) {
         super(tileSheet, x, y, chunkX, chunkY, objName);
@@ -61,8 +64,8 @@ public class Mob extends GameObject {
             int candidateX = x + rand.nextInt(wanderDistance * 2) - wanderDistance;
             int candidateY = y + rand.nextInt(wanderDistance * 2) - wanderDistance;
 
-            float isoX = renderer.calculateIsoX(candidateX, candidateY, chunkX, chunkY);
-            float isoY = renderer.calculateIsoY(candidateX, candidateY, chunkX, chunkY);
+            float isoX = IsoRenderer.calculateIsoX(candidateX, candidateY, chunkX, chunkY);
+            float isoY = IsoRenderer.calculateIsoY(candidateX, candidateY, chunkX, chunkY);
             int[] selectedBlock = renderer.screenToIsometric(isoX, isoY);
 
             Biome candidateBiome = renderer.getChunkManager().getBiomeForChunk(selectedBlock[2], selectedBlock[3]);
@@ -144,8 +147,8 @@ public class Mob extends GameObject {
         if(this.hitbox==null) this.hitbox = new Rectangle(0,0,0,0);
         moveTowardsDestination(deltaTime,r);
         if (r.isCameraMoving()) {
-            renderX = r.calculateIsoX((int) fx, (int) fy, chunkX, chunkY);
-            renderY = r.calculateIsoY((int) fx, (int) fy, chunkX, chunkY);
+            renderX = IsoRenderer.calculateIsoX((int) fx, (int) fy, chunkX, chunkY);
+            renderY = IsoRenderer.calculateIsoY((int) fx, (int) fy, chunkX, chunkY);
         } else {
             swayTime += deltaTime;
             float swayX = (float) Math.sin((swayTime + swayOffset) / 300.0) * 0.3f;
@@ -156,8 +159,8 @@ public class Mob extends GameObject {
             float swayedY = fy + swayY;
 
             // Then project swayed position to screen
-            float renderTargetX = r.calculateIsoX((int) swayedX, (int) swayedY, chunkX, chunkY);
-            float renderTargetY = r.calculateIsoY((int) swayedX, (int) swayedY, chunkX, chunkY);
+            float renderTargetX = IsoRenderer.calculateIsoX((int) swayedX, (int) swayedY, chunkX, chunkY);
+            float renderTargetY = IsoRenderer.calculateIsoY((int) swayedX, (int) swayedY, chunkX, chunkY);
 
             // Now interpolate
             renderX += (renderTargetX - renderX) * smoothness;
@@ -192,8 +195,8 @@ public class Mob extends GameObject {
             r.getGraphics().setColor(Color.green);
             r.getGraphics().draw(hitbox);
 
-            float destRenderX = r.calculateIsoX(destinationX, destinationY, chunkX, chunkY);
-            float destRenderY = r.calculateIsoY(destinationX, destinationY, chunkX, chunkY);
+            float destRenderX = IsoRenderer.calculateIsoX(destinationX, destinationY, chunkX, chunkY);
+            float destRenderY = IsoRenderer.calculateIsoY(destinationX, destinationY, chunkX, chunkY);
 
             r.getGraphics().setColor(Color.red);
             r.getGraphics().drawLine(renderX+r.getZoom()*this.currentAnimation.getWidth()/2, renderY+r.getZoom()*this.currentAnimation.getHeight()/2, destRenderX, destRenderY);

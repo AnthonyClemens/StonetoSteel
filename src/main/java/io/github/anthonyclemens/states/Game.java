@@ -15,6 +15,7 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.InputAdapter;
 import org.newdawn.slick.util.Log;
 
+import io.github.anthonyclemens.GameObjects.Fish;
 import io.github.anthonyclemens.GameObjects.MultiTileObject;
 import io.github.anthonyclemens.GameStates;
 import io.github.anthonyclemens.Logic.Calender;
@@ -22,12 +23,12 @@ import io.github.anthonyclemens.Logic.DayNightCycle;
 import io.github.anthonyclemens.Player.Player;
 import io.github.anthonyclemens.Rendering.Camera;
 import io.github.anthonyclemens.Rendering.IsoRenderer;
-import io.github.anthonyclemens.Rendering.SpriteManager;
 import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.SharedData;
 import io.github.anthonyclemens.Sound.JukeBox;
 import io.github.anthonyclemens.Sound.SoundBox;
 import io.github.anthonyclemens.Utils;
+import io.github.anthonyclemens.WorldGen.Chunk;
 import io.github.anthonyclemens.WorldGen.ChunkManager;
 import io.github.anthonyclemens.utils.AmbientSoundManager;
 import io.github.anthonyclemens.utils.CollisionHandler;
@@ -48,8 +49,6 @@ public class Game extends BasicGameState{
 
     // Game Constants
     private Image backgroundImage;
-    private static final int TILE_WIDTH = 18;
-    private static final int TILE_HEIGHT = 18;
     private static final float MIN_ZOOM = 0.40f;
 
     // Game Objects
@@ -60,10 +59,14 @@ public class Game extends BasicGameState{
     private IsoRenderer renderer;
     public static JukeBox jukeBox;
     public static SoundBox ambientSoundBox;
+    public static SoundBox passiveMobSoundBox;
+    public static SoundBox enemyMobSoundBox;
+    public static SoundBox gameObjectSoundBox;
     ChunkManager chunkManager;
 
     // Debug Related Variables
     public static boolean showDebug = true;
+    public static boolean soundDebug = false;
 
     private CollisionHandler collisionHandler;
     private DebugGUI debugGUI;
@@ -107,6 +110,14 @@ public class Game extends BasicGameState{
         ambientSoundBox.setVolume(settings.getMainVolume()*settings.getAmbientVolume());
         jukeBox.setVolume(settings.getMainVolume()*settings.getMusicVolume());
         player.setVolume(settings.getMainVolume()*settings.getPlayerVolume());
+        passiveMobSoundBox.setVolume(settings.getMainVolume()*settings.getFriendlyVolume());
+        enemyMobSoundBox.setVolume(settings.getMainVolume()*settings.getEnemyVolume());
+        gameObjectSoundBox.setVolume(settings.getMainVolume()*settings.getFriendlyVolume());
+        if(soundDebug){
+            passiveMobSoundBox.setDebug(true);
+            enemyMobSoundBox.setDebug(true);
+            gameObjectSoundBox.setDebug(true);
+        }
 
         MultiTileObject test = new MultiTileObject("main", 8, 8, 0, 0, "test");
         test.addBlock(30, 2, 2, 0);
@@ -156,10 +167,6 @@ public class Game extends BasicGameState{
 
     @Override
     public void init(GameContainer container, StateBasedGame game) throws SlickException {
-        SpriteManager.addSpriteSheet("main", "textures/World/18x18.png", TILE_WIDTH, TILE_HEIGHT);
-        SpriteManager.addSpriteSheet("fishes", "textures/Organisms/fish.png", 16, 16);
-        SpriteManager.addSpriteSheet("bigtrees", "textures/World/48x48.png", 48, 48);
-        SpriteManager.addSpriteSheet("smalltrees", "textures/World/16x32.png", 16, 32);
         container.getInput().addMouseListener(new InputAdapter() {
             //Drag
             @Override
@@ -186,7 +193,6 @@ public class Game extends BasicGameState{
         });
         calender = new Calender(16, 3, 2025);
         env = new DayNightCycle(4f, 6f, 19f, calender);
-        
 
         this.backgroundImage = new Image("textures/MissingTexture.png");
 
@@ -251,8 +257,14 @@ public class Game extends BasicGameState{
             boolean toggleFullscreen = !game.getContainer().isFullscreen();
             game.getContainer().setFullscreen(toggleFullscreen);
         }
-        if(input.isKeyPressed(Input.KEY_ADD)) IsoRenderer.setRenderDistance(IsoRenderer.getRenderDistance()+8);
-        if(input.isKeyPressed(Input.KEY_SUBTRACT)) IsoRenderer.setRenderDistance(IsoRenderer.getRenderDistance()-8);
+        if (input.isKeyPressed(Input.KEY_F)){
+            int[] clickedLoc = chunkManager.getIsoRenderer().screenToIsometric(input.getMouseX(), input.getMouseY());
+            Chunk clickedChunk = chunkManager.getChunk(clickedLoc[2], clickedLoc[3]);
+            int numGobs = clickedChunk.getGameObjects().size();
+            Fish nFish = new Fish("fishs", clickedLoc[0], clickedLoc[1], clickedLoc[2], clickedLoc[3], "fish");
+            nFish.setID(numGobs);
+            clickedChunk.addGameObject(nFish);
+        }
     }
 
     private void updateMouse(Input input){
@@ -299,12 +311,12 @@ public class Game extends BasicGameState{
         saveLoadManager.saveGame(filepath, env, chunkManager, camera, player);
     }
 
-    public JukeBox getJukeBox() {
-        return jukeBox;
-    }
-
-    public SoundBox getAmbientSoundManager() {
-        return ambientSoundBox;
+    public static void stopAllSounds() {
+        if (jukeBox != null) jukeBox.stopMusic();
+        if (ambientSoundBox != null) ambientSoundBox.stopAllSounds();
+        if (passiveMobSoundBox != null) passiveMobSoundBox.stopAllSounds();
+        if (enemyMobSoundBox != null) enemyMobSoundBox.stopAllSounds();
+        if (gameObjectSoundBox != null) gameObjectSoundBox.stopAllSounds();
     }
 
 }

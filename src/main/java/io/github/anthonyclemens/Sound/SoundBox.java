@@ -18,6 +18,7 @@ public class SoundBox {
     private HashMap<String, HashMap<String, Sound>> sounds;
     private final Random random;
     private float volume;
+    private boolean debug = false;
 
     /**
      * Constructs a new SoundBox.
@@ -77,6 +78,7 @@ public class SoundBox {
         List<String> paths = new ArrayList<>(categorySounds.keySet());
         String randomPath = paths.get(this.random.nextInt(paths.size()));
         Sound randomSound = categorySounds.get(randomPath);
+        if(debug) Log.debug("Playing random sound from category '" + category + "': " + randomPath+ " at volume " + volume);
         playSound(randomSound);
     }
 
@@ -160,5 +162,9 @@ public class SoundBox {
             category.clear();
         }
         sounds.clear();
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 }

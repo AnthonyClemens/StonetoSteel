@@ -137,8 +137,8 @@ public class NewGame extends BasicGameState {
                             case "Slot4" -> SaveLoadManager.deleteSave(SAVES[3]);
                             case "Slot5" -> SaveLoadManager.deleteSave(SAVES[4]);
                         }
-                        initButtons();
                         delete = false;
+                        initButtons();
                         return;
                     } else if (name.equals("Cancel")) {
                         delete = false;
@@ -178,9 +178,11 @@ public class NewGame extends BasicGameState {
                     }
                     if (!SaveLoadManager.getSize(SharedData.getSaveFilePath()).equals("0")) {
                         SharedData.setNewGame(false);
+                        SharedData.setLoadingSave(true);
                         Log.debug("Loading existing game from: " + SharedData.getSaveFilePath() + " Size: " + SaveLoadManager.getSize(SharedData.getSaveFilePath()));
                     } else {
                         SharedData.setNewGame(true);
+                        SharedData.setLoadingSave(false);
                         Log.debug("Starting new game with save file: " + SharedData.getSaveFilePath());
                     }
                     MainMenu.menuJukeBox.stopMusic();

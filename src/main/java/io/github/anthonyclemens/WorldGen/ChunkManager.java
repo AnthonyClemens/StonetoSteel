@@ -163,7 +163,9 @@ public class ChunkManager implements Serializable {
         Chunk oldChunk = getChunk(oldChunkX, oldChunkY);
         if (obj != null && oldChunk.getGameObjects().contains(obj)) {
             oldChunk.deleteGameObject(obj);
-            getChunk(newChunkX, newChunkY).addGameObject(obj);
+            Chunk newChunk = getChunk(newChunkX, newChunkY);
+            obj.setID(newChunk.getGameObjects().size());
+            newChunk.addGameObject(obj);
         } else {
             Log.warn("GameObject not found in chunk (" + oldChunkX + ", " + oldChunkY + ")");
         }
