@@ -1,11 +1,14 @@
 {
     "dayMusic": [
       "music/day/ForestWalk.ogg",
-      "music/day/SpringFlowers.ogg"
+      "music/day/SpringFlowers.ogg",
+      "music/day/Morning-Light.ogg",
+      "music/day/Yugen.ogg"
     ],
     "nightMusic": [
       "music/night/Moonlight-ScottBuckley.ogg",
-      "music/night/AdriftAmongInfiniteStars-ScottBuckley.ogg"
+      "music/night/AdriftAmongInfiniteStars-ScottBuckley.ogg",
+      "music/night/Sunset-Landscape.ogg"
     ],
     "plainsSounds": [
       "sounds/Plains/birds.ogg",

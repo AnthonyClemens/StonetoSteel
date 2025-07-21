@@ -1,6 +1,7 @@
 package io.github.anthonyclemens.Player;
 
 import java.util.List;
+import java.util.Map;
 
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
@@ -12,6 +13,8 @@ import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.GameObjects.GameObject;
+import io.github.anthonyclemens.GameObjects.Item;
+import io.github.anthonyclemens.GameObjects.Items;
 import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.Sound.SoundBox;
 import io.github.anthonyclemens.Utils;
@@ -39,6 +42,9 @@ public class Player {
     private Line raycastLine = new Line(0,0,0,0); // Stores the raycast line as a Slick2D Line object
     private final Circle playerReach = new Circle(0,0,0); // Circle representing the player's reach
     private static final float REACH = 128f; // Length of the player's reach in base scale pixels
+    private Inventory playerInventory = new Inventory();
+    private Chunk currentChunk;
+    private int[] playerLoc; // Player location in the world [x, y, chunkX, chunkY]
 
     // Player health properties
     private byte health; // Player health
@@ -90,13 +96,15 @@ public class Player {
         }
     }
 
-    public void update(Input input, int delta, int tile) {
+    public void update(Input input, int delta, int[] playerLoc, Chunk chunk) {
+        this.currentChunk = chunk;
+        this.playerLoc = playerLoc;
         previousX = x; // Store current X position as previous
         previousY = y; // Store current Y position as previous
         dx = 0;
         dy = 0;
         float speed = this.defaultSpeed;
-        String block = getBlockType(tile); // Get block type player is on
+        String block = getBlockType(currentChunk.getTile(playerLoc[0], playerLoc[1])); // Get block type player is on
 
         handleMovementInput(input);
         speed = adjustSpeedAndAnimation(input, block, speed);
@@ -358,6 +366,10 @@ public class Player {
         return playerSoundBox.getCurrentSound(); // Get the currently playing sound
     }
 
+    public Inventory getPlayerInventory() {
+        return playerInventory; // Get player's inventory
+    }
+
     /**
      * Resets the player's stats and state to default values.
      */
@@ -376,6 +388,21 @@ public class Player {
         this.renderY = 0;
         this.hitbox.setBounds(0, 0, animations[0].getWidth(), animations[0].getHeight());
         this.lastDamageTime = 0;
+        for (Map.Entry<Items, Integer> entry : playerInventory.getItems().entrySet()) {
+            int i;
+            Items item = entry.getKey();
+            int quantity = entry.getValue();
+            playerInventory.removeItem(item, quantity);
+            switch(item.toString()) {
+                case "ITEM_WOOD" -> i=110;
+                case "ITEM_STONE" -> i=111;
+                case "ITEM_CACTUS" -> i=120;
+                default -> i=0;
+            }
+            Item itemToDrop = new Item("main", item.toString(), i, playerLoc[0], playerLoc[1], playerLoc[2], playerLoc[3]);
+            itemToDrop.setQuantity(quantity);
+            //currentChunk.addGameObject(itemToDrop); Throws a java.util.ConcurrentModificationException @ io.github.anthonyclemens.utils.CollisionHandler.checkPlayerCollision(CollisionHandler.java:26), Need to fix this
+        }
     }
 
     public void interact(Input input, ChunkManager cm) {
@@ -392,11 +419,21 @@ public class Player {
         List<GameObject> objects = chunk.getGameObjects();
         for (int i = 0; i < objects.size(); i++) {
             if (objects.get(i).getHitbox().contains(mouseX, mouseY)) {
-                switch(objects.get(i).getName()){
-                    case "bigTree" -> objects.get(i).removeHealth(10);
-                    case "smallTree" -> objects.get(i).removeHealth(5);
-                    case "fish" -> objects.get(i).removeHealth(5);
-                    default -> Log.debug(objects.get(i).getName()+" clicked on");
+                GameObject obj = objects.get(i);
+                String name = obj.getName();
+
+                if (name.startsWith("ITEM_")) {
+                    Items itemType = Items.valueOf(name);
+                    if(playerInventory.addItem(itemType, ((Item) obj).getQuantity())){
+                        chunk.removeGameObject(i);
+                    }
+                } else {
+                    switch (name) {
+                        case "bigTree" -> obj.removeHealth(10);
+                        case "smallTree" -> obj.removeHealth(5);
+                        case "fish" -> obj.removeHealth(5);
+                        default -> Log.debug(name + " clicked on");
+                    }
                 }
             }
         }

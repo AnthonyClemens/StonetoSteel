@@ -38,7 +38,7 @@ public class SingleTileObject extends GameObject{
     @Override
     public void update(IsoRenderer r, int deltaTime) {
         if(this.hitbox==null) this.hitbox = new Rectangle(x,y,this.tileWidth,this.tileHeight);
-        hitbox.setBounds(r.calculateIsoX(x, y, chunkX, chunkY), r.calculateIsoY(x, y, chunkX, chunkY), tileWidth*r.getZoom(), tileHeight*r.getZoom());
+        hitbox.setBounds(IsoRenderer.calculateIsoX(x, y, chunkX, chunkY), IsoRenderer.calculateIsoY(x, y, chunkX, chunkY), tileWidth*r.getZoom(), tileHeight*r.getZoom());
     }
 
 }

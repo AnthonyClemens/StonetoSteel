@@ -6,6 +6,8 @@ import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.GameObjects.GameObject;
+import io.github.anthonyclemens.GameObjects.Item;
+import io.github.anthonyclemens.GameObjects.Items;
 import io.github.anthonyclemens.GameObjects.Mob;
 import io.github.anthonyclemens.Player.Player;
 import io.github.anthonyclemens.WorldGen.Chunk;
@@ -26,13 +28,20 @@ public class CollisionHandler {
             if (gob.getHitbox().intersects(player.getHitbox())) {
                 Rectangle playerHit = player.getHitbox();
                 Rectangle objectHit = gob.getHitbox();
-                
+
                 // Manually compute the intersection rectangle
                 float intersectX = Math.max(playerHit.getX(), objectHit.getX());
                 float intersectY = Math.max(playerHit.getY(), objectHit.getY());
                 float intersectWidth = Math.min(playerHit.getX() + playerHit.getWidth(), objectHit.getX() + objectHit.getWidth()) - intersectX;
                 float intersectHeight = Math.min(playerHit.getY() + playerHit.getHeight(), objectHit.getY() + objectHit.getHeight()) - intersectY;
                 if (intersectWidth > 0 && intersectHeight > 0) {
+                    if (gob.getName().startsWith("ITEM_")) {
+                        Items itemType = Items.valueOf(gob.getName());
+                        if(player.getPlayerInventory().addItem(itemType, ((Item) gob).getQuantity())){
+                            currentChunk.removeGameObject(gob.getID()-1);
+                        }
+                        return;
+                    }
                     // Compute centers from hitboxes
                     float playerCenterX = playerHit.getX() + playerHit.getWidth() / 2;
                     float playerCenterY = playerHit.getY() + playerHit.getHeight() / 2;

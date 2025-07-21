@@ -1,5 +1,7 @@
 package io.github.anthonyclemens.utils;
 
+import java.util.Random;
+
 import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.Logic.DayNightCycle;
@@ -15,6 +17,9 @@ public class AmbientSoundManager {
     private final SoundBox ambientSoundBox;
     private boolean dayNightSwitch = true;
     private Biome lastBiome = null;
+    private double timeSinceLastMusic = 0;
+    private double musicDelay = 0;
+    private final Random random = new Random();
 
     public AmbientSoundManager(JukeBox jukeBox, SoundBox ambientSoundBox) {
         this.jukeBox = jukeBox;
@@ -27,10 +32,28 @@ public class AmbientSoundManager {
 
     public void playAmbientMusic(DayNightCycle env) {
         boolean isNight = env.isSunDown();
+        String musicType = isNight ? "nightMusic" : "dayMusic";
+
+        // Switch music immediately if state changed
         if (isNight != dayNightSwitch) {
             Log.debug("Switching to " + (isNight ? "night" : "day") + " music...");
-            jukeBox.playRandomSong(isNight ? "nightMusic" : "dayMusic");
+            jukeBox.stopMusic();
+            jukeBox.playRandomSong(musicType);
             dayNightSwitch = isNight;
+            timeSinceLastMusic = System.currentTimeMillis();
+            musicDelay = random.nextDouble(30000) + 30000;
+            Log.debug("Next song will play in " + (int)musicDelay/1000 + "s");
+            return;
+        }
+
+        // Otherwise, wait for current song to finish and delay to expire
+        long now = System.currentTimeMillis();
+        if (!jukeBox.isPlaying() && (now - timeSinceLastMusic > musicDelay)) {
+            Log.debug("Continuing with " + (isNight ? "night" : "day") + " music...");
+            jukeBox.playRandomSong(musicType);
+            timeSinceLastMusic = now;
+            musicDelay = random.nextDouble(30000) + 30000;
+            Log.debug("Next song will play in " + (int)musicDelay/1000 + "s");
         }
     }
 

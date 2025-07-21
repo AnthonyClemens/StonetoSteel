@@ -6,6 +6,7 @@ import org.newdawn.slick.Color;
 
 import io.github.anthonyclemens.Rendering.IsoRenderer;
 import io.github.anthonyclemens.Rendering.SpriteManager;
+import io.github.anthonyclemens.WorldGen.Chunk;
 import io.github.anthonyclemens.states.Game;
 
 public class Tree extends SingleTileObject{
@@ -19,27 +20,31 @@ public class Tree extends SingleTileObject{
     private float offsetX = 0; // Offset for shaking effect
     private float offsetY = 0; // Offset for shaking effect
     private final Random rand;
+    private final Item droppedItem;
+    private boolean dropItem = false;
 
     public Tree(Random rand, int x, int y, int chunkX, int chunkY) {
         super(null,"",-1, x, y, chunkX, chunkY);
         this.rand = rand;
+        this.droppedItem = new Item("main", "ITEM_WOOD", 110, x, y, chunkX, chunkY);
         if (this.rand.nextFloat() < PLAINS_BIG_TREE_PROBABILITY) {
             this.name = "bigTree";
             this.tileSheet = "bigtrees";
             this.i = (byte) rand.nextInt(4);
             this.health = 100;
-            this.maxHealth = this.health;
             this.shakeDuration = 500;
             this.shakeAggression = 6;
+            this.droppedItem.setQuantity(6 + rand.nextInt(5));
         } else {
             this.name = "smallTree";
             this.tileSheet = "smalltrees";
             this.i = (byte) rand.nextInt(8);
             this.health = 20;
-            this.maxHealth = this.health;
             this.shakeDuration = 250;
             this.shakeAggression = 2;
+            this.droppedItem.setQuantity(2 + rand.nextInt(3));
         }
+        this.maxHealth = this.health;
         this.tileWidth = SpriteManager.getSpriteWidth(tileSheet);
         this.tileHeight = SpriteManager.getSpriteHeight(tileSheet);
         this.hitbox.setBounds(0, 0, tileWidth, tileHeight);
@@ -60,6 +65,11 @@ public class Tree extends SingleTileObject{
 
     @Override
     public void update(IsoRenderer r, int deltaTime) {
+        if(dropItem){
+            Chunk thisChunk = r.getChunkManager().getChunk(chunkX, chunkY);
+            this.droppedItem.setID(thisChunk.getGameObjects().size());
+            thisChunk.addGameObject(this.droppedItem);
+        }
         super.update(r, deltaTime);
         if(System.currentTimeMillis() < endShakeTime){
             offsetX = rand.nextInt(shakeAggression) - shakeAggression / 2f;
@@ -73,7 +83,11 @@ public class Tree extends SingleTileObject{
         if (now - lastDamageTime < damageCooldown) {
             return;
         }
-        super.removeHealth(amount);
+        this.health -= amount;
+        if (this.health <= 0) {
+            dropItem = true;
+            this.health = 0;
+        }
         endShakeTime = now + shakeDuration;
         lastDamageTime = now;
         Game.gameObjectSoundBox.playRandomSound(name+"HitSounds");

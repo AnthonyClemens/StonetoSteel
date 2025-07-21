@@ -10,24 +10,28 @@ import org.newdawn.slick.Music;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.util.Log;
 
+import io.github.anthonyclemens.SharedData;
+
 /**
  * JukeBox manages categorized music tracks, allowing random playback and resource cleanup.
  */
 public class JukeBox {
 
-    private HashMap<String, HashMap<String, Music>> songs;
+    private final HashMap<String, List<String>> recentlyPlayed = new HashMap<>();
+    private final HashMap<String, HashMap<String, Music>> songs;
+
     private Music currentMusic;
     private final Random random;
     private float volume;
 
     public JukeBox(Builder builder) {
         this.songs = builder.songs;
-        this.random = new Random();
+        this.random = new Random(SharedData.getSeed());
     }
 
     public JukeBox() {
         this.songs = new HashMap<>();
-        this.random = new Random();
+        this.random = new Random(SharedData.getSeed());
     }
 
     /**
@@ -69,10 +73,30 @@ public class JukeBox {
             Log.warn("No songs available in category: " + category);
             return;
         }
-        List<String> paths = new ArrayList<>(categorySongs.keySet());
-        String randomPath = paths.get(this.random.nextInt(paths.size()));
-        Music randomSong = categorySongs.get(randomPath);
-        playSong(randomSong);
+
+        List<String> allPaths = new ArrayList<>(categorySongs.keySet());
+        List<String> history = recentlyPlayed.computeIfAbsent(category, k -> new ArrayList<>());
+
+        // Reset history if all songs have been played
+        if (history.size() == allPaths.size()) {
+            history.clear();
+        }
+
+        // Filter out already played songs
+        List<String> unplayed = new ArrayList<>();
+        for (String path : allPaths) {
+            if (!history.contains(path)) {
+                unplayed.add(path);
+            }
+        }
+
+        // Select and play a random unplayed song
+        if (!unplayed.isEmpty()) {
+            String randomPath = unplayed.get(random.nextInt(unplayed.size()));
+            Music randomSong = categorySongs.get(randomPath);
+            playSong(randomSong);
+            history.add(randomPath); // Track the song
+        }
     }
 
     /**

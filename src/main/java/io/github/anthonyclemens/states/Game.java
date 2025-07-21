@@ -84,6 +84,11 @@ public class Game extends BasicGameState{
         Settings settings = Settings.getInstance();
         Log.debug("Entering Game State with hotstart: " + SharedData.isHotstart() + ", loading save: " + SharedData.isLoadingSave()
                 + ", new game: " + SharedData.isNewGame());
+        ambientSoundBox.setVolume(settings.getMainVolume()*settings.getAmbientVolume());
+        jukeBox.setVolume(settings.getMainVolume()*settings.getMusicVolume());
+        passiveMobSoundBox.setVolume(settings.getMainVolume()*settings.getFriendlyVolume());
+        enemyMobSoundBox.setVolume(settings.getMainVolume()*settings.getEnemyVolume());
+        gameObjectSoundBox.setVolume(settings.getMainVolume()*settings.getFriendlyVolume());
         if(SharedData.isHotstart() && !SharedData.isLoadingSave()){
             return;
         }
@@ -100,6 +105,7 @@ public class Game extends BasicGameState{
             createNewPlayer(saveLoadManager.getPlayerX(), saveLoadManager.getPlayerY(), saveLoadManager.getPlayerSpeed(), saveLoadManager.getPlayerHealth());
             env = saveLoadManager.getDayNightCycle();
         }
+        player.setVolume(settings.getMainVolume()*settings.getPlayerVolume());
         SharedData.setLoadingSave(false);
         renderer = new IsoRenderer(zoom, "main", chunkManager, container);
         chunkManager.attachRenderer(renderer);
@@ -107,12 +113,6 @@ public class Game extends BasicGameState{
         ambientSoundManager.attachRenderer(renderer);
         camera = new Camera(player.getX(), player.getY());
 
-        ambientSoundBox.setVolume(settings.getMainVolume()*settings.getAmbientVolume());
-        jukeBox.setVolume(settings.getMainVolume()*settings.getMusicVolume());
-        player.setVolume(settings.getMainVolume()*settings.getPlayerVolume());
-        passiveMobSoundBox.setVolume(settings.getMainVolume()*settings.getFriendlyVolume());
-        enemyMobSoundBox.setVolume(settings.getMainVolume()*settings.getEnemyVolume());
-        gameObjectSoundBox.setVolume(settings.getMainVolume()*settings.getFriendlyVolume());
         if(soundDebug){
             passiveMobSoundBox.setDebug(true);
             enemyMobSoundBox.setDebug(true);
@@ -191,8 +191,8 @@ public class Game extends BasicGameState{
                 zoom = Math.min(Math.max(MIN_ZOOM, zoom), 8f);
             }
         });
-        calender = new Calender(16, 3, 2025);
-        env = new DayNightCycle(4f, 6f, 19f, calender);
+        calender = new Calender(1, 1, 1462);
+        env = new DayNightCycle(10f, 7f, 19f, calender);
 
         this.backgroundImage = new Image("textures/MissingTexture.png");
 
@@ -213,7 +213,8 @@ public class Game extends BasicGameState{
 
         updateKeyboard(game, delta, input);
         updateMouse(input);
-        player.update(input, delta, chunkManager.getChunk(playerLoc[2], playerLoc[3]).getTile(playerLoc[0], playerLoc[1]));
+        Chunk currentChunk = chunkManager.getChunk(playerLoc[2], playerLoc[3]);
+        player.update(input, delta, playerLoc, currentChunk);
         collisionHandler.checkPlayerCollision(player, chunkManager.getChunk(playerLoc[2], playerLoc[3]));
 
         camera.update(player, input, cameraX, cameraY);
@@ -231,7 +232,7 @@ public class Game extends BasicGameState{
         renderer.render();
         player.render(container, zoom, camera.getX(), camera.getY());
         env.renderOverlay(container, g);
-        if (showHUD) displayHUD.renderHUD(container, g, calender, env);
+        if (showHUD) displayHUD.renderHUD(container, g, calender, env, player);
         if (showDebug) debugGUI.renderDebugGUI(g, container, renderer, player, zoom, jukeBox, ambientSoundBox);
     }
 

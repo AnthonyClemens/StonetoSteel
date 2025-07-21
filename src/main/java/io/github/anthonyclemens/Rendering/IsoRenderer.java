@@ -4,6 +4,7 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SpriteSheet;
+import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.Player.Player;
 import io.github.anthonyclemens.WorldGen.Chunk;
@@ -25,6 +26,7 @@ public class IsoRenderer {
     private int[] visibleChunks; // Array to store the visible chunks
     private boolean firstFrame = true; // Flag to check if it's the first frame
     private int lastTileType = 0; // Last tile type used for rendering
+    private Image lastTileImage; // Last tile image used for rendering
     private final GameContainer container; // Reference to the game container
     private boolean cameraMoving = false;
     private final int chunkSize;
@@ -135,17 +137,17 @@ public class IsoRenderer {
                 // Only update sprite if tileType has changed
                 if (tileType != lastTileType) {
                     lastTileType = tileType;
+                    lastTileImage = worldTileSheet.getSprite(lastTileType % spriteCols, lastTileType / spriteCols);
+                }
+                if(lastTileImage == null) {
+                    Log.warn("Tile image is null for tileType: " + lastTileType + " in chunk (" + chunkX + ", " + chunkY + ")");
+                    break;
                 }
 
-                Image block = worldTileSheet.getSprite(lastTileType % spriteCols, lastTileType / spriteCols);
 
                 float isoX = calculateIsoX(blockX * blockSize, blockY * blockSize, chunkX, chunkY);
                 float isoY = calculateIsoY(blockX * blockSize, blockY * blockSize, chunkX, chunkY);
-                if(tileType == 23 || tileType == 24){
-                    drawScaledIsoAlpha(block, isoX, isoY, tileRenderSize, tileRenderSize, 0.1f);
-                }else{
-                    drawScaledIsoImage(block, isoX, isoY, tileRenderSize, tileRenderSize);
-                }         
+                drawScaledIsoAlpha(lastTileImage, isoX, isoY, tileRenderSize, tileRenderSize, 1f);
             }
         }
 
