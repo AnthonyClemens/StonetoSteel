@@ -1,4 +1,4 @@
-package io.github.anthonyclemens.GameObjects;
+package io.github.anthonyclemens.GameObjects.SingleTileObjects;
 
 import java.util.Random;
 
@@ -11,7 +11,6 @@ import io.github.anthonyclemens.states.Game;
 
 public class Tree extends SingleTileObject{
 
-    private static final double PLAINS_BIG_TREE_PROBABILITY = 0.75; // 75% probability for big trees
     private long shakeDuration = 500; // When shaking should end
     private long lastDamageTime = 0; // Timestamp of last time damage was taken (milliseconds)
     private long endShakeTime = 0; // Timestamp when shaking should end
@@ -27,11 +26,11 @@ public class Tree extends SingleTileObject{
         super(null,"",-1, x, y, chunkX, chunkY);
         this.rand = rand;
         this.droppedItem = new Item("main", "ITEM_WOOD", 110, x, y, chunkX, chunkY);
-        if (this.rand.nextFloat() < PLAINS_BIG_TREE_PROBABILITY) {
+        if (this.rand.nextFloat() < 0.75) {
             this.name = "bigTree";
             this.tileSheet = "bigtrees";
-            this.i = (byte) rand.nextInt(4);
-            this.health = 100;
+            this.i = (byte) rand.nextInt(12);
+            this.health = 40;
             this.shakeDuration = 500;
             this.shakeAggression = 6;
             this.droppedItem.setQuantity(6 + rand.nextInt(5));
@@ -50,14 +49,58 @@ public class Tree extends SingleTileObject{
         this.hitbox.setBounds(0, 0, tileWidth, tileHeight);
     }
 
+    public Tree(Random rand, int x, int y, int chunkX, int chunkY, float bigTreeProbability) {
+        super(null,"",-1, x, y, chunkX, chunkY);
+        this.rand = rand;
+        this.droppedItem = new Item("main", "ITEM_WOOD", 110, x, y, chunkX, chunkY);
+        if (this.rand.nextFloat() < bigTreeProbability) {
+            this.name = "bigTree";
+            this.tileSheet = "bigtrees";
+            this.i = (byte) rand.nextInt(12);
+            this.health = 40;
+            this.shakeDuration = 500;
+            this.shakeAggression = 6;
+            this.droppedItem.setQuantity(6 + rand.nextInt(5));
+        } else {
+            this.name = "smallTree";
+            this.tileSheet = "smalltrees";
+            this.i = (byte) rand.nextInt(8);
+            this.health = 20;
+            this.shakeDuration = 250;
+            this.shakeAggression = 2;
+            this.droppedItem.setQuantity(2 + rand.nextInt(3));
+        }
+        this.maxHealth = this.health;
+        this.tileWidth = SpriteManager.getSpriteWidth(tileSheet);
+        this.tileHeight = SpriteManager.getSpriteHeight(tileSheet);
+        this.hitbox.setBounds(0, 0, tileWidth, tileHeight);
+    }
+
+    public Tree(Random rand, int x, int y, int chunkX, int chunkY, boolean specialTrees) {
+        super(null,"",-1, x, y, chunkX, chunkY);
+        this.rand = rand;
+        this.droppedItem = new Item("main", "ITEM_WOOD", 110, x, y, chunkX, chunkY);
+        this.name = "bigTree";
+        this.tileSheet = "specialtrees";
+        this.i = (byte) rand.nextInt(17);
+        this.health = 50;
+        this.shakeDuration = 500;
+        this.shakeAggression = 6;
+        this.droppedItem.setQuantity(8 + rand.nextInt(5));
+        this.maxHealth = this.health;
+        this.tileWidth = SpriteManager.getSpriteWidth(tileSheet);
+        this.tileHeight = SpriteManager.getSpriteHeight(tileSheet);
+        this.hitbox.setBounds(0, 0, tileWidth, tileHeight);
+    }
+
     @Override
     public void render(IsoRenderer r, int lodLevel) {
-        float renderX = IsoRenderer.calculateIsoX(x, y, chunkX, chunkY) + offsetX;
-        float renderY = IsoRenderer.calculateIsoY(x, y, chunkX, chunkY) + offsetY;
+        float renderX = r.calculateIsoX(x, y, chunkX, chunkY) + offsetX*r.getZoom();
+        float renderY = r.calculateIsoY(x, y, chunkX, chunkY) + offsetY*r.getZoom();
         r.drawTileIso(tileSheet, i, renderX, renderY);
         if(Game.showDebug){
-            r.getGraphics().setColor(Color.red);
-            r.getGraphics().drawString("Health: "+this.health+"/"+this.maxHealth, renderX, renderY);
+            //r.getGraphics().setColor(Color.red);
+           // r.getGraphics().drawString("Health: "+this.health+"/"+this.maxHealth, renderX, renderY);
             r.getGraphics().setColor(Color.black);
             r.getGraphics().draw(hitbox);
         }
@@ -90,7 +133,7 @@ public class Tree extends SingleTileObject{
         }
         endShakeTime = now + shakeDuration;
         lastDamageTime = now;
-        Game.gameObjectSoundBox.playRandomSound(name+"HitSounds");
+        Game.gameObjectSoundBox.playRandomSound(this.name+"HitSounds");
     }
 
 }

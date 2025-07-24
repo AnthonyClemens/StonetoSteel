@@ -20,6 +20,7 @@ import io.github.anthonyclemens.Rendering.RenderUtils;
 import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.SharedData;
 import io.github.anthonyclemens.Utils;
+import io.github.anthonyclemens.utils.AssetLoader;
 
 public class SettingsMenu extends BasicGameState{
     //Variables
@@ -28,10 +29,16 @@ public class SettingsMenu extends BasicGameState{
     private Banner titleBanner;
     private final List<ImageTextButton> menuButtons = new ArrayList<>();
     private Settings settings;
+    private String texturePack;
+    private String soundPack;
 
     //Constants
     private static final String TITLE_STRING = "Options";
     private static final String MAIN_FONT = "fonts/MedievalTimes.ttf";
+    private static final float MAIN_FONT_SIZE = 48f;
+    private static final float BUTTON_FONT_SIZE = 32f;
+    private static final int BUTTON_WIDTH = 342;
+    private static final int BUTTON_HEIGHT = 114;
 
     @Override
     public int getID() {
@@ -42,26 +49,30 @@ public class SettingsMenu extends BasicGameState{
     public void enter(GameContainer container, StateBasedGame game) throws SlickException {
         input = container.getInput();
         settings = Settings.getInstance();
+        texturePack = settings.getTexturePack();
+        soundPack = settings.getSoundPack();
         // Set background image
-        backgroundImage = new Image("textures/Background.png");
+        backgroundImage = new Image(AssetLoader.loadSingleAssetFromFile(texturePack, "backgroundImage"), false, Image.FILTER_NEAREST);
         // Create title banner
-        Image bannerImage = new Image("textures/GUI/TextField/UI_Paper_Banner_01_Downward.png", false, Image.FILTER_NEAREST);
-        titleBanner = new Banner(bannerImage, TITLE_STRING, Utils.getFont(MAIN_FONT, 48f), TwoDimensionMath.getMiddleX(720, container.getWidth()), 10, 720, 251);
+        Image bannerImage = new Image(AssetLoader.loadSingleAssetFromFile(texturePack, "bannerImage"), false, Image.FILTER_NEAREST);
+        titleBanner = new Banner(bannerImage, TITLE_STRING, Utils.getFont(MAIN_FONT, MAIN_FONT_SIZE), TwoDimensionMath.getMiddleX(720, container.getWidth()), 10, 720, 251);
         titleBanner.changeYOffset(120f);
         // Load button images
-        Image buttonImage = new Image("textures/GUI/TextField/UI_Paper_Textfield_01.png", false, Image.FILTER_NEAREST);
+        Image buttonImage = new Image(AssetLoader.loadSingleAssetFromFile(texturePack, "regularButton"), false, Image.FILTER_NEAREST);
         // Create menu buttons
-        ImageTextButton videoSettings = new ImageTextButton(buttonImage, "Video Settings", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(342, container.getWidth()), 300, 342, 114);
-        ImageTextButton soundSettings = new ImageTextButton(buttonImage, "Sound Settings", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(342, container.getWidth()), 450, 342, 114);
-        ImageTextButton controlSettings = new ImageTextButton(buttonImage, "Control Settings", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(342, container.getWidth()), 600, 342, 114);
-        ImageTextButton backButton = new ImageTextButton(buttonImage, "Back", Utils.getFont(MAIN_FONT, 40f), 10, 10, 240, 80);
-        ImageTextButton resetButton = new ImageTextButton(buttonImage, "Reset Settings", Utils.getFont(MAIN_FONT, 32f), container.getWidth()-250f, 10, 240, 80);
+        ImageTextButton videoSettings = new ImageTextButton(buttonImage, "Video Settings", Utils.getFont(MAIN_FONT, BUTTON_FONT_SIZE), TwoDimensionMath.getMiddleX(BUTTON_WIDTH, container.getWidth()), 300, BUTTON_WIDTH, BUTTON_HEIGHT);
+        ImageTextButton soundSettings = new ImageTextButton(buttonImage, "Sound Settings", Utils.getFont(MAIN_FONT, BUTTON_FONT_SIZE), TwoDimensionMath.getMiddleX(BUTTON_WIDTH, container.getWidth()), 450, BUTTON_WIDTH, BUTTON_HEIGHT);
+        ImageTextButton controlSettings = new ImageTextButton(buttonImage, "Control Settings", Utils.getFont(MAIN_FONT, BUTTON_FONT_SIZE), TwoDimensionMath.getMiddleX(BUTTON_WIDTH, container.getWidth()), 600, BUTTON_WIDTH, BUTTON_HEIGHT);
+        // Navigation Buttons
+        ImageTextButton backButton = new ImageTextButton(buttonImage, "Back", Utils.getFont(MAIN_FONT, BUTTON_FONT_SIZE), 10, 10, 240, 80);
+        ImageTextButton resetButton = new ImageTextButton(buttonImage, "Reset Settings", Utils.getFont(MAIN_FONT, BUTTON_FONT_SIZE), container.getWidth()-250f, 10, 240, 80);
         menuButtons.clear();
         menuButtons.addAll(List.of(videoSettings,soundSettings,controlSettings,backButton,resetButton));
     }
 
     @Override
     public void init(GameContainer container, StateBasedGame game) throws SlickException {
+        Log.debug("SettingsMenu initialized.");
     }
 
     @Override

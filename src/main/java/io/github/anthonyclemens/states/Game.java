@@ -15,7 +15,7 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.InputAdapter;
 import org.newdawn.slick.util.Log;
 
-import io.github.anthonyclemens.GameObjects.Fish;
+import io.github.anthonyclemens.GameObjects.Mobs.Fish;
 import io.github.anthonyclemens.GameObjects.MultiTileObject;
 import io.github.anthonyclemens.GameStates;
 import io.github.anthonyclemens.Logic.Calender;
@@ -49,7 +49,7 @@ public class Game extends BasicGameState{
 
     // Game Constants
     private Image backgroundImage;
-    private static final float MIN_ZOOM = 0.40f;
+    private static final float MIN_ZOOM = 0.10f;
 
     // Game Objects
     private Camera camera;
@@ -67,6 +67,7 @@ public class Game extends BasicGameState{
     // Debug Related Variables
     public static boolean showDebug = true;
     public static boolean soundDebug = false;
+    public static boolean showCursorLoc = false;
 
     private CollisionHandler collisionHandler;
     private DebugGUI debugGUI;
@@ -81,6 +82,15 @@ public class Game extends BasicGameState{
 
     @Override
     public void enter(GameContainer container, StateBasedGame game) throws SlickException {
+        calender = new Calender(1, 1, 1462);
+        env = new DayNightCycle(20f, 7f, 19f, calender);
+
+        this.backgroundImage = new Image("textures/MissingTexture.png");
+
+        collisionHandler = new CollisionHandler();
+        debugGUI = new DebugGUI();
+        displayHUD = new DisplayHUD();
+        saveLoadManager = new SaveLoadManager();
         Settings settings = Settings.getInstance();
         Log.debug("Entering Game State with hotstart: " + SharedData.isHotstart() + ", loading save: " + SharedData.isLoadingSave()
                 + ", new game: " + SharedData.isNewGame());
@@ -104,6 +114,7 @@ public class Game extends BasicGameState{
             chunkManager = saveLoadManager.getRenderer().getChunkManager();
             createNewPlayer(saveLoadManager.getPlayerX(), saveLoadManager.getPlayerY(), saveLoadManager.getPlayerSpeed(), saveLoadManager.getPlayerHealth());
             env = saveLoadManager.getDayNightCycle();
+            player.setPlayerInventory(saveLoadManager.getPlayerInventory());
         }
         player.setVolume(settings.getMainVolume()*settings.getPlayerVolume());
         SharedData.setLoadingSave(false);
@@ -118,22 +129,6 @@ public class Game extends BasicGameState{
             enemyMobSoundBox.setDebug(true);
             gameObjectSoundBox.setDebug(true);
         }
-
-        MultiTileObject test = new MultiTileObject("main", 8, 8, 0, 0, "test");
-        test.addBlock(30, 2, 2, 0);
-        test.addBlock(30, 2, 2, 1);
-        test.addBlock(30, 2, 2, 2);
-        test.addBlock(40, 2, 2, 4);
-        test.addBlock(40, 3, 2, 3);
-        test.addBlock(40, 3, 3, 3);
-        test.addBlock(40, 2, 3, 3);
-        test.addBlock(40, 1, 3, 3);
-        test.addBlock(40, 1, 1, 3);
-        test.addBlock(40, 1, 2, 3);
-        test.addBlock(40, 2, 1, 3);
-        test.addBlock(40, 3, 3, 3);
-        test.addBlock(40, 3, 1, 3);
-        chunkManager.addGameObject(test);
     }
 
     private void createNewPlayer(float x, float y, float speed, int health) throws SlickException{
@@ -191,15 +186,6 @@ public class Game extends BasicGameState{
                 zoom = Math.min(Math.max(MIN_ZOOM, zoom), 8f);
             }
         });
-        calender = new Calender(1, 1, 1462);
-        env = new DayNightCycle(10f, 7f, 19f, calender);
-
-        this.backgroundImage = new Image("textures/MissingTexture.png");
-
-        collisionHandler = new CollisionHandler();
-        debugGUI = new DebugGUI();
-        displayHUD = new DisplayHUD();
-        saveLoadManager = new SaveLoadManager();
     }
 
     @Override
@@ -233,6 +219,10 @@ public class Game extends BasicGameState{
         player.render(container, zoom, camera.getX(), camera.getY());
         env.renderOverlay(container, g);
         if (showHUD) displayHUD.renderHUD(container, g, calender, env, player);
+        if (showCursorLoc){
+            int[] cursorLoc = renderer.screenToIsometric(container.getInput().getMouseX(), container.getInput().getMouseY());
+            renderer.drawScaledTile("main", 105, cursorLoc[0], cursorLoc[1], cursorLoc[2], cursorLoc[3]);
+        }
         if (showDebug) debugGUI.renderDebugGUI(g, container, renderer, player, zoom, jukeBox, ambientSoundBox);
     }
 
@@ -254,17 +244,39 @@ public class Game extends BasicGameState{
             showHUD = oldShowHUD;
         }
         if (input.isKeyPressed(Input.KEY_F3)) showDebug=!showDebug;
+        if (input.isKeyPressed(Input.KEY_F4)) showCursorLoc=!showCursorLoc;
         if (input.isKeyPressed(Input.KEY_F11)){
             boolean toggleFullscreen = !game.getContainer().isFullscreen();
             game.getContainer().setFullscreen(toggleFullscreen);
         }
         if (input.isKeyPressed(Input.KEY_F)){
-            int[] clickedLoc = chunkManager.getIsoRenderer().screenToIsometric(input.getMouseX(), input.getMouseY());
+            int[] clickedLoc = renderer.screenToIsometric(input.getMouseX(), input.getMouseY());
             Chunk clickedChunk = chunkManager.getChunk(clickedLoc[2], clickedLoc[3]);
             int numGobs = clickedChunk.getGameObjects().size();
             Fish nFish = new Fish("fishs", clickedLoc[0], clickedLoc[1], clickedLoc[2], clickedLoc[3], "fish");
             nFish.setID(numGobs);
             clickedChunk.addGameObject(nFish);
+        }
+        if (input.isKeyPressed(Input.KEY_B)){
+            int[] clickedLoc = renderer.screenToIsometric(input.getMouseX(), input.getMouseY());
+            Chunk clickedChunk = chunkManager.getChunk(clickedLoc[2], clickedLoc[3]);
+            int numGobs = clickedChunk.getGameObjects().size();
+            MultiTileObject test = new MultiTileObject("main", clickedLoc[0], clickedLoc[1], clickedLoc[2], clickedLoc[3], "test");
+            test.addBlock(30, 2, 2, 0);
+            test.addBlock(30, 2, 2, 1);
+            test.addBlock(30, 2, 2, 2);
+            test.addBlock(40, 2, 2, 4);
+            test.addBlock(40, 3, 2, 3);
+            test.addBlock(40, 3, 3, 3);
+            test.addBlock(40, 2, 3, 3);
+            test.addBlock(40, 1, 3, 3);
+            test.addBlock(40, 1, 1, 3);
+            test.addBlock(40, 1, 2, 3);
+            test.addBlock(40, 2, 1, 3);
+            test.addBlock(40, 3, 3, 3);
+            test.addBlock(40, 3, 1, 3);
+            test.setID(numGobs);
+            clickedChunk.addGameObject(test);
         }
     }
 

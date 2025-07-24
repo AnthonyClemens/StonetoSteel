@@ -1,7 +1,6 @@
 package io.github.anthonyclemens.states;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.newdawn.slick.GameContainer;
@@ -22,15 +21,17 @@ import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.SharedData;
 import io.github.anthonyclemens.Sound.JukeBox;
 import io.github.anthonyclemens.Utils;
+import io.github.anthonyclemens.utils.AssetLoader;
 
 public class MainMenu extends BasicGameState{
     //Variables
     private Input input;
+    private String texturePack;
+    private String soundPack;
 
     //Constants
     private static final String TITLE_STRING = "Stone to Steel";
     private static final String MAIN_FONT = "fonts/MedievalTimes.ttf";
-    private final List<String> menuMusic = new ArrayList<>(Arrays.asList("music/menu/Lovely.ogg","music/menu/WalkingHome.ogg"));
     public static JukeBox menuJukeBox;
     private Image backgroundImage;
     private Banner titleBanner;
@@ -43,18 +44,23 @@ public class MainMenu extends BasicGameState{
 
     @Override
     public void enter(GameContainer container, StateBasedGame game) throws SlickException {
+        input = container.getInput();
         Settings settings = Settings.getInstance();
+        texturePack = settings.getTexturePack();
+        soundPack = settings.getSoundPack();
         // Load music and play menu music
+        menuJukeBox = new JukeBox();
+        menuJukeBox.addSongs("menu", AssetLoader.loadListFromFile(soundPack, "menuMusic"));
         menuJukeBox.playRandomSong("menu");
         menuJukeBox.setVolume(settings.getMainVolume()*settings.getMusicVolume());
         // Set background image
-        backgroundImage = new Image("textures/Background.png");
+        backgroundImage = new Image(AssetLoader.loadSingleAssetFromFile(texturePack, "backgroundImage"), false, Image.FILTER_NEAREST);
         // Create title banner
-        Image bannerImage = new Image("textures/GUI/TextField/UI_Paper_Banner_01_Downward.png", false, Image.FILTER_NEAREST);
+        Image bannerImage = new Image(AssetLoader.loadSingleAssetFromFile(texturePack, "bannerImage"), false, Image.FILTER_NEAREST);
         titleBanner = new Banner(bannerImage, TITLE_STRING, Utils.getFont(MAIN_FONT, 60f), TwoDimensionMath.getMiddleX(792, container.getWidth()), 10, 820, 280);
         titleBanner.changeYOffset(120f);
         // Load button images
-        Image buttonImage = new Image("textures/GUI/TextField/UI_Paper_Textfield_01.png", false, Image.FILTER_NEAREST);
+        Image buttonImage = new Image(AssetLoader.loadSingleAssetFromFile(texturePack, "regularButton"), false, Image.FILTER_NEAREST);
         // Create menu buttons
         ImageTextButton startGame = new ImageTextButton(buttonImage, "Start Game", Utils.getFont(MAIN_FONT, 36f), TwoDimensionMath.getMiddleX(311, container.getWidth()), 300, 311, 104);
         ImageTextButton options = new ImageTextButton(buttonImage, "Options", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(248, container.getWidth()), 420, 248, 82);
@@ -62,16 +68,13 @@ public class MainMenu extends BasicGameState{
         ImageTextButton credits = new ImageTextButton(buttonImage, "Credits", Utils.getFont(MAIN_FONT, 24f), TwoDimensionMath.getMiddleX(168, container.getWidth()), 600, 168, 56);
         menuButtons.clear();
         menuButtons.addAll(List.of(startGame,options,exit,credits));
+        //Image cursor = new Image(AssetLoader.loadSingleAssetFromFile(texturePack, "mainMenuCursor"), false, Image.FILTER_NEAREST);
+        //container.setMouseCursor(cursor, 0, 0);
     }
 
     @Override
     public void init(GameContainer container, StateBasedGame game) throws SlickException {
-        input = container.getInput();
-        menuJukeBox = new JukeBox();
-        menuJukeBox.addSongs("menu", menuMusic);
-
-        Image cursor = new Image("cursors/Icon_Cursor_03c.png");
-        container.setMouseCursor(cursor, 0, 0);
+        Log.debug("MainMenu Initialized");
     }
 
     @Override
@@ -98,7 +101,7 @@ public class MainMenu extends BasicGameState{
                         menuJukeBox.clear();
                         container.exit();
                     }
-                    case "Credits"->Log.debug("TODO");
+                    case "Credits"-> SharedData.enterState(GameStates.CREDITS, game);
                 }
             }
         }

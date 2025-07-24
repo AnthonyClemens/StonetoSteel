@@ -28,12 +28,18 @@
       "sounds/Beach/waves.ogg"
     ],
     "menuMusic": [
-      
+      "music/menu/Lovely.ogg",
+      "music/menu/WalkingHome.ogg"
     ],
     "fishHurtSounds": [
       "sounds/Mobs/Fish/hurt.ogg"
     ],
     "bigTreeHitSounds": [
+      "sounds/Gobs/Trees/BigTree/hittree_1.ogg",
+      "sounds/Gobs/Trees/BigTree/hittree_2.ogg",
+      "sounds/Gobs/Trees/BigTree/hittree_3.ogg"
+    ],
+    "specialTreeHitSounds": [
       "sounds/Gobs/Trees/BigTree/hittree_1.ogg",
       "sounds/Gobs/Trees/BigTree/hittree_2.ogg",
       "sounds/Gobs/Trees/BigTree/hittree_3.ogg"

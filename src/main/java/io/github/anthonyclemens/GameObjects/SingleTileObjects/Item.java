@@ -1,4 +1,4 @@
-package io.github.anthonyclemens.GameObjects;
+package io.github.anthonyclemens.GameObjects.SingleTileObjects;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.geom.Rectangle;
@@ -19,15 +19,15 @@ public class Item extends SingleTileObject{
 
     public Item(String tileSheet, String name, int i, int x, int y, int chunkX, int chunkY) {
         super(tileSheet, name, i, x, y, chunkX, chunkY);
-        this.renderX = IsoRenderer.calculateIsoX(x, y, chunkX, chunkY);
-        this.renderY = IsoRenderer.calculateIsoY(x, y, chunkX, chunkY);
+        this.renderX = 0;
+        this.renderY = 0;
     }
 
     @Override
     public void render(IsoRenderer r, int deltaTime) {
         float zoom = r.getZoom();
-        float baseX = IsoRenderer.calculateIsoX(x, y, chunkX, chunkY);
-        float baseY = IsoRenderer.calculateIsoY(x, y, chunkX, chunkY);
+        float baseX = r.calculateIsoX(x, y, chunkX, chunkY);
+        float baseY = r.calculateIsoY(x, y, chunkX, chunkY);
         float shadowY = baseY + tileHeight * zoom + shadowOffsetY;
         float shadowX = baseX + tileWidth * zoom / 2f;
         float bobOffset = offsetY * (float) Math.sin(hoverTime * hoverSpeed * 2 * Math.PI);
@@ -62,8 +62,8 @@ public class Item extends SingleTileObject{
         // Bobbing effect
         float bobOffset = offsetY * (float) Math.sin(hoverTime * hoverSpeed * 2 * Math.PI);
 
-        renderX = IsoRenderer.calculateIsoX(x, y, chunkX, chunkY);
-        renderY = IsoRenderer.calculateIsoY(x, y, chunkX, chunkY) + bobOffset;
+        renderX = r.calculateIsoX(x, y, chunkX, chunkY);
+        renderY = r.calculateIsoY(x, y, chunkX, chunkY) + bobOffset;
 
         hitbox.setBounds(renderX, renderY, tileWidth * r.getZoom(), tileHeight * r.getZoom());
     }

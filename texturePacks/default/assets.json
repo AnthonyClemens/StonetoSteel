@@ -1,5 +1,35 @@
 {
-    "background": [
+    "backgroundImage": [
         "misc/Background.png"
+    ],
+    "loadingImage": [
+        "misc/LoadingImage.png"
+    ],
+    "mainTiles": [
+        "World/18x18.png"
+    ],
+    "bigTrees": [
+        "GameObjects/Trees/48x48.png"
+    ],
+    "smallTrees": [
+        "GameObjects/Trees/16x32.png"
+    ],
+    "specialTrees": [
+        "GameObjects/Trees/56x56.png"
+    ],
+    "fishes": [
+        "GameObjects/Fish/fish.png"
+    ],
+    "grass": [
+        "GameObjects/Grass/grass.png"
+    ],
+    "bannerImage": [
+        "GUI/TextField/UI_Paper_Banner_01_Downward.png"
+    ],
+    "regularButton": [
+        "GUI/TextField/UI_Paper_Textfield_01.png"
+    ],
+    "mainMenuCursor": [
+        "cursors/Icon_Cursor_03c.png"
     ]
 }

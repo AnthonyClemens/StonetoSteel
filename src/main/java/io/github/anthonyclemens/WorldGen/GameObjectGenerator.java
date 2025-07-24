@@ -4,20 +4,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import io.github.anthonyclemens.GameObjects.Fish;
 import io.github.anthonyclemens.GameObjects.GameObject;
-import io.github.anthonyclemens.GameObjects.SingleTileObject;
-import io.github.anthonyclemens.GameObjects.Tree;
+import io.github.anthonyclemens.GameObjects.Mobs.Fish;
+import io.github.anthonyclemens.GameObjects.SingleTileObjects.Grass;
+import io.github.anthonyclemens.GameObjects.SingleTileObjects.SingleTileObject;
+import io.github.anthonyclemens.GameObjects.SingleTileObjects.Tree;
 
 /**
  * Utility class for generating game objects for different biomes.
  */
 public class GameObjectGenerator {
 
+    public GameObjectGenerator(){};
+
     // Density values for object generation
-    private static final double DESERT_CACTUS_DENSITY = 0.04; // 4% density for cactus
-    private static final double WATER_FISH_DENSITY = 0.01; // 1% density for fish
-    private static final double PLAINS_TREE_DENSITY = 0.3; // 30% density for trees
+    private static final double DESERT_CACTUS_DENSITY = 0.04;
+    private static final double WATER_FISH_DENSITY = 0.01;
+    private static final double PLAINS_TREE_DENSITY = 0.2;
+    private static final double PLAINS_GRASS_DENSITY = 0.9;
+    private static final double FOREST_TREE_DENSITY = 0.5;
+    private static final double RAINFOREST_TREE_DENSITY = 0.8;
+    private static final double TAIGA_TREE_DENSITY = 0.6;
 
     /**
      * Generates a list of GameObjects for a given biome and chunk.
@@ -33,7 +40,9 @@ public class GameObjectGenerator {
             case DESERT -> generateDesertObjects(rand, chunkX, chunkY, chunkSize);
             case PLAINS -> generatePlainsObjects(rand, chunkX, chunkY, chunkSize);
             case WATER -> generateWaterObjects(rand, chunkX, chunkY, chunkSize);
-            case MOUNTAIN, SWAMP -> new ArrayList<>();
+            case FOREST -> generateForestObjects(rand, chunkX, chunkY, chunkSize);
+            case RAINFOREST -> generateRainForestObjects(rand, chunkX, chunkY, chunkSize);
+            case TAIGA -> generateTaigaObjects(rand, chunkX, chunkY, chunkSize);
             default -> new ArrayList<>();
         };
     }
@@ -88,7 +97,78 @@ public class GameObjectGenerator {
                 if (rand.nextFloat() < PLAINS_TREE_DENSITY) {
                     Tree newObject = new Tree(rand, x, y, chunkX, chunkY);
                     newObject.setID(id);
-                    if (newObject != null && !isOverlapping(newObject, gobs)) {
+                    if (!isOverlapping(newObject, gobs)) {
+                        gobs.add(newObject);
+                        id++;
+                    }
+                }
+                if (rand.nextFloat() < PLAINS_GRASS_DENSITY) {
+                    Grass newObject = new Grass(rand, x, y, chunkX, chunkY);
+                    newObject.setID(id);
+                    if (!isOverlapping(newObject, gobs)) {
+                        gobs.add(newObject);
+                        id++;
+                    }
+                }
+            }
+        }
+        return gobs;
+    }
+
+    /**
+     * Generates Dense tree objects for Forest biomes.
+     */
+    private static List<GameObject> generateForestObjects(Random rand, int chunkX, int chunkY, int chunkSize) {
+        List<GameObject> gobs = new ArrayList<>();
+        int id = 0;
+        for (int y = 0; y < chunkSize - 1; y++) {
+            for (int x = 0; x < chunkSize - 1; x++) {
+                if (rand.nextFloat() < FOREST_TREE_DENSITY) {
+                    Tree newObject = new Tree(rand, x, y, chunkX, chunkY, 1);
+                    newObject.setID(id);
+                    if (!isOverlapping(newObject, gobs)) {
+                        gobs.add(newObject);
+                        id++;
+                    }
+                }
+            }
+        }
+        return gobs;
+    }
+
+    /**
+     * Generates Dense tree objects for Forest biomes.
+     */
+    private static List<GameObject> generateRainForestObjects(Random rand, int chunkX, int chunkY, int chunkSize) {
+        List<GameObject> gobs = new ArrayList<>();
+        int id = 0;
+        for (int y = 0; y < chunkSize - 1; y++) {
+            for (int x = 0; x < chunkSize - 1; x++) {
+                if (rand.nextFloat() < RAINFOREST_TREE_DENSITY) {
+                    Tree newObject = new Tree(rand, x, y, chunkX, chunkY, 1);
+                    newObject.setID(id);
+                    if (!isOverlapping(newObject, gobs)) {
+                        gobs.add(newObject);
+                        id++;
+                    }
+                }
+            }
+        }
+        return gobs;
+    }
+
+    /**
+     * Generates Huge tree objects for Taiga biomes.
+     */
+    private static List<GameObject> generateTaigaObjects(Random rand, int chunkX, int chunkY, int chunkSize) {
+        List<GameObject> gobs = new ArrayList<>();
+        int id = 0;
+        for (int y = 0; y < chunkSize - 1; y++) {
+            for (int x = 0; x < chunkSize - 1; x++) {
+                if (rand.nextFloat() < TAIGA_TREE_DENSITY) {
+                    Tree newObject = new Tree(rand, x, y, chunkX, chunkY, true);
+                    newObject.setID(id);
+                    if (!isOverlapping(newObject, gobs)) {
                         gobs.add(newObject);
                         id++;
                     }

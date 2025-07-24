@@ -95,9 +95,13 @@ public class Chunk implements Serializable {
             case BEACH -> rand.nextInt(2) + 4;  // Sand
             case PLAINS -> rand.nextBoolean() ? rand.nextInt(4) : rand.nextInt(4) + 10; // Grass
             case WATER -> rand.nextInt(2) + 23; // Water
-            case MOUNTAIN -> rand.nextInt(8) + 50; // Rocks
+            case MOUNTAIN -> rand.nextInt(5) + 50; // Rocks
             case SWAMP -> rand.nextInt(2) + 6;  // Dirt, mud
-            default -> 0;
+            case RAINFOREST -> rand.nextInt(1) + 27 ;  // Dense foliage
+            case FOREST -> rand.nextInt(1) + 27;  // Leafy, lighter density
+            case SNOWY_PEAK -> rand.nextInt(2) + 15;  // Snow
+            case TAIGA -> rand.nextInt(2) + 20;  // Dead grass
+            default -> 0; // Fallback tile
         };
     }
 

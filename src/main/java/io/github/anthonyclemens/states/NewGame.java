@@ -104,6 +104,7 @@ public class NewGame extends BasicGameState {
 
     @Override
     public void init(GameContainer container, StateBasedGame game) throws SlickException {
+        Log.debug("NewGame Initialized");
     }
 
     @Override

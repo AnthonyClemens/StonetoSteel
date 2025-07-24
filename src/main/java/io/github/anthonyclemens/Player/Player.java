@@ -13,8 +13,8 @@ import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.GameObjects.GameObject;
-import io.github.anthonyclemens.GameObjects.Item;
-import io.github.anthonyclemens.GameObjects.Items;
+import io.github.anthonyclemens.GameObjects.SingleTileObjects.Item;
+import io.github.anthonyclemens.GameObjects.SingleTileObjects.Items;
 import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.Sound.SoundBox;
 import io.github.anthonyclemens.Utils;
@@ -186,7 +186,6 @@ public class Player {
         return (dir == -1) ? 0 : dir;
     }
 
-    
     public void render(GameContainer container, float zoom, float cameraX, float cameraY) {
         renderX = (x - cameraX) * zoom + container.getWidth() / 2f;
         renderY = (y - cameraY) * zoom + container.getHeight() / 2f;
@@ -370,6 +369,10 @@ public class Player {
         return playerInventory; // Get player's inventory
     }
 
+    public void setPlayerInventory(Inventory newInv){
+        this.playerInventory=newInv;
+    }
+
     /**
      * Resets the player's stats and state to default values.
      */
@@ -428,11 +431,16 @@ public class Player {
                         chunk.removeGameObject(i);
                     }
                 } else {
-                    switch (name) {
+                    /*switch (name) {
                         case "bigTree" -> obj.removeHealth(10);
                         case "smallTree" -> obj.removeHealth(5);
                         case "fish" -> obj.removeHealth(5);
                         default -> Log.debug(name + " clicked on");
+                    }*/
+                    try {
+                        obj.removeHealth(5);
+                    } catch (Exception e) {
+                        Log.debug("Error removing health, clicked on: "+name);
                     }
                 }
             }

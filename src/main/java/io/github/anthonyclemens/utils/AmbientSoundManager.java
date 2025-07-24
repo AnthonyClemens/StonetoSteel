@@ -53,7 +53,7 @@ public class AmbientSoundManager {
             jukeBox.playRandomSong(musicType);
             timeSinceLastMusic = now;
             musicDelay = random.nextDouble(30000) + 30000;
-            Log.debug("Next song will play in " + (int)musicDelay/1000 + "s");
+            Log.debug("Next song will play after a " + (int)musicDelay/1000 + "s delay.");
         }
     }
 
@@ -77,9 +77,13 @@ public class AmbientSoundManager {
                 case PLAINS -> ambientSoundBox.playRandomSound("plainsSounds");
                 case WATER -> ambientSoundBox.playRandomSound("waterSounds");
                 case BEACH -> ambientSoundBox.playRandomSound("beachSounds");
-                case MOUNTAIN -> Log.error("Unimplemented case: " + currentBiome);
-                case SWAMP -> Log.error("Unimplemented case: " + currentBiome);
-                default -> Log.error("Unexpected value: " + currentBiome);
+                /*case MOUNTAIN -> Log.warn("Unimplemented case: " + currentBiome);
+                case SWAMP -> Log.warn("Unimplemented case: " + currentBiome);
+                case RAINFOREST -> Log.warn("Unimplemented case: " + currentBiome);
+                case FOREST -> Log.warn("Unimplemented case: " + currentBiome);
+                case SNOWY_PEAK -> Log.warn("Unimplemented case: " + currentBiome);
+                case TUNDRA -> Log.warn("Unimplemented case: " + currentBiome);
+                default -> Log.error("Unexpected value: " + currentBiome);*/
             }
         }
     }

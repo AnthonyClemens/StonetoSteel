@@ -1,8 +1,9 @@
-package io.github.anthonyclemens.GameObjects;
+package io.github.anthonyclemens.GameObjects.SingleTileObjects;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.geom.Rectangle;
 
+import io.github.anthonyclemens.GameObjects.GameObject;
 import io.github.anthonyclemens.Rendering.IsoRenderer;
 import io.github.anthonyclemens.Rendering.SpriteManager;
 import io.github.anthonyclemens.states.Game;
@@ -38,7 +39,7 @@ public class SingleTileObject extends GameObject{
     @Override
     public void update(IsoRenderer r, int deltaTime) {
         if(this.hitbox==null) this.hitbox = new Rectangle(x,y,this.tileWidth,this.tileHeight);
-        hitbox.setBounds(IsoRenderer.calculateIsoX(x, y, chunkX, chunkY), IsoRenderer.calculateIsoY(x, y, chunkX, chunkY), tileWidth*r.getZoom(), tileHeight*r.getZoom());
+        hitbox.setBounds(r.calculateIsoX(x, y, chunkX, chunkY), r.calculateIsoY(x, y, chunkX, chunkY), tileWidth*r.getZoom(), tileHeight*r.getZoom());
     }
 
 }

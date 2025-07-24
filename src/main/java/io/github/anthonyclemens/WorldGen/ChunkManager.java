@@ -20,6 +20,21 @@ public class ChunkManager implements Serializable {
     private final Map<String, Chunk> chunks = new ConcurrentHashMap<>();
     private final int seed;
     private transient IsoRenderer isoRenderer;
+    private transient PerlinNoise elevationGen;
+    private transient PerlinNoise moistureGen;
+    private transient PerlinNoise temperatureGen;
+    // Biome generation tuning parameters
+    private static final double ELEVATION_FREQ = 0.010;
+    private static final double MOISTURE_FREQ = 0.028;
+    private static final double TEMPERATURE_FREQ = 0.020;
+    private static final double WATER_THRESHOLD = 0.3;
+    private static final double BEACH_MIN_ELEV = WATER_THRESHOLD;
+    private static final double BEACH_MAX_ELEV = 0.4;
+    private static final int[][] NEIGHBOR_OFFSETS = {
+        {-2, 0}, {2, 0}, {0, -2}, {0, 2},
+        {-1, -1}, {-1, 1}, {1, -1}, {1, 1},
+        {-1, 0}, {1, 0}, {0, -1}, {0, 1}
+    };
 
     /**
      * Constructs a ChunkManager with the given world seed.
@@ -27,6 +42,9 @@ public class ChunkManager implements Serializable {
      */
     public ChunkManager(int seed) {
         this.seed = seed;
+        this.elevationGen = new PerlinNoise(seed);
+        this.moistureGen = new PerlinNoise(seed + 1000);
+        this.temperatureGen = new PerlinNoise(seed + 5000);
         Log.debug("ChunkManager initialized for infinite world generation with seed: " + seed);
     }
 
@@ -53,34 +71,47 @@ public class ChunkManager implements Serializable {
      * @return The Biome for the chunk.
      */
     public Biome getBiomeForChunk(int chunkX, int chunkY) {
-        double noiseValue = generateCombinedNoise(chunkX * 0.03, chunkY * 0.03, 10, 0.5);
-        return Biome.getBiomeFromNoise(noiseValue);
+
+        double x = chunkX * ELEVATION_FREQ;
+        double y = chunkY * ELEVATION_FREQ;
+
+        double elevation   = normalize(elevationGen.generate(x, y));
+        double moisture    = normalize(moistureGen.generate(chunkX * MOISTURE_FREQ, chunkY * MOISTURE_FREQ));
+        double temperature = normalize(temperatureGen.generate(chunkX * TEMPERATURE_FREQ, chunkY * TEMPERATURE_FREQ));
+
+        if (elevation < WATER_THRESHOLD) return Biome.WATER;
+
+        boolean nearWater = false;
+        for (int[] offset : NEIGHBOR_OFFSETS) {
+            double nx = (chunkX + offset[0]) * ELEVATION_FREQ;
+            double ny = (chunkY + offset[1]) * ELEVATION_FREQ;
+            double neighborElev = normalize(elevationGen.generate(nx, ny));
+            if (neighborElev < WATER_THRESHOLD) {
+                nearWater = true;
+                break;
+            }
+        }
+
+        if (nearWater && elevation >= BEACH_MIN_ELEV && elevation <= BEACH_MAX_ELEV)
+            return Biome.BEACH;
+
+        return Biome.getBiomeFromClimate(elevation, moisture, temperature);
     }
 
     /**
-     * Generates a combined Perlin noise value for biome assignment.
-     * @param x          X coordinate (scaled).
-     * @param y          Y coordinate (scaled).
-     * @param octaves    Number of octaves.
-     * @param persistence Persistence factor.
-     * @return Normalized noise value.
+     *
+     * @param val
+     * @return Brings -1.0..1.0 to 0.0..1.0
      */
-    public double generateCombinedNoise(double x, double y, int octaves, double persistence) {
-        double amplitude = 1.0;
-        double frequency = 1.0;
-        double noiseSum = 0.0;
-        double maxAmplitude = 0.0000000000001; // For normalization
 
-        PerlinNoise noiseGenerator = new PerlinNoise(seed);
+    private double normalize(double val) {
+        return (val + 1.0) / 2.0;
+    }
 
-        for (int i = 0; i < octaves; i++) {
-            noiseSum += noiseGenerator.generate(x * frequency, y * frequency) * amplitude;
-            maxAmplitude += amplitude;
-            amplitude *= persistence;
-            frequency *= 2.0;
-        }
-
-        return noiseSum / maxAmplitude; // Normalize the final noise value
+    private void createPerlin(){
+        this.elevationGen = new PerlinNoise(seed);
+        this.moistureGen = new PerlinNoise(seed + 1000);
+        this.temperatureGen = new PerlinNoise(seed + 5000);
     }
 
     /**
@@ -90,6 +121,7 @@ public class ChunkManager implements Serializable {
      * @return The Chunk instance.
      */
     public Chunk getChunk(int chunkX, int chunkY) {
+        if(elevationGen==null) createPerlin();
         String key = chunkX + "," + chunkY;
         return chunks.computeIfAbsent(key, k -> {
             Biome biome = getBiomeForChunk(chunkX, chunkY);

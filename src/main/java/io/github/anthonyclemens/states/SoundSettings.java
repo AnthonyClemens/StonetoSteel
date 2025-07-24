@@ -90,7 +90,7 @@ public class SoundSettings extends BasicGameState{
 
     @Override
     public void init(GameContainer container, StateBasedGame game) throws SlickException {
-        
+        Log.debug("SoundSettings Initialized");
     }
 
     @Override

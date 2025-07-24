@@ -22,6 +22,7 @@ public abstract class GameObject implements Serializable{
     protected Biome biome;
     protected int health = -1;
     protected int maxHealth;
+    protected boolean solid = true;
 
     protected GameObject(String tileSheet, int x, int y, int chunkX, int chunkY, String objName) {
         this.x = x;
@@ -101,6 +102,10 @@ public abstract class GameObject implements Serializable{
         return this.id;
     }
 
+    public boolean isSolid(){
+        return this.solid;
+    }
+
     public void setMaxHealth(int maxHealth) {
         this.maxHealth = maxHealth;
     }
@@ -139,6 +144,13 @@ public abstract class GameObject implements Serializable{
 
     public void setTileSheet(String tileSheet) {
         this.tileSheet = tileSheet;
+    }
+
+    public void setLocation(int x, int y, int chunkX, int chunkY){
+        this.x=x;
+        this.y=y;
+        this.chunkX=chunkX;
+        this.chunkY=chunkY;
     }
 
     public abstract void render(IsoRenderer r, int lodLevel);

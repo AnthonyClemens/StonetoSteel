@@ -1,18 +1,20 @@
 package io.github.anthonyclemens.Player;
 
+import java.io.Serializable;
 import java.util.EnumMap;
 import java.util.Map;
 
 import org.newdawn.slick.util.Log;
 
-import io.github.anthonyclemens.GameObjects.Items;
+import io.github.anthonyclemens.GameObjects.SingleTileObjects.Items;
 
-public class Inventory {
+public class Inventory implements Serializable{
 
     private final Map<Items, Integer> itemCounts = new EnumMap<>(Items.class);
     private final Map<Items, Integer> itemMaxSizes = Map.of(
         Items.ITEM_WOOD, 100,
-        Items.ITEM_STONE, 100
+        Items.ITEM_STONE, 100,
+        Items.ITEM_FISH, 100
     );
 
     public boolean addItem(Items itemType, int quantity) {

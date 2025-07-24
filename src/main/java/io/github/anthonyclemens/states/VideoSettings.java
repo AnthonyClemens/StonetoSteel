@@ -129,6 +129,7 @@ public class VideoSettings extends BasicGameState{
         } catch (LWJGLException e) {
             Log.error("Cannot get display modes");
         }
+        Log.debug("VideoSettings Initialized");
     }
 
     @Override

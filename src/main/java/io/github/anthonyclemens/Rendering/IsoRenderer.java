@@ -18,10 +18,10 @@ import io.github.anthonyclemens.WorldGen.ChunkManager;
 public class IsoRenderer {
     private static int renderDistance = 64; // Render distance in blocks
     private static final int TILE_SIZE = 18; // Size of the tile in pixels
-    private static float zoom; // Zoom level for rendering
-    private SpriteSheet worldTileSheet;
-    private static int offsetX;
-    private static int offsetY;
+    private float zoom; // Zoom level for rendering
+    private final SpriteSheet worldTileSheet;
+    private int offsetX;
+    private int offsetY;
     private final ChunkManager chunkManager; // Reference to the chunk manager
     private int[] visibleChunks; // Array to store the visible chunks
     private boolean firstFrame = true; // Flag to check if it's the first frame
@@ -60,8 +60,6 @@ public class IsoRenderer {
             firstFrame = false;
         }
     }
-
-
 
     public void render(){
         if(this.visibleChunks==null) return;
@@ -128,6 +126,12 @@ public class IsoRenderer {
         float tileRenderSize = TILE_SIZE * zoom * blockSize;
         int spriteCols = worldTileSheet.getHorizontalCount();
 
+        // Precompute isometric values that do not differ within the chunk
+        int halfTileWidth = (TILE_SIZE / 2);
+        int quarterTileHeight = (TILE_SIZE / 4);
+        int preCompX = halfTileWidth + (chunkX - chunkY) * ChunkManager.CHUNK_SIZE * halfTileWidth;
+        int preCompY = quarterTileHeight + (chunkX + chunkY) * ChunkManager.CHUNK_SIZE * quarterTileHeight;
+
         worldTileSheet.startUse();
 
         for (int blockY = 0; blockY < lodSize; blockY++) {
@@ -145,8 +149,8 @@ public class IsoRenderer {
                 }
 
 
-                float isoX = calculateIsoX(blockX * blockSize, blockY * blockSize, chunkX, chunkY);
-                float isoY = calculateIsoY(blockX * blockSize, blockY * blockSize, chunkX, chunkY);
+                float isoX = calculateFastIsoX(blockX * blockSize, blockY * blockSize, halfTileWidth, preCompX);
+                float isoY = calculateFastIsoY(blockX * blockSize, blockY * blockSize, quarterTileHeight, preCompY);
                 drawScaledIsoAlpha(lastTileImage, isoX, isoY, tileRenderSize, tileRenderSize, 1f);
             }
         }
@@ -190,14 +194,22 @@ public class IsoRenderer {
         return new int[]{minChunkX, minChunkY, maxChunkX, maxChunkY};
     }
 
-    public static float calculateIsoX(int x, int y, int chunkX, int chunkY) {
+    public float calculateIsoX(int x, int y, int chunkX, int chunkY) {
         int halfTileWidth = (TILE_SIZE / 2);
-        return (((x - y) * halfTileWidth + (chunkX - chunkY) * ChunkManager.CHUNK_SIZE * halfTileWidth) * zoom) + offsetX;
+        return (((x - y) * halfTileWidth + (chunkX - chunkY) * ChunkManager.CHUNK_SIZE * halfTileWidth) * this.zoom) + offsetX;
     }
 
-    public static float calculateIsoY(int x, int y, int chunkX, int chunkY) {
+    public float calculateIsoY(int x, int y, int chunkX, int chunkY) {
         int quarterTileHeight = (TILE_SIZE / 4);
-        return (((x + y) * quarterTileHeight + (chunkX + chunkY) * ChunkManager.CHUNK_SIZE * quarterTileHeight) * zoom) + offsetY;
+        return (((x + y) * quarterTileHeight + (chunkX + chunkY) * ChunkManager.CHUNK_SIZE * quarterTileHeight) * this.zoom) + offsetY;
+    }
+
+    public float calculateFastIsoX(int x, int y, int halfTileWidth, int preCompX) {
+        return (((x - y) * halfTileWidth + preCompX) * this.zoom) + this.offsetX;
+    }
+
+    public float calculateFastIsoY(int x, int y, int quarterTileHeight, int preCompY) {
+        return (((x + y) * quarterTileHeight + preCompY) * this.zoom) +this.offsetY;
     }
 
     private Image getTile(String tileSheet, int tileType) {

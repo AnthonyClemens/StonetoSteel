@@ -7,6 +7,7 @@ public enum GameStates {
     MAIN_MENU(0),
     SETTINGS_MENU(1),
     NEW_GAME(2),
+    CREDITS(3),
     GAME(99),
     VIDEO_SETTINGS(10),
     SOUND_SETTINGS(11),

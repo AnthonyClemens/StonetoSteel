@@ -7,6 +7,7 @@ import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.states.ControlSettings;
+import io.github.anthonyclemens.states.Credits;
 import io.github.anthonyclemens.states.Game;
 import io.github.anthonyclemens.states.LoadingScreen;
 import io.github.anthonyclemens.states.MainMenu;
@@ -66,6 +67,7 @@ public class Main extends StateBasedGame{
         addState(new ControlSettings());
         addState(new PauseMenu());
         addState(new LoadingScreen());
+        addState(new Credits());
     }
 
     public static void setSettings(Settings settings) throws SlickException{

@@ -10,19 +10,29 @@ public enum Biome {
     WATER,
     MOUNTAIN,
     BEACH,
-    SWAMP;
+    SWAMP,
+    RAINFOREST,
+    FOREST,
+    SNOWY_PEAK,
+    TAIGA;
 
     /**
      * Determines the biome type based on a noise value.
-     * @param noiseValue The noise value (typically between -1 and 1).
+     * @param Elevation noise value
+     * @param Moisture noise value
+     * @param Temperature noise value
      * @return The corresponding Biome.
      */
-    public static Biome getBiomeFromNoise(double noiseValue) {
-        if (noiseValue < -0.2) return Biome.WATER;
-        if (noiseValue < -0.15 && noiseValue >= -0.2) return Biome.BEACH;
-        if (noiseValue < 0.2) return Biome.PLAINS;
-        if (noiseValue < 0.45) return Biome.DESERT;
-        if (noiseValue < 0.7) return Biome.SWAMP;
-        return Biome.MOUNTAIN;
+    public static Biome getBiomeFromClimate(double elevation, double moisture, double temperature) {
+        if (elevation > 0.85) return SNOWY_PEAK;
+        if (elevation > 0.7) return MOUNTAIN;
+
+        if (moisture > 0.8 && temperature > 0.6) return RAINFOREST;
+        if (moisture > 0.6) return FOREST;
+        if (moisture < 0.3 && temperature > 0.6) return DESERT;
+        if (moisture > 0.75) return SWAMP;
+        if (temperature < 0.3) return TAIGA;
+
+        return PLAINS;
     }
 }

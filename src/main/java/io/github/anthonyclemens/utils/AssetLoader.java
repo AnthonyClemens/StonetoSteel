@@ -45,5 +45,35 @@ public class AssetLoader {
         }
         return result;
     }
+
+    public static String loadSingleAssetFromFile(String fileName, String keyName) {
+        String prefix = fileName.replace("/assets.json", "") + "/";
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+            String line;
+            boolean insideArray = false;
+
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+
+                if (line.startsWith("\"" + keyName + "\"")) {
+                    insideArray = true;
+                    continue;
+                }
+
+                if (insideArray) {
+                    if (line.contains("]")) break;
+
+                    line = line.replaceAll("[\",]", "").trim();
+                    if (!line.isEmpty()) {
+                        return prefix + line;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
 

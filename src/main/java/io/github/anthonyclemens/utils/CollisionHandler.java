@@ -6,9 +6,9 @@ import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.GameObjects.GameObject;
-import io.github.anthonyclemens.GameObjects.Item;
-import io.github.anthonyclemens.GameObjects.Items;
-import io.github.anthonyclemens.GameObjects.Mob;
+import io.github.anthonyclemens.GameObjects.Mobs.Mob;
+import io.github.anthonyclemens.GameObjects.SingleTileObjects.Item;
+import io.github.anthonyclemens.GameObjects.SingleTileObjects.Items;
 import io.github.anthonyclemens.Player.Player;
 import io.github.anthonyclemens.WorldGen.Chunk;
 import io.github.anthonyclemens.states.Game;
@@ -24,7 +24,7 @@ public class CollisionHandler {
             return;
         }
         for (GameObject gob : gameObjects) {
-            if (gob.getHitbox()==null) return;
+            if (gob.getHitbox()==null||!gob.isSolid()) return;
             if (gob.getHitbox().intersects(player.getHitbox())) {
                 Rectangle playerHit = player.getHitbox();
                 Rectangle objectHit = gob.getHitbox();

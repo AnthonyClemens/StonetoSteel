@@ -22,6 +22,7 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.Logic.DayNightCycle;
+import io.github.anthonyclemens.Player.Inventory;
 import io.github.anthonyclemens.Player.Player;
 import io.github.anthonyclemens.Rendering.Camera;
 import io.github.anthonyclemens.Rendering.IsoRenderer;
@@ -35,6 +36,7 @@ public class SaveLoadManager {
     private Camera loadedCamera;
     private float playerX, playerY, playerSpeed;
     private int playerHealth;
+    private Inventory playerInventory;
 
     public void saveGame(String folderPath, DayNightCycle env, ChunkManager chunkManager, Camera camera, Player player) {
         Path saveRoot = Paths.get(folderPath);
@@ -48,11 +50,12 @@ public class SaveLoadManager {
         Log.debug("Camera size: " + getSerializedSize(camera));
         Log.debug("Player data size: " + getSerializedSize(new float[]{player.getX(), player.getY(), player.getSpeed()}));
         Log.debug("Player health size: " + getSerializedSize(player.getHealth()));
+        Log.debug("Player Inventory size: " + getSerializedSize(player.getPlayerInventory()));
 
         // Save individual components
         saveGzippedObject(saveRoot.resolve("environment.dat"), env);
         saveGzippedObject(saveRoot.resolve("camera.dat"), camera);
-        saveGzippedObject(saveRoot.resolve("player.dat"), player.getX(), player.getY(), player.getSpeed(), player.getHealth());
+        saveGzippedObject(saveRoot.resolve("player.dat"), player.getX(), player.getY(), player.getSpeed(), player.getHealth(),player.getPlayerInventory());
         saveGzippedObject(saveRoot.resolve("seed.dat"), chunkManager.getSeed());
 
         // Save chunks in 32x32 region groups
@@ -129,6 +132,7 @@ public class SaveLoadManager {
             this.playerY = (float) playerIn.readObject();
             this.playerSpeed = (float) playerIn.readObject();
             this.playerHealth = (int) playerIn.readObject();
+            this.playerInventory = (Inventory) playerIn.readObject();
             Log.debug("Loaded Player");
 
             int seed = (int) seedIn.readObject();
@@ -277,4 +281,5 @@ public class SaveLoadManager {
     public float getPlayerY() { return playerY; }
     public float getPlayerSpeed() { return playerSpeed; }
     public int getPlayerHealth() { return playerHealth; }
+    public Inventory getPlayerInventory() { return playerInventory; }
 }
