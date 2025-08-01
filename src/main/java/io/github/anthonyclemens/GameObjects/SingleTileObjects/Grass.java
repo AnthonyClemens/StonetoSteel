@@ -12,12 +12,12 @@ import io.github.anthonyclemens.states.Game;
 public class Grass extends SingleTileObject{
 
     private long shakeDuration = 500; // When shaking should end
-    private long lastDamageTime = 0; // Timestamp of last time damage was taken (milliseconds)
-    private long endShakeTime = 0; // Timestamp when shaking should end
+    private transient long lastDamageTime = 0; // Timestamp of last time damage was taken (milliseconds)
+    private transient long endShakeTime = 0; // Timestamp when shaking should end
     private final long damageCooldown = 500; // Cooldown time between damage in milliseconds
     private final int shakeAggression; // How much the grass shakes when hit
-    private float offsetX = 0; // Offset for shaking effect
-    private float offsetY = 0; // Offset for shaking effect
+    private transient float offsetX = 0; // Offset for shaking effect
+    private transient float offsetY = 0; // Offset for shaking effect
     private final Random rand;
     private final Item droppedItem;
     private boolean dropItem = false;
@@ -46,8 +46,6 @@ public class Grass extends SingleTileObject{
         float renderY = r.calculateIsoY(x, y, chunkX, chunkY) + offsetY;
         r.drawTileIso(tileSheet, i, renderX, renderY);
         if(Game.showDebug){
-            //r.getGraphics().setColor(Color.red);
-           // r.getGraphics().drawString("Health: "+this.health+"/"+this.maxHealth, renderX, renderY);
             r.getGraphics().setColor(Color.black);
             r.getGraphics().draw(hitbox);
         }

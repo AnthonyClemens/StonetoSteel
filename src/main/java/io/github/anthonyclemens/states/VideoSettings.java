@@ -19,6 +19,8 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 
+import com.codedisaster.steamworks.SteamAPI;
+
 import io.github.anthonyclemens.GUI.Banner;
 import io.github.anthonyclemens.GUI.Buttons.Carousel;
 import io.github.anthonyclemens.GUI.Buttons.ImageTextButton;
@@ -170,6 +172,7 @@ public class VideoSettings extends BasicGameState{
                 }
             }
         }
+        SteamAPI.runCallbacks();
     }
 
     private void applySettings(GameContainer container) throws SlickException{

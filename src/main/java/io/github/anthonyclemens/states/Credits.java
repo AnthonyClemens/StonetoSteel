@@ -16,6 +16,8 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 
+import com.codedisaster.steamworks.SteamAPI;
+
 import io.github.anthonyclemens.GUI.Buttons.ImageTextButton;
 import io.github.anthonyclemens.GameStates;
 import io.github.anthonyclemens.Rendering.RenderUtils;
@@ -70,8 +72,10 @@ public class Credits extends BasicGameState{
         ));
 
         creditSections.put("ASSET CREDITS", List.of(
-            "UI Elements: Crusenho",
-            "Grass: Styloo"
+            "UI Elements - Crusenho",
+            "World tileset - Dani Maccari",
+            "Grass - Styloo",
+            "Character - AxulArt"
         ));
 
         creditSections.put("MUSIC CREDITS", List.of(
@@ -85,6 +89,10 @@ public class Credits extends BasicGameState{
             "Sunset Landscape - Keys of Moon",
             "Walking Home - Alex-Productions",
             "Emotional Ethnic Music - Keys of Moon"
+        ));
+
+        creditSections.put("SOUND CREDITS", List.of(
+            "NOX Sound Essentials - Nox_Sound_Design"
         ));
 
         creditSections.put("TOOLS & TECHNOLOGIES", List.of(
@@ -150,5 +158,6 @@ public class Credits extends BasicGameState{
         float multiplier = 0.001f;
         if(input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON)) multiplier = 0.01f;
         scrollY -= SCROLL_SPEED * delta * multiplier;
+        SteamAPI.runCallbacks();
     }
 }

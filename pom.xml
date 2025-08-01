@@ -6,7 +6,7 @@
 
     <groupId>io.github.anthonyclemens</groupId>
     <artifactId>stonetosteel</artifactId>
-    <version>0.0.6</version>
+    <version>0.0.7</version>
 
     <properties>
         <slick2d.version>1.0.2</slick2d.version>
@@ -42,6 +42,21 @@
                     <artifactId>jnlp-api</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.code-disaster.steamworks4j</groupId>
+            <artifactId>steamworks4j</artifactId>
+            <version>1.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.code-disaster.steamworks4j</groupId>
+            <artifactId>steamworks4j-server</artifactId>
+            <version>1.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.2.3.Final</version>
         </dependency>
     </dependencies>
     <build>

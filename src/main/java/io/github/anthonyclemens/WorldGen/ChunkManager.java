@@ -16,7 +16,7 @@ import io.github.anthonyclemens.Rendering.IsoRenderer;
  * Handles chunk caching and provides utilities for chunk/block lookup.
  */
 public class ChunkManager implements Serializable {
-    public static final int CHUNK_SIZE = 16;
+    public static final int CHUNK_SIZE = 24;
     private final Map<String, Chunk> chunks = new ConcurrentHashMap<>();
     private final int seed;
     private transient IsoRenderer isoRenderer;

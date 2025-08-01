@@ -3,21 +3,18 @@ package io.github.anthonyclemens.utils;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.TrueTypeFont;
 
 import io.github.anthonyclemens.Player.Player;
 import io.github.anthonyclemens.Rendering.IsoRenderer;
 import io.github.anthonyclemens.Sound.JukeBox;
 import io.github.anthonyclemens.Sound.SoundBox;
-import io.github.anthonyclemens.Utils;
+import io.github.anthonyclemens.states.Game;
 public class DebugGUI {
     /**
      * DebugGUI is a utility class for rendering debug information on the screen.
      * It provides methods to display FPS, memory usage, mouse position, selected tile and chunk,
      * zoom level, biome information, and sound status.
      */
-
-    private final TrueTypeFont font = Utils.getFont("fonts/Roboto-Black.ttf", 24f);
 
     private String getMemUsage() {
         return (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024L * 1024L) + "MB";
@@ -47,6 +44,8 @@ public class DebugGUI {
         String playerPos = (player != null) ? player.getX() + ", " + player.getY() : "N/A";
         String playerHealth = (player != null) ? String.valueOf(player.getHealth()) : "N/A";
         String seed = (renderer != null ? String.valueOf(renderer.getChunkManager().getSeed()) : "N/A");
+        String paused = (Game.paused) ? "Yes" : "No";
+        String camMove = (renderer.isCameraMoving()) ? "Yes" : "No";
 
         String[] debugStrings = new String[] {
             "FPS: " + container.getFPS() + " FPS",
@@ -62,10 +61,11 @@ public class DebugGUI {
             "Player position: " + playerPos,
             "Player health: " + playerHealth,
             "World Seed: " + seed,
+            "Game Paused: " + paused,
+            "Camera Moving: " + camMove
         };
 
         for (String s : debugStrings) {
-            g.setFont(font);
             g.drawString(s, 10, 20f + 20 * index);
             index++;
         }

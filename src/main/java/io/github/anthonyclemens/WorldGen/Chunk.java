@@ -238,6 +238,14 @@ public class Chunk implements Serializable {
         }
     }
 
+
+    public void calculateHitbox(IsoRenderer r) {
+        List<GameObject> objectsCopy = new ArrayList<>(gameObjects);
+        for (GameObject obj : objectsCopy) {
+            obj.calculateHitbox(r);
+        }
+    }
+
     /**
      * Gets the size of this chunk.
      */

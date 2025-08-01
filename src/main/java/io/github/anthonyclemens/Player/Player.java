@@ -12,7 +12,6 @@ import org.newdawn.slick.geom.Line;
 import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.util.Log;
 
-import io.github.anthonyclemens.GameObjects.GameObject;
 import io.github.anthonyclemens.GameObjects.SingleTileObjects.Item;
 import io.github.anthonyclemens.GameObjects.SingleTileObjects.Items;
 import io.github.anthonyclemens.Settings;
@@ -96,7 +95,9 @@ public class Player {
         }
     }
 
-    public void update(Input input, int delta, int[] playerLoc, Chunk chunk) {
+    public void update(Input input, int delta, int[] playerLoc, Chunk chunk, boolean paused) {
+        toggleCameraLock(input);
+        if(paused) return;
         this.currentChunk = chunk;
         this.playerLoc = playerLoc;
         previousX = x; // Store current X position as previous
@@ -117,8 +118,6 @@ public class Player {
         } else {
             idleAnimations[direction].start(); // Play idle animation
         }
-
-        toggleCameraLock(input);
     }
 
     private void handleMovementInput(Input input) {
@@ -203,7 +202,7 @@ public class Player {
             container.getGraphics().draw(raycastLine);
             container.getGraphics().draw(playerReach);
         }
-        hitbox.setBounds((int)renderX, (int)renderY, (int)(animations[direction].getWidth()*zoom), (int)(animations[direction].getHeight()*zoom));
+        hitbox.setBounds(renderX, renderY, (animations[direction].getWidth()*zoom), (animations[direction].getHeight()*zoom));
         // Update the raycast line to come out of the middle of the character hitbox and face the direction
         float centerX = renderX + (animations[direction].getWidth() * zoom) / 2f;
         float centerY = renderY + (animations[direction].getHeight() * zoom) / 2f;
@@ -377,6 +376,21 @@ public class Player {
      * Resets the player's stats and state to default values.
      */
     public void reset() {
+        for (Map.Entry<Items, Integer> entry : playerInventory.getItems().entrySet()) {
+            int i;
+            Items item = entry.getKey();
+            int quantity = entry.getValue();
+            playerInventory.removeItem(item, quantity);
+            switch(item.toString()) {
+                case "ITEM_WOOD" -> i=110;
+                case "ITEM_STONE" -> i=111;
+                case "ITEM_CACTUS" -> i=120;
+                default -> i=0;
+            }
+            Item itemToDrop = new Item("main", item.toString(), i, playerLoc[0], playerLoc[1], playerLoc[2], playerLoc[3]);
+            itemToDrop.setQuantity(quantity);
+            currentChunk.addGameObject(itemToDrop); // Throws java.util.ConcurrentModificationException @ io.github.anthonyclemens.utils.CollisionHandler.checkPlayerCollision(CollisionHandler.java:26), Need to fix this
+        }
         this.x = 0;
         this.y = 0;
         this.dx = 0;
@@ -391,59 +405,9 @@ public class Player {
         this.renderY = 0;
         this.hitbox.setBounds(0, 0, animations[0].getWidth(), animations[0].getHeight());
         this.lastDamageTime = 0;
-        for (Map.Entry<Items, Integer> entry : playerInventory.getItems().entrySet()) {
-            int i;
-            Items item = entry.getKey();
-            int quantity = entry.getValue();
-            playerInventory.removeItem(item, quantity);
-            switch(item.toString()) {
-                case "ITEM_WOOD" -> i=110;
-                case "ITEM_STONE" -> i=111;
-                case "ITEM_CACTUS" -> i=120;
-                default -> i=0;
-            }
-            Item itemToDrop = new Item("main", item.toString(), i, playerLoc[0], playerLoc[1], playerLoc[2], playerLoc[3]);
-            itemToDrop.setQuantity(quantity);
-            //currentChunk.addGameObject(itemToDrop); Throws a java.util.ConcurrentModificationException @ io.github.anthonyclemens.utils.CollisionHandler.checkPlayerCollision(CollisionHandler.java:26), Need to fix this
-        }
     }
 
-    public void interact(Input input, ChunkManager cm) {
-        int mouseX = input.getMouseX();
-        int mouseY = input.getMouseY();
-        if (!playerReach.contains(mouseX, mouseY)) return;
-        if (!input.isMousePressed(Input.MOUSE_LEFT_BUTTON)) return;
-
-        int[] clickedLoc = cm.getIsoRenderer().screenToIsometric(mouseX, mouseY);
-
-        Chunk chunk = cm.getChunk(clickedLoc[2], clickedLoc[3]);
-        if (chunk == null) return; // Safety check
-
-        List<GameObject> objects = chunk.getGameObjects();
-        for (int i = 0; i < objects.size(); i++) {
-            if (objects.get(i).getHitbox().contains(mouseX, mouseY)) {
-                GameObject obj = objects.get(i);
-                String name = obj.getName();
-
-                if (name.startsWith("ITEM_")) {
-                    Items itemType = Items.valueOf(name);
-                    if(playerInventory.addItem(itemType, ((Item) obj).getQuantity())){
-                        chunk.removeGameObject(i);
-                    }
-                } else {
-                    /*switch (name) {
-                        case "bigTree" -> obj.removeHealth(10);
-                        case "smallTree" -> obj.removeHealth(5);
-                        case "fish" -> obj.removeHealth(5);
-                        default -> Log.debug(name + " clicked on");
-                    }*/
-                    try {
-                        obj.removeHealth(5);
-                    } catch (Exception e) {
-                        Log.debug("Error removing health, clicked on: "+name);
-                    }
-                }
-            }
-        }
+    public void interact(Input input, ChunkManager cm){
+        InteractionController.interact(input, cm, playerReach, playerInventory);
     }
 }

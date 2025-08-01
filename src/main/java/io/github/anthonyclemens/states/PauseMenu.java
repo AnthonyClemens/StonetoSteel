@@ -13,6 +13,8 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 
+import com.codedisaster.steamworks.SteamAPI;
+
 import io.github.anthonyclemens.GUI.Banner;
 import io.github.anthonyclemens.GUI.Buttons.ImageTextButton;
 import io.github.anthonyclemens.GameStates;
@@ -107,5 +109,6 @@ public class PauseMenu extends BasicGameState {
         if (input.isKeyPressed(Input.KEY_ESCAPE)) {
             SharedData.enterState(GameStates.GAME, game);
         }
+        SteamAPI.runCallbacks();
     }
 }

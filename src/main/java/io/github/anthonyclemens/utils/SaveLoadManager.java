@@ -34,7 +34,9 @@ public class SaveLoadManager {
     private DayNightCycle loadedEnv;
     private IsoRenderer loadedRenderer;
     private Camera loadedCamera;
-    private float playerX, playerY, playerSpeed;
+    private float playerX;
+    private float playerY;
+    private float playerSpeed;
     private int playerHealth;
     private Inventory playerInventory;
 

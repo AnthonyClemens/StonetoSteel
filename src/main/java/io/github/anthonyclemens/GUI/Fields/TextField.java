@@ -5,96 +5,108 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.TrueTypeFont;
 
-import io.github.anthonyclemens.GUI.GUIElement;
-
-
-public class TextField extends GUIElement{
+public class TextField extends Field {
     private boolean focused;
+    private boolean justFocused;
     private final Color active;
     private final Color notActive;
     private final TrueTypeFont ttf;
     private final int padding;
     private final int maxChars;
-    private String bgText;
-    private String value;
+    private String bgText = "";
+    private String value = "";
 
     public TextField(float x, float y, int maxChars, Color active, Color notActive, TrueTypeFont ttf, int padding) {
-        super(x, y, ttf.getWidth("Z")*maxChars + (float)padding, ttf.getHeight() + (float)padding);
+        super(x, y, ttf.getWidth("Z") * maxChars + padding, ttf.getHeight() + padding);
         this.active = active;
         this.notActive = notActive;
-        this.value = "";
         this.ttf = ttf;
         this.padding = padding;
         this.maxChars = maxChars;
     }
 
-    public void setBgText(String str){
-        this.bgText=str;
+    public void setBgText(String str) {
+        this.bgText = str;
     }
 
     @Override
     public void render(Graphics g) {
-        if(this.focused){
-            g.setColor(this.active);
-        }else{
-            g.setColor(this.notActive);
-        }
+        g.setColor(focused ? active : notActive);
         g.fill(this.getRect());
         g.setColor(Color.black);
         g.draw(this.getRect());
-        if("".equals(this.value)){
-            ttf.drawString(getX()+padding/2f, getY()+padding/2f, bgText, Color.gray);
-        }
-        ttf.drawString(getX()+padding/2f, getY()+padding/2f, this.value, Color.black);
+
+        String displayText = value.isEmpty() ? bgText : value;
+        ttf.drawString(getX() + padding / 2f, getY() + padding / 2f, displayText, Color.black);
     }
 
     @Override
     public void update(Input input) {
-        this.focused = (this.getRect().contains(input.getMouseX(), input.getMouseY()) && input.isMousePressed(Input.MOUSE_LEFT_BUTTON)) ? !this.focused : this.focused;
-        if(this.focused){
-            this.value = this.handleInput(input, this.value, this.maxChars);
+        boolean clickedInside = this.getRect().contains(input.getMouseX(), input.getMouseY());
+        boolean mousePressed = input.isMousePressed(Input.MOUSE_LEFT_BUTTON);
+
+        if (mousePressed) {
+            if (clickedInside && !focused) {
+                focused = true;
+                justFocused = true; // Delay input handling
+            } else if (!clickedInside && focused) {
+                focused = false; // Clicked outside, lose focus
+            }
         }
     }
 
-    private String handleInput(Input input, String currentString, int maxCharacters) {
-        StringBuilder inputString = new StringBuilder(currentString);
-        // Check for backspace to remove the last character
-        if (input.isKeyPressed(Input.KEY_BACK) && !inputString.isEmpty()) {
-                String afterBack = inputString.substring(0, inputString.length() - 1);
-                inputString.delete(0, inputString.length());
-                inputString.append(afterBack);
-            }
+    public void handleInput(Input input) {
+        if (!focused) return;
 
-        // Loop through possible character key codes
+        if (justFocused) {
+            justFocused = false;
+            return;
+        }
+
+        StringBuilder inputString = new StringBuilder(this.value);
+
+        // Backspace
+        if (input.isKeyPressed(Input.KEY_BACK) && inputString.length() > 0) {
+            inputString.deleteCharAt(inputString.length() - 1);
+        }
+
+        // Letters A-Z
         for (int key = Input.KEY_A; key <= Input.KEY_Z; key++) {
-            if (input.isKeyPressed(key)) {
-                char c = (char) ('a' + (key - Input.KEY_A)); // Convert to character
+            if (input.isKeyPressed(key) && inputString.length() < maxChars) {
+                char c = (char) ('a' + (key - Input.KEY_A));
                 if (input.isKeyDown(Input.KEY_LSHIFT) || input.isKeyDown(Input.KEY_RSHIFT)) {
-                    c = Character.toUpperCase(c); // Handle uppercase letters
+                    c = Character.toUpperCase(c);
                 }
-                if (inputString.length() < maxCharacters) {
-                    inputString.append(c);
-                }
+                inputString.append(c);
             }
         }
-        // Handle digits
+
+        // Digits 0-9
         for (int key = Input.KEY_0; key <= Input.KEY_9; key++) {
-            if (input.isKeyPressed(key)) {
-                char c = (char) ('0' + (key - Input.KEY_0)); // Convert to character
-                if (inputString.length() < maxCharacters) {
-                    inputString.append(c);
-                }
+            if (input.isKeyPressed(key) && inputString.length() < maxChars) {
+                inputString.append((char) ('0' + (key - Input.KEY_0)));
             }
         }
-        // Handle spaces
-        if (input.isKeyPressed(Input.KEY_SPACE) && inputString.length() < maxCharacters) {
-                inputString.append(" ");
-            }
-        return inputString.toString();
+
+        // Space
+        if (input.isKeyPressed(Input.KEY_SPACE) && inputString.length() < maxChars) {
+            inputString.append(' ');
+        }
+
+        this.value = inputString.toString();
     }
 
-    public String getText(){
-        return this.value;
+    public String getText() {
+        return value;
+    }
+
+    public boolean isActive() {
+        return focused;
+    }
+
+    public void setActive(boolean active) {
+        this.focused = active;
+        this.justFocused = active; // Prevent key flush
     }
 
 }

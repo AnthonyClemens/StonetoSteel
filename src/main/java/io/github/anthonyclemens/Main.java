@@ -6,11 +6,16 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 
+import com.codedisaster.steamworks.SteamAPI;
+import com.codedisaster.steamworks.SteamException;
+
 import io.github.anthonyclemens.states.ControlSettings;
 import io.github.anthonyclemens.states.Credits;
 import io.github.anthonyclemens.states.Game;
 import io.github.anthonyclemens.states.LoadingScreen;
 import io.github.anthonyclemens.states.MainMenu;
+import io.github.anthonyclemens.states.Multiplayer;
+import io.github.anthonyclemens.states.MultiplayerMenu;
 import io.github.anthonyclemens.states.NewGame;
 import io.github.anthonyclemens.states.PauseMenu;
 import io.github.anthonyclemens.states.SettingsMenu;
@@ -27,6 +32,17 @@ public class Main extends StateBasedGame{
     }
     public static void main(String[] args){
         Settings settings = Settings.getInstance();
+        try {
+            SteamAPI.loadLibraries("./libraries");
+
+            if (!SteamAPI.init()) {
+                Log.error("Steamworks initialization failed. Is the Steam client running?");
+            } else {
+                Log.debug("Steamworks API initialized.");
+            }
+        } catch (SteamException e) {
+            Log.error("Error loading Steam libraries: " + e.getMessage());
+        }
         try {
             //Initialize the Slick2d engine
             app = new AppGameContainer(new Main());
@@ -68,6 +84,8 @@ public class Main extends StateBasedGame{
         addState(new PauseMenu());
         addState(new LoadingScreen());
         addState(new Credits());
+        addState(new MultiplayerMenu());
+        addState(new Multiplayer());
     }
 
     public static void setSettings(Settings settings) throws SlickException{

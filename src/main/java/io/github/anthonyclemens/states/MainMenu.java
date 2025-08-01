@@ -12,6 +12,8 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 
+import com.codedisaster.steamworks.SteamAPI;
+
 import io.github.anthonyclemens.GUI.Banner;
 import io.github.anthonyclemens.GUI.Buttons.ImageTextButton;
 import io.github.anthonyclemens.GameStates;
@@ -62,12 +64,14 @@ public class MainMenu extends BasicGameState{
         // Load button images
         Image buttonImage = new Image(AssetLoader.loadSingleAssetFromFile(texturePack, "regularButton"), false, Image.FILTER_NEAREST);
         // Create menu buttons
-        ImageTextButton startGame = new ImageTextButton(buttonImage, "Start Game", Utils.getFont(MAIN_FONT, 36f), TwoDimensionMath.getMiddleX(311, container.getWidth()), 300, 311, 104);
-        ImageTextButton options = new ImageTextButton(buttonImage, "Options", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(248, container.getWidth()), 420, 248, 82);
-        ImageTextButton exit = new ImageTextButton(buttonImage, "Exit", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(193, container.getWidth()), 520, 193, 64);
-        ImageTextButton credits = new ImageTextButton(buttonImage, "Credits", Utils.getFont(MAIN_FONT, 24f), TwoDimensionMath.getMiddleX(168, container.getWidth()), 600, 168, 56);
+        int startY = 260;
+        ImageTextButton startGame = new ImageTextButton(buttonImage, "Singleplayer", Utils.getFont(MAIN_FONT, 36f), TwoDimensionMath.getMiddleX(312, container.getWidth()), startY, 312, 104);
+        ImageTextButton multiplayer = new ImageTextButton(buttonImage, "Multiplayer", Utils.getFont(MAIN_FONT, 36f), TwoDimensionMath.getMiddleX(312, container.getWidth()), startY+120f, 312, 104);
+        ImageTextButton options = new ImageTextButton(buttonImage, "Options", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(248, container.getWidth()), startY+240f, 248, 82);
+        ImageTextButton exit = new ImageTextButton(buttonImage, "Exit", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(194, container.getWidth()), startY+340f, 194, 64);
+        ImageTextButton credits = new ImageTextButton(buttonImage, "Credits", Utils.getFont(MAIN_FONT, 24f), TwoDimensionMath.getMiddleX(168, container.getWidth()), startY+420f, 168, 56);
         menuButtons.clear();
-        menuButtons.addAll(List.of(startGame,options,exit,credits));
+        menuButtons.addAll(List.of(startGame,multiplayer,options,exit,credits));
         //Image cursor = new Image(AssetLoader.loadSingleAssetFromFile(texturePack, "mainMenuCursor"), false, Image.FILTER_NEAREST);
         //container.setMouseCursor(cursor, 0, 0);
     }
@@ -92,9 +96,8 @@ public class MainMenu extends BasicGameState{
             itb.update(input); // Sets the isClicked bool
             if(itb.isClicked()){
                 switch(itb.getText()){ // Figure out what button was pressed
-                    case "Start Game"-> {
-                        SharedData.enterState(GameStates.NEW_GAME,game);
-                    }
+                    case "Singleplayer" -> SharedData.enterState(GameStates.NEW_GAME,game);
+                    case "Multiplayer" -> SharedData.enterState(GameStates.MULTIPLAYER_MENU, game);
                     case "Options"-> SharedData.enterState(GameStates.SETTINGS_MENU, game);
                     case "Exit"-> {
                         menuJukeBox.stopMusic();
@@ -105,5 +108,6 @@ public class MainMenu extends BasicGameState{
                 }
             }
         }
+        SteamAPI.runCallbacks();
     }
 }

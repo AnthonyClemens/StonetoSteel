@@ -106,6 +106,10 @@ public abstract class GameObject implements Serializable{
         return this.solid;
     }
 
+    public void setSolid(boolean nSolid){
+        this.solid = nSolid;
+    }
+
     public void setMaxHealth(int maxHealth) {
         this.maxHealth = maxHealth;
     }
@@ -136,11 +140,7 @@ public abstract class GameObject implements Serializable{
         this.peaceful = peaceful;
     }
 
-    public void calculateHitbox(float zoom) {
-        // Calculate the hitbox based on the object's position and size
-        if(this.hitbox==null) this.hitbox = new Rectangle(0,0,0,0);
-        this.hitbox.setBounds(x * zoom, y * zoom, hitbox.getWidth(), hitbox.getHeight());
-    }
+    public abstract void calculateHitbox(IsoRenderer r);
 
     public void setTileSheet(String tileSheet) {
         this.tileSheet = tileSheet;

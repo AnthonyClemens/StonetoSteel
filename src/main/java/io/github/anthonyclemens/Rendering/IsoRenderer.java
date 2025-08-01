@@ -102,6 +102,32 @@ public class IsoRenderer {
         }
     }
 
+    public void calculateHitbox(IsoRenderer r, Player player) {
+        if (this.visibleChunks == null) return;
+
+        float updateRadiusSquared = (renderDistance * zoom * TILE_SIZE) * (renderDistance * zoom * TILE_SIZE);
+
+        for (int chunkX = this.visibleChunks[0]; chunkX <= this.visibleChunks[2]; chunkX++) {
+            for (int chunkY = this.visibleChunks[1]; chunkY <= this.visibleChunks[3]; chunkY++) {
+                Chunk chunk = chunkManager.getChunk(chunkX, chunkY);
+                if (chunk == null) continue;
+
+                chunk.calculateHitbox(r);
+
+                // Calculate chunk center only once
+                float centerX = calculateIsoX(ChunkManager.CHUNK_SIZE / 2, ChunkManager.CHUNK_SIZE / 2, chunkX, chunkY);
+                float centerY = calculateIsoY(ChunkManager.CHUNK_SIZE / 2, ChunkManager.CHUNK_SIZE / 2, chunkX, chunkY);
+
+                float dx = centerX - player.getRenderX();
+                float dy = centerY - player.getRenderY();
+
+                if ((dx * dx + dy * dy) <= updateRadiusSquared) {
+                    chunk.calculateHitbox(r);
+                }
+            }
+        }
+    }
+
     private void renderChunk(int chunkX, int chunkY) {
         int blockSize = switch (getLODLevel()) {
             case 0 -> 1; // LOD 0
@@ -148,10 +174,9 @@ public class IsoRenderer {
                     break;
                 }
 
-
                 float isoX = calculateFastIsoX(blockX * blockSize, blockY * blockSize, halfTileWidth, preCompX);
                 float isoY = calculateFastIsoY(blockX * blockSize, blockY * blockSize, quarterTileHeight, preCompY);
-                drawScaledIsoAlpha(lastTileImage, isoX, isoY, tileRenderSize, tileRenderSize, 1f);
+                drawScaledIsoImage(lastTileImage, isoX, isoY, tileRenderSize, tileRenderSize);
             }
         }
 
@@ -221,12 +246,6 @@ public class IsoRenderer {
         tile.drawEmbedded(isoX, isoY, width, height);
     }
 
-    private void drawScaledIsoAlpha(Image tile, float isoX, float isoY, float width, float height, float alpha) {
-        tile.setAlpha(alpha);
-        tile.drawEmbedded(isoX, isoY, width, height);
-        tile.setAlpha(1f);
-    }
-
     public void drawScaledTile(String tileSheet, int tileType, int xPos, int yPos, int chunkX, int chunkY){
         this.getTile(tileSheet, tileType).draw(calculateIsoX(xPos, yPos, chunkX, chunkY), calculateIsoY(xPos, yPos, chunkX, chunkY), SpriteManager.getSpriteWidth(tileSheet)*zoom, SpriteManager.getSpriteHeight(tileSheet)*zoom);
     }
@@ -270,6 +289,14 @@ public class IsoRenderer {
     }
     public static int getRenderDistance() {
         return renderDistance;
+    }
+
+    public int getOffsetX(){
+        return this.offsetX;
+    }
+
+    public int getOffsetY(){
+        return this.offsetY;
     }
 
 

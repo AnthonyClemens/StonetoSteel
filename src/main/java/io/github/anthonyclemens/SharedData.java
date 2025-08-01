@@ -21,6 +21,7 @@ public class SharedData {
     private static String saveFilePath = null;
     private static boolean newGame = true;
     private static boolean loadingSave = false;
+    private static String ipAddress = "";
 
     private static Game gameState;
 
@@ -92,4 +93,6 @@ public class SharedData {
     public static DayNightCycle getDayNightCycle() { return gameState != null ? gameState.getEnv() : null; }
     public static ChunkManager getChunkManager() { return gameState != null ? gameState.getChunkManager() : null; }
     public static Camera getCamera() { return gameState != null ? gameState.getCamera() : null; }
+    public static String getIPAddress() { return ipAddress; }
+    public static void setIPAddress(String newIP) { ipAddress=newIP; }
 }

@@ -8,13 +8,20 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.newdawn.slick.Color;
+import org.newdawn.slick.geom.Rectangle;
+
 import io.github.anthonyclemens.Rendering.IsoRenderer;
 import io.github.anthonyclemens.Rendering.SpriteManager;
+import io.github.anthonyclemens.states.Game;
 
 public class MultiTileObject extends GameObject{
     private final int tileWidth;
     private final int tileHeight;
     private final List<TileBlock> blocks = new ArrayList<>();
+    private float lastZoom = -1f;
+    private int lastOffsetX = Integer.MIN_VALUE;
+    private int lastOffsetY = Integer.MIN_VALUE;
 
     private static class TileBlock implements Serializable{
         private final int x;
@@ -50,6 +57,8 @@ public class MultiTileObject extends GameObject{
         super(tileSheet, x, y, chunkX, chunkY, objName);
         this.tileWidth = SpriteManager.getSpriteWidth(tileSheet);
         this.tileHeight = SpriteManager.getSpriteHeight(tileSheet);
+        this.solid = true;
+        this.hitbox = new Rectangle(x, y, this.tileWidth, this.tileHeight);
     }
 
     public MultiTileObject(String loadedMTO) {
@@ -110,6 +119,11 @@ public class MultiTileObject extends GameObject{
               return Integer.compare(b.getX(), a.getX());
               })
               .forEach(block -> r.drawHeightedTile(this.tileSheet, block.getTileIndex(), getX() + block.getX(), getY() + block.getY(), chunkX, chunkY, block.getHeight()));
+
+        if (Game.showDebug) {
+            r.getGraphics().setColor(Color.black);
+            r.getGraphics().draw(hitbox);
+        }
     }
 
     public void addBlock(int index, int x, int y, int h){
@@ -117,8 +131,36 @@ public class MultiTileObject extends GameObject{
     }
 
     @Override
-    public void update(IsoRenderer r, int deltaTime) {
-        // No update logic for MultiTileObject
-    }
+    public void update(IsoRenderer r, int deltaTime) {}
 
+    @Override
+    public void calculateHitbox(IsoRenderer r){
+        if (blocks.isEmpty()) return;
+        if (this.hitbox==null) this.hitbox = new Rectangle(0, 0, 0, 0);
+
+        float minScreenX = Float.MAX_VALUE;
+        float minScreenY = Float.MAX_VALUE;
+        float maxScreenX = Float.MIN_VALUE;
+        float maxScreenY = Float.MIN_VALUE;
+        float zoom = r.getZoom();
+
+        for (TileBlock block : blocks) {
+            int worldX = getX() + block.getX();
+            int worldY = getY() + block.getY();
+            int elevation = block.getHeight();
+
+            float screenX = r.calculateIsoX(worldX, worldY, chunkX, chunkY);
+            float screenY = r.calculateIsoY(worldX, worldY, chunkX, chunkY) - elevation * (tileHeight / 2f) * zoom;
+
+            float tileW = tileWidth * zoom;
+            float tileH = tileHeight * zoom;
+
+            minScreenX = Math.min(minScreenX, screenX);
+            minScreenY = Math.min(minScreenY, screenY);
+            maxScreenX = Math.max(maxScreenX, screenX + tileW);
+            maxScreenY = Math.max(maxScreenY, screenY + tileH);
+        }
+
+        hitbox.setBounds(minScreenX, minScreenY, maxScreenX - minScreenX, maxScreenY - minScreenY);
+    }
 }

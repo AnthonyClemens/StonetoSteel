@@ -27,19 +27,19 @@ public class Mob extends GameObject {
     protected Color colorOverlay;          // Optional color tint for the mob
 
     // Logical Positioning
-    private float fx;                     // Internal float X position
-    private float fy;                     // Internal float Y position
+    private transient float fx;                     // Internal float X position
+    private transient float fy;                     // Internal float Y position
 
     // Pathfinding & Destination
-    private int destinationX;            // Target X tile
-    private int destinationY;            // Target Y tile
+    private transient int destinationX;            // Target X tile
+    private transient int destinationY;            // Target Y tile
     private final int wanderDistance;    // Max radius for wandering
     private final Random rand;           // Seeded RNG for deterministic motion
 
     // Sway & Movement Styling
     protected float mobSpeed = 4f;       // Movement speed (pixels per second?)
     protected float smoothness = 0.15f;  // Easing factor for render interpolation
-    protected float sway = 0f;        // Sway cycle range (for offset randomness)
+    protected transient float sway = 0f;        // Sway cycle range (for offset randomness)
     private transient float swayTime = 0f;         // Time accumulator for sine/cos motion
     private float swayOffset;            // Phase offset per mob for unique motion
     protected long lastDamageTime = 0; // Timestamp of last time damage was taken (milliseconds)
@@ -147,35 +147,9 @@ public class Mob extends GameObject {
         if (currentAnimation == null && animationLoader != null) {
             currentAnimation = animationLoader.get();
         }
-        if(this.hitbox==null) this.hitbox = new Rectangle(0,0,0,0);
+        swayTime += deltaTime;
         moveTowardsDestination(deltaTime,r);
-        if (r.isCameraMoving()) {
-            renderX = r.calculateIsoX((int) fx, (int) fy, chunkX, chunkY);
-            renderY = r.calculateIsoY((int) fx, (int) fy, chunkX, chunkY);
-        } else {
-            swayTime += deltaTime;
-            float swayX = (float) Math.sin((swayTime + swayOffset) / 300.0) * 0.3f;
-            float swayY = (float) Math.cos((swayTime + swayOffset) / 400.0) * 0.3f;
-
-            // Apply sway to logical position, not screen space
-            float swayedX = fx + swayX;
-            float swayedY = fy + swayY;
-
-            // Then project swayed position to screen
-            float renderTargetX = r.calculateIsoX((int) swayedX, (int) swayedY, chunkX, chunkY);
-            float renderTargetY = r.calculateIsoY((int) swayedX, (int) swayedY, chunkX, chunkY);
-
-            // Now interpolate
-            renderX += (renderTargetX - renderX) * smoothness;
-            renderY += (renderTargetY - renderY) * smoothness;
-        }
-
-        if (currentAnimation != null) {
-            currentAnimation.update(deltaTime);
-            hitbox.setBounds(renderX, renderY,
-                currentAnimation.getWidth() * r.getZoom(),
-                currentAnimation.getHeight() * r.getZoom());
-        }
+        if (currentAnimation != null) currentAnimation.update(deltaTime);
     }
 
     @Override
@@ -232,6 +206,35 @@ public class Mob extends GameObject {
     public float getRenderY() { return renderY; }
     public void setRenderX(float renderX) { this.renderX = renderX; }
     public void setRenderY(float renderY) { this.renderY = renderY; }
+
+    @Override
+    public void calculateHitbox(IsoRenderer r) {
+        if(this.hitbox==null) this.hitbox = new Rectangle(0,0,0,0);
+        if (r.isCameraMoving()) {
+            renderX = r.calculateIsoX((int) fx, (int) fy, chunkX, chunkY);
+            renderY = r.calculateIsoY((int) fx, (int) fy, chunkX, chunkY);
+        } else {
+            float swayX = (float) Math.sin((swayTime + swayOffset) / 300.0) * 0.3f;
+            float swayY = (float) Math.cos((swayTime + swayOffset) / 400.0) * 0.3f;
+
+            // Apply sway to logical position, not screen space
+            float swayedX = fx + swayX;
+            float swayedY = fy + swayY;
+
+            // Then project swayed position to screen
+            float renderTargetX = r.calculateIsoX((int) swayedX, (int) swayedY, chunkX, chunkY);
+            float renderTargetY = r.calculateIsoY((int) swayedX, (int) swayedY, chunkX, chunkY);
+
+            // Now interpolate
+            renderX += (renderTargetX - renderX) * smoothness;
+            renderY += (renderTargetY - renderY) * smoothness;
+        }
+        if (currentAnimation != null&& r.isCameraMoving()){
+            hitbox.setBounds(renderX, renderY,
+                currentAnimation.getWidth() * r.getZoom(),
+                currentAnimation.getHeight() * r.getZoom());
+        }
+    }
 }
 
 

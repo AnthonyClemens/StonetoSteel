@@ -17,11 +17,9 @@ public abstract class Field extends GUIElement{
         return this.value;
     }
 
-    public void input(Input i){}
+    @Override
+    public abstract void render(Graphics g);
 
     @Override
-    public void render(Graphics g) {}
-
-    @Override
-    public void update(Input input) {}
+    public abstract void update(Input input);
 }

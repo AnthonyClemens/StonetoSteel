@@ -82,8 +82,8 @@ public class AmbientSoundManager {
                 case RAINFOREST -> Log.warn("Unimplemented case: " + currentBiome);
                 case FOREST -> Log.warn("Unimplemented case: " + currentBiome);
                 case SNOWY_PEAK -> Log.warn("Unimplemented case: " + currentBiome);
-                case TUNDRA -> Log.warn("Unimplemented case: " + currentBiome);
-                default -> Log.error("Unexpected value: " + currentBiome);*/
+                case TUNDRA -> Log.warn("Unimplemented case: " + currentBiome);*/
+                default -> ambientSoundBox.playRandomSound("plainsSounds");
             }
         }
     }

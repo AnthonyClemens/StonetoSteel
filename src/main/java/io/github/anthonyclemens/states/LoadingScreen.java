@@ -16,6 +16,8 @@ import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.Log;
 
+import com.codedisaster.steamworks.SteamAPI;
+
 import io.github.anthonyclemens.GameStates;
 import io.github.anthonyclemens.Math.TwoDimensionMath;
 import io.github.anthonyclemens.Rendering.RenderUtils;
@@ -156,7 +158,7 @@ public class LoadingScreen extends BasicGameState {
             SharedData.enterState(GameStates.GAME, game);
             waitingForSpace = false;
         }
-
+        SteamAPI.runCallbacks();
     }
 
     @Override

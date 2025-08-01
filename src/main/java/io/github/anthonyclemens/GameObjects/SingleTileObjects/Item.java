@@ -9,13 +9,13 @@ import io.github.anthonyclemens.states.Game;
 public class Item extends SingleTileObject{
 
     private int quantity = 1;
-    private float renderX;
-    private float renderY;
+    private transient float renderX;
+    private transient float renderY;
     protected float offsetY = 6f;
     protected float hoverSpeed = 0.1f;
-    private float hoverTime = 0f;
+    private transient float hoverTime = 0f;
     private final Color shadowColor = new Color(0, 0, 0, 0.6f);
-    private final float shadowOffsetY = 4f;
+    private static final float SHADOW_OFFSET_Y = 4f;
 
     public Item(String tileSheet, String name, int i, int x, int y, int chunkX, int chunkY) {
         super(tileSheet, name, i, x, y, chunkX, chunkY);
@@ -28,7 +28,7 @@ public class Item extends SingleTileObject{
         float zoom = r.getZoom();
         float baseX = r.calculateIsoX(x, y, chunkX, chunkY);
         float baseY = r.calculateIsoY(x, y, chunkX, chunkY);
-        float shadowY = baseY + tileHeight * zoom + shadowOffsetY;
+        float shadowY = baseY + (tileHeight + SHADOW_OFFSET_Y) * zoom;
         float shadowX = baseX + tileWidth * zoom / 2f;
         float bobOffset = offsetY * (float) Math.sin(hoverTime * hoverSpeed * 2 * Math.PI);
         float scaleFactor = 1f + ((bobOffset / offsetY) * 0.3f);
@@ -44,7 +44,7 @@ public class Item extends SingleTileObject{
         );
         r.drawTileIso(tileSheet, i, renderX, renderY);
 
-        if (Game.showDebug) {
+        if (Game.showDebug&&this.hitbox!=null) {
             r.getGraphics().setColor(Color.black);
             r.getGraphics().draw(hitbox);
         }
@@ -52,14 +52,13 @@ public class Item extends SingleTileObject{
 
     @Override
     public void update(IsoRenderer r, int deltaTime) {
-        if (this.hitbox == null) {
-            this.hitbox = new Rectangle(x, y, this.tileWidth, this.tileHeight);
-        }
-
         // Accumulate hover time
         hoverTime += deltaTime / 1000f;
+    }
 
-        // Bobbing effect
+    @Override
+    public void calculateHitbox(IsoRenderer r){
+        if (this.hitbox == null) this.hitbox = new Rectangle(x, y, this.tileWidth, this.tileHeight);
         float bobOffset = offsetY * (float) Math.sin(hoverTime * hoverSpeed * 2 * Math.PI);
 
         renderX = r.calculateIsoX(x, y, chunkX, chunkY);
