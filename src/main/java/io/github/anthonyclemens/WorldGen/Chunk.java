@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Random;
 
 import io.github.anthonyclemens.GameObjects.GameObject;
+import io.github.anthonyclemens.GameObjects.Mobs.Mob;
+import io.github.anthonyclemens.Player.Player;
 import io.github.anthonyclemens.Rendering.IsoRenderer;
 
 /**
@@ -198,6 +200,10 @@ public class Chunk implements Serializable {
         gameObjects.remove(idx);
     }
 
+    public void removeGameObject(GameObject obj) {
+        gameObjects.remove(obj);
+    }
+
     /**
      * Gets the list of GameObjects in this chunk.
      */
@@ -228,9 +234,29 @@ public class Chunk implements Serializable {
     /**
      * Updates all GameObjects in this chunk.
      */
-    public void update(IsoRenderer r, int deltaTime) {
+    public void update(IsoRenderer r, int deltaTime, Player player) {
+        if(!r.isSunUp()) {
+            GameObject nGob = GameObjectGenerator.generateEnemyForBiome(gameObjects, rand, biome, chunkX, chunkY);
+            if(nGob!=null) {
+                nGob.setID(gameObjects.size());
+                nGob.initializeRenderPosition(r);
+                gameObjects.add(nGob);
+            }
+        }
         List<GameObject> objectsCopy = new ArrayList<>(gameObjects);
         for (GameObject obj : objectsCopy) {
+            if (obj instanceof Mob mob && rand.nextFloat() > mob.getIntelligence() && !mob.isPeaceful()) {
+                int[] loc = player.getPlayerLocation();
+
+                int dx = (loc[2] - mob.getCX()) * chunkSize + (loc[0] - mob.getX());
+                int dy = (loc[3] - mob.getCY()) * chunkSize + (loc[1] - mob.getY());
+
+                int maxDistSq = mob.getVisionRadius() * mob.getVisionRadius();
+                if ((dx * dx + dy * dy) <= maxDistSq) {
+                    mob.setDestinationByGlobalPosition(loc);
+                    obj = mob;
+                }
+            }
             obj.update(r, deltaTime);
             if(obj.getHealth() == 0 && obj.getHealth() > -1) {
                 deleteGameObject(obj);
@@ -299,5 +325,9 @@ public class Chunk implements Serializable {
 
     public int getChunkY(){
         return chunkY;
+    }
+
+    public Random getRandom(){
+        return this.rand;
     }
 }

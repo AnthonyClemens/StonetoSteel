@@ -66,7 +66,7 @@ public class SpriteManager {
             Log.error("Cannot create animation, sprite sheet is null: " + name);
             return null;
         }
-        return new Animation(spriteSheet, sx, sy, ex, ey, false, frameDuration, false);
+        return new Animation(spriteSheet, sx, sy, ex, ey, false, frameDuration, true);
     }
 
     /**

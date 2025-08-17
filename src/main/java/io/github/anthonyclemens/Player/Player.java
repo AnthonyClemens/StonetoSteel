@@ -14,9 +14,11 @@ import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.GameObjects.SingleTileObjects.Item;
 import io.github.anthonyclemens.GameObjects.SingleTileObjects.Items;
+import io.github.anthonyclemens.Rendering.SpriteManager;
 import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.Sound.SoundBox;
 import io.github.anthonyclemens.Utils;
+import io.github.anthonyclemens.WorldGen.Biome;
 import io.github.anthonyclemens.WorldGen.Chunk;
 import io.github.anthonyclemens.WorldGen.ChunkManager;
 import io.github.anthonyclemens.states.Game;
@@ -33,8 +35,8 @@ public class Player {
     private float defaultSpeed; // Default movement speed
     private int direction; // Current look direction
     private boolean cameraLocked = true; // Lock camera to player when true
-    private final Animation[] animations; // Array of animations for 8 directions
-    private final Animation[] idleAnimations;
+    private Animation[] animations = new Animation[8]; // Array of animations for 8 directions
+    private Animation[] idleAnimations = new Animation[8];
     private float renderX;
     private float renderY;
     private final Rectangle hitbox; // Hitbox for collision detection
@@ -44,6 +46,8 @@ public class Player {
     private Inventory playerInventory = new Inventory();
     private Chunk currentChunk;
     private int[] playerLoc; // Player location in the world [x, y, chunkX, chunkY]
+    private final InteractionController interactor;
+    private Items equippedItem;
 
     // Player health properties
     private byte health; // Player health
@@ -65,17 +69,17 @@ public class Player {
     // Ouch sound
     private final List<String> ouch = Utils.getFilePaths("sounds/Player/Hurt/ouch", 1, 2); // Ouch sounds
 
-    public Player(float startX, float startY, float speed, Animation[] animations, Animation[] idleAnimations) {
+    public Player(float startX, float startY, float speed) {
         Settings settings = Settings.getInstance(); // Get settings instance
+        loadAnimations();
         this.x = startX;
         this.y = startY;
         this.maxHealth = 100; // Initialize max health
         this.health = this.maxHealth; // Initialize health
         this.defaultSpeed = speed;
-        this.animations = animations;
-        this.idleAnimations = idleAnimations;
         this.playerSoundBox = new SoundBox(); // Initialize SoundBox
-        if(animations != null && animations.length > 0) {
+        this.interactor = new InteractionController();
+        if(animations[0] != null) {
             // Initialize hitbox based on the first animation's dimensions
             this.hitbox = new Rectangle(this.x, this.y, animations[0].getWidth(), animations[0].getHeight());
             this.playerSoundBox.addSounds("grassWalk", grassWalk); // Add walk sounds to SoundBox
@@ -87,7 +91,7 @@ public class Player {
 
             this.playerSoundBox.addSounds("ouch", ouch); // Add ouch sounds to SoundBox
 
-            this.playerSoundBox.setVolume(settings.getPlayerVolume()); // Set volume for player sounds
+            this.playerSoundBox.setVolume(settings.getPlayerVolume()*settings.getMainVolume()); // Set volume for player sounds
         } else {
             // Fallback if animations are not provided
             Log.warn("Animations not provided or empty. Using default hitbox size.");
@@ -96,6 +100,7 @@ public class Player {
     }
 
     public void update(Input input, int delta, int[] playerLoc, Chunk chunk, boolean paused) {
+        if(animations[0] == null || idleAnimations[0] == null) loadAnimations();
         toggleCameraLock(input);
         if(paused) return;
         this.currentChunk = chunk;
@@ -186,6 +191,7 @@ public class Player {
     }
 
     public void render(GameContainer container, float zoom, float cameraX, float cameraY) {
+        if(animations == null || idleAnimations == null) return;
         renderX = (x - cameraX) * zoom + container.getWidth() / 2f;
         renderY = (y - cameraY) * zoom + container.getHeight() / 2f;
         boolean flashRed = System.currentTimeMillis() < hurtFlashEndTime;
@@ -206,7 +212,8 @@ public class Player {
         // Update the raycast line to come out of the middle of the character hitbox and face the direction
         float centerX = renderX + (animations[direction].getWidth() * zoom) / 2f;
         float centerY = renderY + (animations[direction].getHeight() * zoom) / 2f;
-        float rayDx = 0, rayDy = 0;
+        float rayDx = 0;
+        float rayDy = 0;
         switch (direction) {
             case 0 -> { rayDx = 0; rayDy = -1; } // Up
             case 1 -> { rayDx = 1; rayDy = -1; } // Up-right
@@ -408,6 +415,46 @@ public class Player {
     }
 
     public void interact(Input input, ChunkManager cm){
-        InteractionController.interact(input, cm, playerReach, playerInventory);
+        interactor.interact(input, cm, playerReach, playerInventory, equippedItem);
+    }
+
+    private void loadAnimations(){
+        int animationDuration = 140; // ms per frame
+
+        // Movement animations (row 0 -> row 2)
+        for (int dir = 0; dir < 8; dir++) {
+            this.animations[dir] = SpriteManager.getAnimation(
+                "player",
+                dir, 0,   // start frame col/row
+                dir, 2,   // end frame col/row
+                animationDuration
+            );
+        }
+
+        // Idle animations (row 1 -> row 1, only 1 frame)
+        for (int dir = 0; dir < 8; dir++) {
+            this.idleAnimations[dir] = SpriteManager.getAnimation(
+                "player",
+                dir, 1,
+                dir, 1,
+                animationDuration
+            );
+        }
+    }
+
+    /**
+     * Retrieves player location
+     * @return int[] containing x, y, chunkX, and chunkY
+     */
+    public int[] getPlayerLocation(){
+        return this.playerLoc;
+    }
+
+    public Biome getBiome(){
+        return this.currentChunk.getBiome();
+    }
+
+    public InteractionController getInteractor(){
+        return this.interactor;
     }
 }

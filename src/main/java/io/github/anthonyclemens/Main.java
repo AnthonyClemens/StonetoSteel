@@ -31,6 +31,10 @@ public class Main extends StateBasedGame{
         super("Stone to Steel");
     }
     public static void main(String[] args){
+        if (args.length > 0 && args[0].contains("-server")) {
+            System.out.println("Server Mode Entered");
+            return;
+        }
         Settings settings = Settings.getInstance();
         try {
             SteamAPI.loadLibraries("./libraries");

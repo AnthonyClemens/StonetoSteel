@@ -75,7 +75,9 @@ public class Credits extends BasicGameState{
             "UI Elements - Crusenho",
             "World tileset - Dani Maccari",
             "Grass - Styloo",
-            "Character - AxulArt"
+            "Character - AxulArt",
+            "Zombie - gnomocaqui",
+            "Spider - Camacebra Games"
         ));
 
         creditSections.put("MUSIC CREDITS", List.of(
@@ -93,12 +95,6 @@ public class Credits extends BasicGameState{
 
         creditSections.put("SOUND CREDITS", List.of(
             "NOX Sound Essentials - Nox_Sound_Design"
-        ));
-
-        creditSections.put("TOOLS & TECHNOLOGIES", List.of(
-            "Basis for Game Engine: Slick2D",
-            "Graphics: LWJGL",
-            "Powered by Java & Love of Games"
         ));
 
         creditSections.put("TOOLS & TECHNOLOGIES", List.of(

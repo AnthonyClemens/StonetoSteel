@@ -14,6 +14,8 @@ public abstract class GameObject implements Serializable{
     protected transient float previousY;
     protected int chunkX;
     protected int chunkY;
+    protected transient float renderX;
+    protected transient float renderY;
     protected boolean peaceful = true;
     protected String name;
     protected int id;
@@ -23,6 +25,7 @@ public abstract class GameObject implements Serializable{
     protected int health = -1;
     protected int maxHealth;
     protected boolean solid = true;
+    protected boolean alwaysCalcHitbox = false;
 
     protected GameObject(String tileSheet, int x, int y, int chunkX, int chunkY, String objName) {
         this.x = x;
@@ -106,6 +109,10 @@ public abstract class GameObject implements Serializable{
         return this.solid;
     }
 
+    public boolean alwaysCalcHitbox(){
+        return this.alwaysCalcHitbox;
+    }
+
     public void setSolid(boolean nSolid){
         this.solid = nSolid;
     }
@@ -123,6 +130,7 @@ public abstract class GameObject implements Serializable{
     }
 
     public void removeHealth(int amount) {
+        if(amount<=0) return;
         this.health -= amount;
         if (this.health < 0) {
             this.health = 0;
@@ -151,6 +159,11 @@ public abstract class GameObject implements Serializable{
         this.y=y;
         this.chunkX=chunkX;
         this.chunkY=chunkY;
+    }
+
+    public void initializeRenderPosition(IsoRenderer r) {
+        this.renderX = r.calculateIsoX(x, y, chunkX, chunkY);
+        this.renderY = r.calculateIsoY(x, y, chunkX, chunkY);
     }
 
     public abstract void render(IsoRenderer r, int lodLevel);

@@ -24,8 +24,17 @@ public class CollisionHandler {
             return;
         }
         for (GameObject gob : gameObjects) {
-            if (gob.getHitbox()==null||!gob.isSolid()) return;
+            if (gob.getHitbox()==null) return;
             if (gob.getHitbox().intersects(player.getHitbox())) {
+                if(gob instanceof Mob){
+                    switch(gob.getName()){
+                        case "zombie" -> player.subtractHealth(currentChunk.getRandom().nextInt(6)+5);
+                        case "spider" -> player.subtractHealth(currentChunk.getRandom().nextInt(10)+2);
+                    }
+                    Log.debug("Touching a "+gob.getName());
+                    return;
+                }
+                if(!gob.isSolid()) return;
                 Rectangle playerHit = player.getHitbox();
                 Rectangle objectHit = gob.getHitbox();
 

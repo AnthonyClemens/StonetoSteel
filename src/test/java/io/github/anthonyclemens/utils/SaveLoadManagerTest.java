@@ -4,6 +4,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.newdawn.slick.SlickException;
 
 import io.github.anthonyclemens.Player.Player;
 import io.github.anthonyclemens.Rendering.IsoRenderer;
@@ -17,18 +18,18 @@ public class SaveLoadManagerTest {
     Player postLoadPlayer;
 
     @Before
-    public void setup(){
+    public void setup() throws SlickException{
         saveLoadManager = new SaveLoadManager();
         ChunkManager chunkManager = new ChunkManager(123456);
         preSaveRenderer = new IsoRenderer(123, null, chunkManager, null);
-        preSavePlayer = new Player(123, 123, 123, null, null);
+        preSavePlayer = new Player(123, 123, 123);
         preSavePlayer.setVolume(0f);
         preSavePlayer.subtractHealth(99);
         saveLoadManager.saveGame("saves/testSave",null,chunkManager,null,preSavePlayer);
 
         saveLoadManager.loadGame("saves/testSave", null);
         postLoadRenderer = saveLoadManager.getRenderer();
-        postLoadPlayer = new Player(saveLoadManager.getPlayerX(), saveLoadManager.getPlayerY(), saveLoadManager.getPlayerSpeed(), null, null);
+        postLoadPlayer = new Player(saveLoadManager.getPlayerX(), saveLoadManager.getPlayerY(), saveLoadManager.getPlayerSpeed());
         postLoadPlayer.setHealth(saveLoadManager.getPlayerHealth());
     }
 

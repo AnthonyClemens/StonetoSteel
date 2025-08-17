@@ -5,38 +5,30 @@ import java.util.Random;
 import org.newdawn.slick.Color;
 
 import io.github.anthonyclemens.Rendering.IsoRenderer;
-import io.github.anthonyclemens.Rendering.SpriteManager;
 import io.github.anthonyclemens.WorldGen.Chunk;
 import io.github.anthonyclemens.states.Game;
 
-public class Grass extends SingleTileObject{
+public class BerryBush extends SingleTileObject{
 
-    private final long shakeDuration; // When shaking should end
+    private final long shakeDuration = 250; // When shaking should end
     private transient long lastDamageTime = 0; // Timestamp of last time damage was taken (milliseconds)
     private transient long endShakeTime = 0; // Timestamp when shaking should end
     private final long damageCooldown = 500; // Cooldown time between damage in milliseconds
-    private final int shakeAggression; // How much the grass shakes when hit
+    private final int shakeAggression = 3; // How much the grass shakes when hit
     private transient float offsetX = 0; // Offset for shaking effect
     private transient float offsetY = 0; // Offset for shaking effect
     private final Random rand;
     private final Item droppedItem;
     private boolean dropItem = false;
 
-    public Grass(Random rand, int x, int y, int chunkX, int chunkY) {
-        super("grass","",-1, x, y, chunkX, chunkY);
+    public BerryBush(Random rand, int x, int y, int chunkX, int chunkY) {
+        super("main", "berryBush", 45, x, y, chunkX, chunkY);
         this.rand = rand;
-        this.droppedItem = new Item(Items.ITEM_SEED, x, y, chunkX, chunkY);
-        this.name = "grass";
-        this.i = (byte) rand.nextInt(8);
-        this.health = 5;
-        this.solid = false;
-        this.shakeDuration = 250;
-        this.shakeAggression = 2;
-        this.droppedItem.setQuantity(1 + rand.nextInt(3));
-        this.maxHealth = this.health;
-        this.tileWidth = SpriteManager.getSpriteWidth(tileSheet);
-        this.tileHeight = SpriteManager.getSpriteHeight(tileSheet);
-        this.hitbox.setBounds(0, 0, tileWidth, tileHeight);
+        this.droppedItem = new Item(Items.ITEM_BERRIES, x, y, chunkX, chunkY);
+        this.droppedItem.setQuantity(rand.nextInt(3)+1);
+        this.solid=false;
+        this.health=20;
+        this.maxHealth=this.health;
     }
 
     @Override
@@ -79,5 +71,4 @@ public class Grass extends SingleTileObject{
         lastDamageTime = now;
         Game.gameObjectSoundBox.playRandomSound("smallTreeHitSounds");
     }
-
 }

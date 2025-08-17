@@ -6,6 +6,9 @@ import java.util.Random;
 
 import io.github.anthonyclemens.GameObjects.GameObject;
 import io.github.anthonyclemens.GameObjects.Mobs.Fish;
+import io.github.anthonyclemens.GameObjects.Mobs.Spider;
+import io.github.anthonyclemens.GameObjects.Mobs.Zombie;
+import io.github.anthonyclemens.GameObjects.SingleTileObjects.BerryBush;
 import io.github.anthonyclemens.GameObjects.SingleTileObjects.Grass;
 import io.github.anthonyclemens.GameObjects.SingleTileObjects.SingleTileObject;
 import io.github.anthonyclemens.GameObjects.SingleTileObjects.Tree;
@@ -15,6 +18,10 @@ import io.github.anthonyclemens.GameObjects.SingleTileObjects.Tree;
  */
 public class GameObjectGenerator {
 
+    static GameObject generateEnemyForBiome(Biome biome) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
     public GameObjectGenerator(){};
 
     // Density values for object generation
@@ -22,6 +29,7 @@ public class GameObjectGenerator {
     private static final double WATER_FISH_DENSITY = 0.01;
     private static final double PLAINS_TREE_DENSITY = 0.2;
     private static final double PLAINS_GRASS_DENSITY = 0.9;
+    private static final double PLAINS_BERRY_DENSITY = 0.2;
     private static final double FOREST_TREE_DENSITY = 0.5;
     private static final double RAINFOREST_TREE_DENSITY = 0.8;
     private static final double TAIGA_TREE_DENSITY = 0.6;
@@ -74,7 +82,7 @@ public class GameObjectGenerator {
         for (int y = 0; y < chunkSize - 1; y++) {
             for (int x = 0; x < chunkSize - 1; x++) {
                 if (rand.nextFloat() < WATER_FISH_DENSITY) {
-                    Fish newObject = new Fish("fishes", x, y, chunkX, chunkY, "fish");
+                    Fish newObject = new Fish(x, y, chunkX, chunkY);
                     newObject.setID(id);
                     if (!isOverlapping(newObject, gobs)) {
                         id++;
@@ -104,6 +112,14 @@ public class GameObjectGenerator {
                 }
                 if (rand.nextFloat() < PLAINS_GRASS_DENSITY) {
                     Grass newObject = new Grass(rand, x, y, chunkX, chunkY);
+                    newObject.setID(id);
+                    if (!isOverlapping(newObject, gobs)) {
+                        gobs.add(newObject);
+                        id++;
+                    }
+                }
+                if(rand.nextFloat() < PLAINS_BERRY_DENSITY){
+                    BerryBush newObject = new BerryBush(rand, x, y, chunkX, chunkY);
                     newObject.setID(id);
                     if (!isOverlapping(newObject, gobs)) {
                         gobs.add(newObject);
@@ -188,5 +204,31 @@ public class GameObjectGenerator {
             }
         }
         return false; // No overlap
+    }
+
+    public static GameObject generateEnemyForBiome(List<GameObject> gobs, Random rand, Biome biome, int chunkX, int chunkY) {
+        return switch(biome){
+            case PLAINS -> makeZombie(gobs, rand, chunkX, chunkY);
+            case DESERT -> makeSpider(gobs, rand, chunkX, chunkY);
+            default -> null;
+        };
+    }
+
+    private static GameObject makeZombie(List<GameObject> gobs, Random rand, int chunkX, int chunkY) {
+        if(rand.nextFloat(1000) < 999.95) return null;
+        int x = rand.nextInt(ChunkManager.CHUNK_SIZE);
+        int y = rand.nextInt(ChunkManager.CHUNK_SIZE);
+        Zombie nZombie = new Zombie(x, y, chunkX, chunkY);
+        nZombie.setID(gobs.size());
+        return nZombie;
+    }
+
+    private static GameObject makeSpider(List<GameObject> gobs, Random rand, int chunkX, int chunkY) {
+        if(rand.nextFloat(1000) < 999.95) return null;
+        int x = rand.nextInt(ChunkManager.CHUNK_SIZE);
+        int y = rand.nextInt(ChunkManager.CHUNK_SIZE);
+        Spider nSpider = new Spider(x, y, chunkX, chunkY);
+        nSpider.setID(gobs.size());
+        return nSpider;
     }
 }

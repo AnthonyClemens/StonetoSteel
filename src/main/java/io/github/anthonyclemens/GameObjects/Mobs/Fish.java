@@ -2,9 +2,6 @@ package io.github.anthonyclemens.GameObjects.Mobs;
 
 import java.util.Random;
 
-import org.newdawn.slick.Animation;
-
-import io.github.anthonyclemens.GameObjects.SerializableSupplier;
 import io.github.anthonyclemens.GameObjects.SingleTileObjects.Item;
 import io.github.anthonyclemens.Rendering.IsoRenderer;
 import io.github.anthonyclemens.Rendering.SpriteManager;
@@ -16,13 +13,15 @@ public class Fish extends Mob{
     private final Item droppedItem;
     private boolean dropItem = false;
 
-    public Fish(String tileSheet, int x, int y, int chunkX, int chunkY, String objName) {
-        super(tileSheet, x, y, chunkX, chunkY, objName, 20);
-        this.animationLoader = (SerializableSupplier<Animation>) () -> {
-            int fish = new Random().nextInt(3);
-            return SpriteManager.getAnimation("fishes", fish, 0, fish, 0, 100);
-        };
-        this.droppedItem = new Item("fishes", "ITEM_FISH", 0, x, y, chunkX, chunkY);
+    public Fish(int x, int y, int chunkX, int chunkY) {
+        super("fishes", x, y, chunkX, chunkY, "fish", 20);
+        String spriteSheet = "fishes";
+        this.animationIndex = new Random().nextInt(3)*2;
+        animationLoaders.put(Direction.UP, () -> SpriteManager.getAnimation(spriteSheet, this.animationIndex, 0, this.animationIndex, 0, 100));
+        animationLoaders.put(Direction.DOWN, () -> SpriteManager.getAnimation(spriteSheet, this.animationIndex, 0, this.animationIndex, 0, 100));
+        animationLoaders.put(Direction.LEFT, () -> SpriteManager.getAnimation(spriteSheet, this.animationIndex+1, 0, this.animationIndex+1, 0, 100));
+        animationLoaders.put(Direction.RIGHT, () -> SpriteManager.getAnimation(spriteSheet, this.animationIndex, 0, this.animationIndex, 0, 100));
+        this.droppedItem = new Item(spriteSheet, "ITEM_FISH", this.animationIndex, x, y, chunkX, chunkY);
         this.droppedItem.setQuantity(1);
         this.biome = Biome.WATER;
         this.mobSpeed=1f;
@@ -34,15 +33,15 @@ public class Fish extends Mob{
 
     @Override
     public void update(IsoRenderer r, int deltaTime) {
-        int[] currentLoc = r.screenToIsometric(renderX, renderY);
         if(this.dropItem){
+            int[] currentLoc = r.screenToIsometric(renderX, renderY);
             Chunk thisChunk = r.getChunkManager().getChunk(chunkX, chunkY);
             this.droppedItem.setLocation(currentLoc[0],currentLoc[1],currentLoc[2],currentLoc[3]);
             this.droppedItem.setID(thisChunk.getGameObjects().size());
             thisChunk.addGameObject(this.droppedItem);
         }
         super.update(r,deltaTime);
-        if(r.getChunkManager().getBiomeForChunk(currentLoc[2], currentLoc[3])!=this.biome) this.removeHealth(1);
+        if(r.getChunkManager().getBiomeForChunk(chunkX,chunkY)!=this.biome) this.removeHealth(1);
     }
 
     @Override
@@ -53,7 +52,7 @@ public class Fish extends Mob{
         }
         this.health -= amount;
         if(this.lod<2) Game.passiveMobSoundBox.playRandomSound("fishHurt");
-        if (this.health < 0) {
+        if (this.health <= 0) {
             this.dropItem = true;
             this.health = 0;
         }

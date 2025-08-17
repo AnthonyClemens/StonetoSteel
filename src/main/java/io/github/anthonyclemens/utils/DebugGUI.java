@@ -20,36 +20,31 @@ public class DebugGUI {
         return (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024L * 1024L) + "MB";
     }
 
-    private int[] getSelectedBlock(IsoRenderer renderer, Player player) {
-        if (renderer == null || player == null) {
-            return new int[4];
-        }
-        return renderer.screenToIsometric(player.getRenderX(), player.getRenderY());
-    }
     public void renderDebugGUI(Graphics g, GameContainer container, IsoRenderer renderer, Player player, float zoom, JukeBox jukeBox, SoundBox ambientSoundBox) {
         g.setColor(Color.black);
         int index = 0;
 
-        int[] selectedBlock = getSelectedBlock(renderer, player);
+        int[] selectedBlock = player.getPlayerLocation();
 
         String tile = (selectedBlock.length >= 2) ? selectedBlock[0] + ", " + selectedBlock[1] : "N/A";
         String chunk = (selectedBlock.length >= 4) ? selectedBlock[2] + ", " + selectedBlock[3] : "N/A";
         String biome = "N/A";
-        if (renderer != null && player != null && selectedBlock.length >= 4) {
+        if (renderer != null &&  selectedBlock.length >= 4) {
             biome = String.valueOf(renderer.getChunkManager().getBiomeForChunk(selectedBlock[2], selectedBlock[3]));
         }
         String song = (jukeBox != null) ? jukeBox.getCurrentSong() : "N/A";
         String ambient = (ambientSoundBox != null) ? ambientSoundBox.getCurrentSound() : "N/A";
-        String playerSound = (player != null) ? player.getSound() : "N/A";
-        String playerPos = (player != null) ? player.getX() + ", " + player.getY() : "N/A";
-        String playerHealth = (player != null) ? String.valueOf(player.getHealth()) : "N/A";
+        String playerSound = player.getSound();
+        String playerPos = player.getX() + ", " + player.getY();
+        String playerHealth = String.valueOf(player.getHealth());
         String seed = (renderer != null ? String.valueOf(renderer.getChunkManager().getSeed()) : "N/A");
         String paused = (Game.paused) ? "Yes" : "No";
-        String camMove = (renderer.isCameraMoving()) ? "Yes" : "No";
+        String usingFastGraphics = (renderer.isUseFastGraphics()) ? "Yes" : "No";
 
         String[] debugStrings = new String[] {
             "FPS: " + container.getFPS() + " FPS",
             "Memory Usage: " + getMemUsage(),
+            "Using Fast Graphics: " + usingFastGraphics,
             "Mouse: " + container.getInput().getMouseX() + ", " + container.getInput().getMouseY(),
             "Tile: " + tile,
             "Chunk: " + chunk,
@@ -62,7 +57,6 @@ public class DebugGUI {
             "Player health: " + playerHealth,
             "World Seed: " + seed,
             "Game Paused: " + paused,
-            "Camera Moving: " + camMove
         };
 
         for (String s : debugStrings) {

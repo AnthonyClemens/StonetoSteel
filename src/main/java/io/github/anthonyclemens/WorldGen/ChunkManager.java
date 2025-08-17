@@ -43,8 +43,8 @@ public class ChunkManager implements Serializable {
     public ChunkManager(int seed) {
         this.seed = seed;
         this.elevationGen = new PerlinNoise(seed);
-        this.moistureGen = new PerlinNoise(seed + 1000);
-        this.temperatureGen = new PerlinNoise(seed + 5000);
+        this.moistureGen = new PerlinNoise(seed + 1123);
+        this.temperatureGen = new PerlinNoise(seed + 56424);
         Log.debug("ChunkManager initialized for infinite world generation with seed: " + seed);
     }
 

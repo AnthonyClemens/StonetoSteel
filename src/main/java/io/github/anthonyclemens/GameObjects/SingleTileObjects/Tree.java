@@ -25,7 +25,7 @@ public class Tree extends SingleTileObject{
     public Tree(Random rand, int x, int y, int chunkX, int chunkY) {
         super(null,"",-1, x, y, chunkX, chunkY);
         this.rand = rand;
-        this.droppedItem = new Item("main", "ITEM_WOOD", 110, x, y, chunkX, chunkY);
+        this.droppedItem = new Item(Items.ITEM_WOOD, x, y, chunkX, chunkY);
         if (this.rand.nextFloat() < 0.75) {
             this.name = "bigTree";
             this.tileSheet = "bigtrees";
@@ -52,7 +52,7 @@ public class Tree extends SingleTileObject{
     public Tree(Random rand, int x, int y, int chunkX, int chunkY, float bigTreeProbability) {
         super(null,"",-1, x, y, chunkX, chunkY);
         this.rand = rand;
-        this.droppedItem = new Item("main", "ITEM_WOOD", 110, x, y, chunkX, chunkY);
+        this.droppedItem = new Item(Items.ITEM_WOOD, x, y, chunkX, chunkY);
         if (this.rand.nextFloat() < bigTreeProbability) {
             this.name = "bigTree";
             this.tileSheet = "bigtrees";
@@ -79,10 +79,10 @@ public class Tree extends SingleTileObject{
     public Tree(Random rand, int x, int y, int chunkX, int chunkY, boolean specialTrees) {
         super(null,"",-1, x, y, chunkX, chunkY);
         this.rand = rand;
-        this.droppedItem = new Item("main", "ITEM_WOOD", 110, x, y, chunkX, chunkY);
+        this.droppedItem = new Item(Items.ITEM_WOOD, x, y, chunkX, chunkY);
         this.name = "bigTree";
         this.tileSheet = "specialtrees";
-        this.i = (byte) rand.nextInt(17);
+        this.i = (byte) rand.nextInt(16);
         this.health = 50;
         this.shakeDuration = 500;
         this.shakeAggression = 6;
@@ -95,10 +95,10 @@ public class Tree extends SingleTileObject{
 
     @Override
     public void render(IsoRenderer r, int lodLevel) {
-        float renderX = r.calculateIsoX(x, y, chunkX, chunkY) + offsetX*r.getZoom();
-        float renderY = r.calculateIsoY(x, y, chunkX, chunkY) + offsetY*r.getZoom();
+        renderX = r.calculateIsoX(x, y, chunkX, chunkY) + offsetX*r.getZoom();
+        renderY = r.calculateIsoY(x, y, chunkX, chunkY) + offsetY*r.getZoom();
         r.drawTileIso(tileSheet, i, renderX, renderY);
-        if(Game.showDebug){
+        if(Game.showDebug&&this.hitbox!=null){
             //r.getGraphics().setColor(Color.red);
            // r.getGraphics().drawString("Health: "+this.health+"/"+this.maxHealth, renderX, renderY);
             r.getGraphics().setColor(Color.black);

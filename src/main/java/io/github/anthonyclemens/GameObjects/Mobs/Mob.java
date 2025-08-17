@@ -1,5 +1,7 @@
 package io.github.anthonyclemens.GameObjects.Mobs;
 
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Random;
 
 import org.lwjgl.Sys;
@@ -19,11 +21,11 @@ import io.github.anthonyclemens.states.Game;
 public class Mob extends GameObject {
     // Animation & Visual State
     protected transient Animation currentAnimation;
-    protected SerializableSupplier<Animation> animationLoader;
+    protected Map<Direction, SerializableSupplier<Animation>> animationLoaders = new EnumMap<>(Direction.class);
+    protected Direction currentDirection = Direction.DOWN;
+    protected int animationIndex = 0;
     protected SerializableSupplier<SoundBox> soundLoader;
     protected transient SoundBox soundBox;
-    protected transient float renderX;                // Final screen-space X position
-    protected transient float renderY;                // Final screen-space Y position
     protected Color colorOverlay;          // Optional color tint for the mob
 
     // Logical Positioning
@@ -33,8 +35,11 @@ public class Mob extends GameObject {
     // Pathfinding & Destination
     private transient int destinationX;            // Target X tile
     private transient int destinationY;            // Target Y tile
-    private final int wanderDistance;    // Max radius for wandering
-    private final Random rand;           // Seeded RNG for deterministic motion
+    private transient int nextDestinationX;            // Target X tile
+    private transient int nextDestinationY;            // Target Y tile
+    protected final Random rand;           // Seeded RNG for deterministic motion
+    protected final int visionDistance; // Sets the vision distance for pathfinding
+    protected float intelligence = 0; // Sets the percentage chance that the mob will lock onto the player
 
     // Sway & Movement Styling
     protected float mobSpeed = 4f;       // Movement speed (pixels per second?)
@@ -47,14 +52,22 @@ public class Mob extends GameObject {
     protected long damageCooldown = 1000; // Cooldown time between damage in milliseconds
     protected static final int HURT_FLASH_DURATION_MS = 250; // Duration of red flash in ms
     protected byte lod = 0;
+    private Direction lastDirection = null;
 
-    public Mob(String tileSheet, int x, int y, int chunkX, int chunkY, String objName, int wanderDistance) {
+    public enum Direction {
+        UP, DOWN, LEFT, RIGHT
+    }
+
+    public Mob(String tileSheet, int x, int y, int chunkX, int chunkY, String objName, int visionDistance) {
         super(tileSheet, x, y, chunkX, chunkY, objName);
-        this.wanderDistance = wanderDistance;
+        this.visionDistance = visionDistance;
         this.rand = new Random(SharedData.getSeed()+Sys.getTime());
         this.swayOffset = this.rand.nextFloat()* sway;
         this.fx = x;
         this.fy = y;
+        this.alwaysCalcHitbox = true;
+        this.destinationX=x;
+        this.destinationY=y;
     }
 
     public void setSway(float newSway){
@@ -64,8 +77,8 @@ public class Mob extends GameObject {
     public void wander(IsoRenderer r) {
         int tries = 20;
         while (tries-- > 0) {
-            int candidateX = x + rand.nextInt(wanderDistance * 2) - wanderDistance;
-            int candidateY = y + rand.nextInt(wanderDistance * 2) - wanderDistance;
+            int candidateX = x + rand.nextInt(visionDistance * 2) - visionDistance;
+            int candidateY = y + rand.nextInt(visionDistance * 2) - visionDistance;
 
             float isoX = r.calculateIsoX(candidateX, candidateY, chunkX, chunkY);
             float isoY = r.calculateIsoY(candidateX, candidateY, chunkX, chunkY);
@@ -89,7 +102,19 @@ public class Mob extends GameObject {
         float dy = destinationY - fy;
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
 
-        if (distance < 1f && peaceful) {
+        double angle = Math.atan2(dy, dx);
+
+        if (angle >= -Math.PI / 4 && angle < Math.PI / 4) {
+            currentDirection = Direction.RIGHT;
+        } else if (angle >= Math.PI / 4 && angle < 3 * Math.PI / 4) {
+            currentDirection = Direction.DOWN;
+        } else if (angle >= -3 * Math.PI / 4 && angle < -Math.PI / 4) {
+            currentDirection = Direction.UP;
+        } else {
+            currentDirection = Direction.LEFT;
+        }
+
+        if (distance < 2f){
             wander(r);
             return;
         }
@@ -139,17 +164,27 @@ public class Mob extends GameObject {
             chunkY = newChunkY;
             r.getChunkManager().moveGameObjectToChunk(this, oldChunkX, oldChunkY, chunkX, chunkY);
         }
-
     }
 
     @Override
     public void update(IsoRenderer r, int deltaTime) {
-        if (currentAnimation == null && animationLoader != null) {
-            currentAnimation = animationLoader.get();
+        if (animationLoaders != null) {
+            // Only update animation if direction changed
+            if (currentAnimation == null || currentDirection != lastDirection) {
+                SerializableSupplier<Animation> loader = animationLoaders.get(currentDirection);
+                if (loader != null) {
+                    currentAnimation = loader.get();
+                    lastDirection = currentDirection;
+                }
+            }
         }
+
         swayTime += deltaTime;
-        moveTowardsDestination(deltaTime,r);
-        if (currentAnimation != null) currentAnimation.update(deltaTime);
+        moveTowardsDestination(deltaTime, r);
+
+        if (currentAnimation != null) {
+            currentAnimation.update(deltaTime);
+        }
     }
 
     @Override
@@ -161,7 +196,6 @@ public class Mob extends GameObject {
             currentAnimation.draw(renderX, renderY,
             currentAnimation.getWidth() * r.getZoom(),
             currentAnimation.getHeight() * r.getZoom(), new Color(255, 0, 0, 120));
-            if(peaceful) wander(r);
         }else{
             currentAnimation.draw(renderX, renderY,
             currentAnimation.getWidth() * r.getZoom(),
@@ -171,7 +205,7 @@ public class Mob extends GameObject {
         if (Game.showDebug&&this.hitbox!=null&&lodLevel<2) {
             //r.getGraphics().setColor(Color.red);
             //r.getGraphics().drawString("Health: "+this.health+"/"+this.maxHealth, renderX, renderY);
-            r.getGraphics().setColor(Color.green);
+            r.getGraphics().setColor((this.peaceful) ? Color.green : Color.red);
             r.getGraphics().draw(hitbox);
 
             float destRenderX = r.calculateIsoX(destinationX, destinationY, chunkX, chunkY);
@@ -209,31 +243,58 @@ public class Mob extends GameObject {
 
     @Override
     public void calculateHitbox(IsoRenderer r) {
-        if(this.hitbox==null) this.hitbox = new Rectangle(0,0,0,0);
-        if (r.isCameraMoving()) {
-            renderX = r.calculateIsoX((int) fx, (int) fy, chunkX, chunkY);
-            renderY = r.calculateIsoY((int) fx, (int) fy, chunkX, chunkY);
-        } else {
-            float swayX = (float) Math.sin((swayTime + swayOffset) / 300.0) * 0.3f;
-            float swayY = (float) Math.cos((swayTime + swayOffset) / 400.0) * 0.3f;
+        if (this.hitbox == null) this.hitbox = new Rectangle(0, 0, 0, 0);
 
-            // Apply sway to logical position, not screen space
-            float swayedX = fx + swayX;
-            float swayedY = fy + swayY;
+        // Apply sway to logical position
+        float swayX = (float) Math.sin((swayTime + swayOffset) / 300.0) * 0.3f;
+        float swayY = (float) Math.cos((swayTime + swayOffset) / 400.0) * 0.3f;
 
-            // Then project swayed position to screen
-            float renderTargetX = r.calculateIsoX((int) swayedX, (int) swayedY, chunkX, chunkY);
-            float renderTargetY = r.calculateIsoY((int) swayedX, (int) swayedY, chunkX, chunkY);
+        float swayedX = fx + swayX;
+        float swayedY = fy + swayY;
 
-            // Now interpolate
-            renderX += (renderTargetX - renderX) * smoothness;
-            renderY += (renderTargetY - renderY) * smoothness;
-        }
-        if (currentAnimation != null&& r.isCameraMoving()){
+        // Project swayed position to screen space
+        float renderTargetX = r.calculateIsoX((int) swayedX, (int) swayedY, chunkX, chunkY);
+        float renderTargetY = r.calculateIsoY((int) swayedX, (int) swayedY, chunkX, chunkY);
+
+        // Interpolation factor: instant if camera is moving, smooth otherwise
+        float interpolationFactor = r.isCameraMoving() ? 0.5f : smoothness;
+
+        renderX += (renderTargetX - renderX) * interpolationFactor;
+        renderY += (renderTargetY - renderY) * interpolationFactor;
+
+        if (currentAnimation != null) {
             hitbox.setBounds(renderX, renderY,
                 currentAnimation.getWidth() * r.getZoom(),
                 currentAnimation.getHeight() * r.getZoom());
         }
+    }
+
+    public void setDestinationByGlobalPosition(int[] globalLocation) {
+        int chunkSize = ChunkManager.CHUNK_SIZE;
+
+        int absoluteTargetX = globalLocation[2] * chunkSize + globalLocation[0];
+        int absoluteTargetY = globalLocation[3] * chunkSize + globalLocation[1];
+
+        int absoluteCurrentX = this.chunkX * chunkSize + this.x;
+        int absoluteCurrentY = this.chunkY * chunkSize + this.y;
+
+        int deltaX = absoluteTargetX - absoluteCurrentX;
+        int deltaY = absoluteTargetY - absoluteCurrentY;
+
+        this.destinationX = this.x + deltaX + this.rand.nextInt(3)-2;
+        this.destinationY = this.y + deltaY + this.rand.nextInt(3)-2;
+    }
+
+    public int getVisionRadius(){
+        return this.visionDistance;
+    }
+
+    public float getIntelligence(){
+        return this.intelligence;
+    }
+
+    public boolean isPeaceful() {
+        return this.peaceful;
     }
 }
 

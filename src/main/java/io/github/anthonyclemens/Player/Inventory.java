@@ -14,7 +14,12 @@ public class Inventory implements Serializable{
     private final Map<Items, Integer> itemMaxSizes = Map.of(
         Items.ITEM_WOOD, 100,
         Items.ITEM_STONE, 100,
-        Items.ITEM_FISH, 100
+        Items.ITEM_FISH, 100,
+        Items.ITEM_BERRIES, 100,
+        Items.ITEM_BONES, 100,
+        Items.ITEM_CACTUS, 100,
+        Items.ITEM_SEED, 100,
+        Items.ITEM_WOODEN_SWORD, 1
     );
 
     public boolean addItem(Items itemType, int quantity) {

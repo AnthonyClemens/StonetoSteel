@@ -7,6 +7,7 @@ import org.newdawn.slick.util.Log;
 import io.github.anthonyclemens.Logic.DayNightCycle;
 import io.github.anthonyclemens.Player.Player;
 import io.github.anthonyclemens.Rendering.IsoRenderer;
+import io.github.anthonyclemens.Settings;
 import io.github.anthonyclemens.Sound.JukeBox;
 import io.github.anthonyclemens.Sound.SoundBox;
 import io.github.anthonyclemens.WorldGen.Biome;
@@ -39,6 +40,7 @@ public class AmbientSoundManager {
             Log.debug("Switching to " + (isNight ? "night" : "day") + " music...");
             jukeBox.stopMusic();
             jukeBox.playRandomSong(musicType);
+            jukeBox.setVolume(Settings.getInstance().getMusicVolume()*Settings.getInstance().getMainVolume());
             dayNightSwitch = isNight;
             timeSinceLastMusic = System.currentTimeMillis();
             musicDelay = random.nextDouble(30000) + 30000;
@@ -51,6 +53,7 @@ public class AmbientSoundManager {
         if (!jukeBox.isPlaying() && (now - timeSinceLastMusic > musicDelay)) {
             Log.debug("Continuing with " + (isNight ? "night" : "day") + " music...");
             jukeBox.playRandomSong(musicType);
+            jukeBox.setVolume(Settings.getInstance().getMusicVolume()*Settings.getInstance().getMainVolume());
             timeSinceLastMusic = now;
             musicDelay = random.nextDouble(30000) + 30000;
             Log.debug("Next song will play after a " + (int)musicDelay/1000 + "s delay.");
@@ -62,16 +65,17 @@ public class AmbientSoundManager {
             Log.error("Renderer is not attached to AmbientSoundManager.");
             return;
         }
-        int[] playerBlock = renderer.screenToIsometric(player.getRenderX(), player.getRenderY());
         if (env.isSunDown() && !ambientSoundBox.isAnySoundPlaying()) {
+            ambientSoundBox.setVolume(Settings.getInstance().getAmbientVolume()*Settings.getInstance().getMainVolume());
             ambientSoundBox.playRandomSound("nightSounds");
         }
-        Biome currentBiome = renderer.getChunkManager().getBiomeForChunk(playerBlock[2], playerBlock[3]);
+        Biome currentBiome = player.getBiome();
         if (lastBiome != currentBiome) {
             lastBiome = currentBiome;
             ambientSoundBox.stopAllSounds();
         }
         if (env.isSunUp() && !ambientSoundBox.isAnySoundPlaying()) {
+            ambientSoundBox.setVolume(Settings.getInstance().getAmbientVolume()*Settings.getInstance().getMainVolume());
             switch (currentBiome) {
                 case DESERT -> ambientSoundBox.playRandomSound("desertSounds");
                 case PLAINS -> ambientSoundBox.playRandomSound("plainsSounds");

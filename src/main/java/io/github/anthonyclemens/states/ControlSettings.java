@@ -3,6 +3,7 @@ package io.github.anthonyclemens.states;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
@@ -63,7 +64,7 @@ public class ControlSettings extends BasicGameState{
             // Render the game state behind the menu
             SharedData.getGameState().render(container, game, g);
             // Draw a translucent overlay
-            g.setColor(new org.newdawn.slick.Color(0, 0, 0, 180));
+            g.setColor(new Color(0, 0, 0, 180));
             g.fillRect(0, 0, container.getWidth(), container.getHeight());
         } else {
             RenderUtils.drawBackground(backgroundImage,container);

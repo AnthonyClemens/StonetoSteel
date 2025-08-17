@@ -4,14 +4,12 @@ import java.util.Map;
 import java.util.Random;
 
 import org.lwjgl.Sys;
-import org.newdawn.slick.Animation;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.SpriteSheet;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.InputAdapter;
@@ -20,8 +18,9 @@ import org.newdawn.slick.util.Log;
 import com.codedisaster.steamworks.SteamAPI;
 
 import io.github.anthonyclemens.GameObjects.Mobs.Fish;
+import io.github.anthonyclemens.GameObjects.Mobs.Spider;
+import io.github.anthonyclemens.GameObjects.Mobs.Zombie;
 import io.github.anthonyclemens.GameObjects.MultiTileObject;
-import io.github.anthonyclemens.GameObjects.SingleTileObjects.SingleTileObject;
 import io.github.anthonyclemens.GameStates;
 import io.github.anthonyclemens.Logic.Calender;
 import io.github.anthonyclemens.Logic.DayNightCycle;
@@ -54,46 +53,47 @@ public class Game extends BasicGameState{
     private boolean showHUD = true;
     public static boolean paused = false;
     private int updateAccumulator = 0;
-    private final int targetInterval = 1000 / 15;
+    private static final int TARGET_INTERVAL = 1000 / 15;
+    private boolean isRaining = false;
 
     // Game Constants
     private Image backgroundImage;
-    private static final float MIN_ZOOM = 0.10f;
+    private static final float MIN_ZOOM = 0.4f;
+    private static final float DEBUG_MIN_ZOOM = 0.1f;
+    private static final float DAY_LENGTH = 20f; // Length of a day in minutes
+    private static final float SUNRISE_TIME = 7f;
+    private static final float SUNSET_TIME = 19f;
+    private static final int CALENDER_YEAR = 1462;
 
     // Game Objects
+    private Input input;
     private Camera camera;
     private Player player;
     private DayNightCycle env;
     private Calender calender;
     private IsoRenderer renderer;
-    public static JukeBox jukeBox;
-    public static SoundBox ambientSoundBox;
-    public static SoundBox passiveMobSoundBox;
-    public static SoundBox enemyMobSoundBox;
-    public static SoundBox gameObjectSoundBox;
     ChunkManager chunkManager;
-
-    // Debug Related Variables
-    public static boolean showDebug = true;
-    public static boolean soundDebug = false;
-    public static boolean showCursorLoc = false;
-
     private CollisionHandler collisionHandler;
     private DebugGUI debugGUI;
     private DisplayHUD displayHUD;
     private AmbientSoundManager ambientSoundManager;
     private SaveLoadManager saveLoadManager;
 
+    public static JukeBox jukeBox;
+    public static SoundBox ambientSoundBox;
+    public static SoundBox passiveMobSoundBox;
+    public static SoundBox enemyMobSoundBox;
+    public static SoundBox gameObjectSoundBox;
 
+    // Debug Related Variables
+    public static boolean showDebug = true;
+    public static boolean soundDebug = false;
+    public static boolean showCursorLoc = false;
     private Profiler updateProfiler;
-    private Profiler renderProfiler;
     int frameCounter = 0;
-    final int updateInterval = 8;
-
-    Map<String, Float> updateData = null;
-    Map<String, Float> renderData = null;
-    Color[] updateColors = null;
-    Color[] renderColors = null;
+    private static final int UPDATE_INTERVAL = 8;
+    Map<String, String> updateData = null;
+    Map<String, String> renderData = null;
 
 
     @Override
@@ -103,84 +103,20 @@ public class Game extends BasicGameState{
 
     @Override
     public void enter(GameContainer container, StateBasedGame game) throws SlickException {
-        updateProfiler = new Profiler();
-        renderProfiler = new Profiler();
+        initProfiling(container);
+        initSystems();
+        logGameState();
 
-        this.backgroundImage = new Image("textures/MissingTexture.png");
-
-        collisionHandler = new CollisionHandler();
-        debugGUI = new DebugGUI();
-        displayHUD = new DisplayHUD();
-        saveLoadManager = new SaveLoadManager();
-        Settings settings = Settings.getInstance();
-        Log.debug("Entering Game State with hotstart: " + SharedData.isHotstart() + ", loading save: " + SharedData.isLoadingSave()
-                + ", new game: " + SharedData.isNewGame());
-        ambientSoundBox.setVolume(settings.getMainVolume()*settings.getAmbientVolume());
-        jukeBox.setVolume(settings.getMainVolume()*settings.getMusicVolume());
-        passiveMobSoundBox.setVolume(settings.getMainVolume()*settings.getFriendlyVolume());
-        enemyMobSoundBox.setVolume(settings.getMainVolume()*settings.getEnemyVolume());
-        gameObjectSoundBox.setVolume(settings.getMainVolume()*settings.getFriendlyVolume());
-        if(SharedData.isHotstart() && !SharedData.isLoadingSave()){
+        if (handleHotstart()) {
+            setVolumes();
             return;
         }
-        SharedData.setHotstart(true);
-        SharedData.setGameState(this);
-        calender = new Calender(1, 1, 1462);
-        env = new DayNightCycle(20f, 7f, 19f, calender);
-        if(SharedData.isNewGame()|| !SaveLoadManager.exists(SharedData.getSaveFilePath())){
-            //Initialize the ChunkManager with randomly generated seed
-            Random r = new Random(Sys.getTime());
-            chunkManager = new ChunkManager(r.nextInt());
-            createNewPlayer(container.getWidth()/2f, container.getHeight()/2f, 0.075f, 100);
-        }else{
-            saveLoadManager.loadGame(SharedData.getSaveFilePath(), container);
-            chunkManager = saveLoadManager.getRenderer().getChunkManager();
-            createNewPlayer(saveLoadManager.getPlayerX(), saveLoadManager.getPlayerY(), saveLoadManager.getPlayerSpeed(), saveLoadManager.getPlayerHealth());
-            env = saveLoadManager.getDayNightCycle();
-            player.setPlayerInventory(saveLoadManager.getPlayerInventory());
-        }
-        player.setVolume(settings.getMainVolume()*settings.getPlayerVolume());
-        SharedData.setLoadingSave(false);
-        renderer = new IsoRenderer(zoom, "main", chunkManager, container);
-        chunkManager.attachRenderer(renderer);
-        ambientSoundManager = new AmbientSoundManager(jukeBox, ambientSoundBox);
-        ambientSoundManager.attachRenderer(renderer);
-        camera = new Camera(player.getX(), player.getY());
 
-        if(soundDebug){
-            passiveMobSoundBox.setDebug(true);
-            enemyMobSoundBox.setDebug(true);
-            gameObjectSoundBox.setDebug(true);
-        }
-    }
-
-    private void createNewPlayer(float x, float y, float speed, int health) throws SlickException{
-        SpriteSheet playerSheet = new SpriteSheet("textures/Player/test.png", 16, 17);
-        // Define animations for the player
-        Animation[] animations = new Animation[8];
-        int animationDuration = 140; // Duration of each animation frame in milliseconds
-        animations[0] = new Animation(playerSheet, 0, 0, 0, 2, false, animationDuration, true); // Up
-        animations[1] = new Animation(playerSheet, 1, 0, 1, 2, false, animationDuration, true); // Up-right
-        animations[2] = new Animation(playerSheet, 2, 0, 2, 2, false, animationDuration, true); // Right
-        animations[3] = new Animation(playerSheet, 3, 0, 3, 2, false, animationDuration, true); // Down-right
-        animations[4] = new Animation(playerSheet, 4, 0, 4, 2, false, animationDuration, true); // Down
-        animations[5] = new Animation(playerSheet, 5, 0, 5, 2, false, animationDuration, true); // Down-left
-        animations[6] = new Animation(playerSheet, 6, 0, 6, 2, false, animationDuration, true); // Left
-        animations[7] = new Animation(playerSheet, 7, 0, 7, 2, false, animationDuration, true); // Up-left
-
-
-        Animation[] idleAnimations = new Animation[8];
-        idleAnimations[0] = new Animation(playerSheet, 0, 1, 0, 1, false, animationDuration, true); // Idle Up
-        idleAnimations[1] = new Animation(playerSheet, 1, 1, 1, 1, false, animationDuration, true); // Idle Up-right
-        idleAnimations[2] = new Animation(playerSheet, 2, 1, 2, 1, false, animationDuration, true); // Idle Right
-        idleAnimations[3] = new Animation(playerSheet, 3, 1, 3, 1, false, animationDuration, true); // Idle Down-right
-        idleAnimations[4] = new Animation(playerSheet, 4, 1, 4, 1, false, animationDuration, true); // Idle Down
-        idleAnimations[5] = new Animation(playerSheet, 5, 1, 5, 1, false, animationDuration, true); // Idle Down-left
-        idleAnimations[6] = new Animation(playerSheet, 6, 1, 6, 1, false, animationDuration, true); // Idle Left
-        idleAnimations[7] = new Animation(playerSheet, 7, 1, 7, 1, false, animationDuration, true); // Idle Up-left
-
-        player = new Player(x, y, speed, animations, idleAnimations);
-        player.setHealth(health);
+        initSharedData();
+        initWorld(container);
+        initRenderer(container);
+        initAudio();
+        initDebugging();
     }
 
     @Override
@@ -206,7 +142,7 @@ public class Game extends BasicGameState{
             @Override
             public void mouseWheelMoved(int change) {
                 zoom += change * 0.001f;
-                zoom = Math.min(Math.max(MIN_ZOOM, zoom), 8f);
+                zoom = Math.min(Math.max((showDebug) ? DEBUG_MIN_ZOOM : MIN_ZOOM, zoom), 8f);
             }
         });
     }
@@ -215,21 +151,20 @@ public class Game extends BasicGameState{
     public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException {
         updateProfiler.begin();
         updateAccumulator += delta;
-        if (updateAccumulator >= targetInterval) {
+        if (updateAccumulator >= TARGET_INTERVAL) {
             SteamAPI.runCallbacks();
             if(!paused){
                 ambientSoundManager.playAmbientMusic(env);
                 ambientSoundManager.playAmbientSounds(env, player);
             }
-            updateAccumulator -= targetInterval;
+            updateAccumulator -= TARGET_INTERVAL;
         }
-        updateProfiler.tick("SteamAPI Callback, Ambient Sound and Music");
-        renderer.update(container, zoom, cameraX, cameraY);
+        updateProfiler.tick("SteamAPI Callback, Sound and Music");
+        renderer.update(container, zoom, cameraX, cameraY, env.isSunUp());
         updateProfiler.tick("Renderer update");
         renderer.calculateHitbox(renderer, player);
         updateProfiler.tick("Hitbox Calculation");
 
-        Input input = container.getInput();
         updateKeyboard(game, delta, input);
         updateMouse(input);
         updateProfiler.tick("Input updates");
@@ -240,6 +175,7 @@ public class Game extends BasicGameState{
         updateProfiler.tick("Player update");
         if(!paused) {
             collisionHandler.checkPlayerCollision(player, chunkManager.getChunk(playerLoc[2], playerLoc[3]));
+            //collisionHandler.checkMobCollision(chunkManager);
         }
         updateProfiler.tick("Collision handler");
 
@@ -251,25 +187,16 @@ public class Game extends BasicGameState{
             updateProfiler.tick("Player interaction");
 
             env.updateDayNightCycle(delta);
-            renderer.updateVisibleChunks(delta,player);
+            renderer.updateChunksAroundPlayer(delta,player);
             updateProfiler.tick("Update Visible Chunks and GameObjects");
-            if(showCursorLoc&&input.isMouseButtonDown(Input.MOUSE_LEFT_BUTTON)){
-                int[] cursorLoc = renderer.screenToIsometric(container.getInput().getMouseX(), container.getInput().getMouseY());
-                SingleTileObject test = new SingleTileObject("main","snow", 17, cursorLoc[0]-2, cursorLoc[1]-1, cursorLoc[2], cursorLoc[3]);
-                test.setSolid(false);
-                chunkManager.getChunk(cursorLoc[2], cursorLoc[3]).addGameObject(test);
-            }
         }
     }
 
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException {
-        renderProfiler.begin();
         backgroundImage.draw(0, 0, container.getWidth(), container.getHeight());
         renderer.render();
-        renderProfiler.tick("Chunks");
         player.render(container, zoom, camera.getX(), camera.getY());
-        renderProfiler.tick("Player");
         env.renderOverlay(container, g);
         if (showHUD) displayHUD.renderHUD(container, g, calender, env, player);
         if (showCursorLoc){
@@ -278,18 +205,15 @@ public class Game extends BasicGameState{
         }
         if (showDebug) debugGUI.renderDebugGUI(g, container, renderer, player, zoom, jukeBox, ambientSoundBox);
         frameCounter++;
-        if (frameCounter >= updateInterval && showDebug) {
-            updateData = updateProfiler.getPercentages();
-            renderData = renderProfiler.getPercentages();
-
-            updateColors = generateColors(updateData.size());
-            renderColors = generateColors(renderData.size());
+        if (frameCounter >= UPDATE_INTERVAL && showDebug) {
+            updateData = updateProfiler.getAdaptiveTimes();
+            renderData = renderer.getProfiler().getAdaptiveTimes();
 
             frameCounter = 0;
         }
         if (updateData != null && renderData != null && showDebug) {
-            drawLegend(g, updateData, updateColors, 0, container.getHeight()-(updateData.size()*24f), 20);
-            drawLegend(g, renderData, renderColors, 400, container.getHeight()-(updateData.size()*24f),20);
+            drawLegend(g, updateData, 0, container.getHeight()-(updateData.size()*24f), 20);
+            drawLegend(g, renderData, 420, container.getHeight()-(updateData.size()*24f),20);
         }
     }
 
@@ -312,7 +236,7 @@ public class Game extends BasicGameState{
         }
         if (input.isKeyPressed(Input.KEY_F3)) showDebug=!showDebug;
         if (input.isKeyPressed(Input.KEY_F4)) showCursorLoc=!showCursorLoc;
-        if (input.isKeyPressed(Input.KEY_F11)){
+        if (input.isKeyPressed(Input.KEY_F11)||(input.isKeyDown(Input.KEY_LALT) && input.isKeyPressed(Input.KEY_ENTER))){
             boolean toggleFullscreen = !game.getContainer().isFullscreen();
             game.getContainer().setFullscreen(toggleFullscreen);
         }
@@ -320,32 +244,47 @@ public class Game extends BasicGameState{
             int[] clickedLoc = renderer.screenToIsometric(input.getMouseX(), input.getMouseY());
             Chunk clickedChunk = chunkManager.getChunk(clickedLoc[2], clickedLoc[3]);
             int numGobs = clickedChunk.getGameObjects().size();
-            Fish nFish = new Fish("fishs", clickedLoc[0], clickedLoc[1], clickedLoc[2], clickedLoc[3], "fish");
+            Fish nFish = new Fish(clickedLoc[0], clickedLoc[1], clickedLoc[2], clickedLoc[3]);
             nFish.setID(numGobs);
             clickedChunk.addGameObject(nFish);
+        }
+        if (input.isKeyDown(Input.KEY_LSHIFT) && input.isKeyPressed(Input.KEY_C)){
+            if (renderer.isUseFastGraphics()) {
+                renderer.setUseFastGraphics(false);
+                Log.info("Switched to normal graphics mode.");
+            } else {
+                renderer.setUseFastGraphics(true);
+                Log.info("Switched to fast graphics mode.");
+            }
+        }
+        if (input.isKeyPressed(Input.KEY_Z)){
+            int[] clickedLoc = renderer.screenToIsometric(input.getMouseX(), input.getMouseY());
+            Chunk clickedChunk = chunkManager.getChunk(clickedLoc[2], clickedLoc[3]);
+            int numGobs = clickedChunk.getGameObjects().size();
+            Zombie nZomb = new Zombie(clickedLoc[0], clickedLoc[1], clickedLoc[2], clickedLoc[3]);
+            nZomb.setID(numGobs);
+            nZomb.setDestinationByGlobalPosition(player.getPlayerLocation());
+            clickedChunk.addGameObject(nZomb);
+        }
+        if (input.isKeyPressed(Input.KEY_T)){
+            int[] clickedLoc = renderer.screenToIsometric(input.getMouseX(), input.getMouseY());
+            Chunk clickedChunk = chunkManager.getChunk(clickedLoc[2], clickedLoc[3]);
+            int numGobs = clickedChunk.getGameObjects().size();
+            Spider nSpider = new Spider(clickedLoc[0], clickedLoc[1], clickedLoc[2], clickedLoc[3]);
+            nSpider.setID(numGobs);
+            nSpider.setDestinationByGlobalPosition(player.getPlayerLocation());
+            clickedChunk.addGameObject(nSpider);
         }
         if (input.isKeyPressed(Input.KEY_P)) paused = !paused;
         if (input.isKeyPressed(Input.KEY_B)){
             int[] clickedLoc = renderer.screenToIsometric(input.getMouseX(), input.getMouseY());
             Chunk clickedChunk = chunkManager.getChunk(clickedLoc[2], clickedLoc[3]);
             int numGobs = clickedChunk.getGameObjects().size();
-            MultiTileObject test = new MultiTileObject("main", clickedLoc[0], clickedLoc[1], clickedLoc[2], clickedLoc[3], "test");
-            test.addBlock(30, 2, 2, 0);
-            test.addBlock(30, 2, 2, 1);
-            test.addBlock(30, 2, 2, 2);
-            test.addBlock(40, 2, 2, 4);
-            test.addBlock(40, 3, 2, 3);
-            test.addBlock(40, 3, 3, 3);
-            test.addBlock(40, 2, 3, 3);
-            test.addBlock(40, 1, 3, 3);
-            test.addBlock(40, 1, 1, 3);
-            test.addBlock(40, 1, 2, 3);
-            test.addBlock(40, 2, 1, 3);
-            test.addBlock(40, 3, 3, 3);
-            test.addBlock(40, 3, 1, 3);
+            MultiTileObject test = new MultiTileObject("mtos/tree.mto", clickedLoc[0], clickedLoc[1], clickedLoc[2], clickedLoc[3]);
             test.setID(numGobs);
             clickedChunk.addGameObject(test);
         }
+        if(input.isKeyPressed(Input.KEY_R)) isRaining = !isRaining;
     }
 
     private void updateMouse(Input input){
@@ -400,31 +339,106 @@ public class Game extends BasicGameState{
         if (gameObjectSoundBox != null) gameObjectSoundBox.stopAllSounds();
     }
 
-    public void drawLegend(Graphics g, Map<String, Float> data, Color[] colors, float startX, float startY, int spacingY) {
+    public void drawLegend(Graphics g, Map<String, String> data, float startX, float startY, int spacingY) {
         int index = 0;
+        g.setColor(Color.white);
         for (var entry : data.entrySet()) {
-            Color c = colors[index % colors.length];
             String label = entry.getKey();
-            float percent = entry.getValue();
-
-            g.setColor(c);
-            g.fillRect(startX, startY + (index * spacingY), 12, 12); // color box
-            g.setColor(Color.white);
-            g.drawString(label + String.format(" (%.1f%%)", percent), startX + 16, startY + (index * spacingY));
+            String time = entry.getValue();
+            g.drawString(label + " " + time, startX + 16, startY + (index * spacingY));
 
             index++;
         }
     }
 
-    public Color[] generateColors(int count) {
-        Color[] colors = new Color[count];
-        for (int i = 0; i < count; i++) {
-            float ratio = i / (float) count;
-            float r = (float)Math.sin(ratio * Math.PI * 2) * 0.5f + 0.5f;
-            float g = (float)Math.sin((ratio + 0.33f) * Math.PI * 2) * 0.5f + 0.5f;
-            float b = (float)Math.sin((ratio + 0.66f) * Math.PI * 2) * 0.5f + 0.5f;
-            colors[i] = new Color(r, g, b);
+    private void initProfiling(GameContainer container) throws SlickException {
+        updateProfiler = new Profiler();
+        input = container.getInput();
+        backgroundImage = new Image("textures/MissingTexture.png");
+    }
+
+    private void initSystems() {
+        collisionHandler = new CollisionHandler();
+        debugGUI = new DebugGUI();
+        displayHUD = new DisplayHUD();
+        saveLoadManager = new SaveLoadManager();
+    }
+
+    private void logGameState() {
+        Log.debug(String.format(
+            "Entering Game State with hotstart: %b, loading save: %b, new game: %b",
+            SharedData.isHotstart(),
+            SharedData.isLoadingSave(),
+            SharedData.isNewGame()
+        ));
+    }
+
+    private boolean handleHotstart() {
+        if (SharedData.isHotstart() && !SharedData.isLoadingSave()) {
+            setVolumes();
+            return true;
         }
-        return colors;
+        return false;
+    }
+
+    private void initSharedData() {
+        SharedData.setHotstart(true);
+        SharedData.setGameState(this);
+    }
+
+    private void initWorld(GameContainer container) {
+        if (SharedData.isNewGame() || !SaveLoadManager.exists(SharedData.getSaveFilePath())) {
+            chunkManager = new ChunkManager(new Random(Sys.getTime()).nextInt());
+            createNewPlayer(container.getWidth() / 2f, container.getHeight() / 2f, 0.075f, 100);
+            calender = new Calender(1, 1, CALENDER_YEAR);
+            env = new DayNightCycle(DAY_LENGTH, SUNRISE_TIME, SUNSET_TIME, calender);
+        } else {
+            saveLoadManager.loadGame(SharedData.getSaveFilePath(), container);
+            chunkManager = saveLoadManager.getRenderer().getChunkManager();
+            createNewPlayer(
+                saveLoadManager.getPlayerX(),
+                saveLoadManager.getPlayerY(),
+                saveLoadManager.getPlayerSpeed(),
+                saveLoadManager.getPlayerHealth()
+            );
+            env = saveLoadManager.getDayNightCycle();
+            player.setPlayerInventory(saveLoadManager.getPlayerInventory());
+        }
+        camera = new Camera(player.getX(), player.getY());
+        SharedData.setLoadingSave(false);
+    }
+
+    private void initRenderer(GameContainer container) {
+        renderer = new IsoRenderer(zoom, "main", chunkManager, container);
+        chunkManager.attachRenderer(renderer);
+    }
+
+    private void initAudio() {
+        ambientSoundManager = new AmbientSoundManager(jukeBox, ambientSoundBox);
+        ambientSoundManager.attachRenderer(renderer);
+        setVolumes();
+    }
+
+    private void initDebugging() {
+        if (soundDebug) {
+            passiveMobSoundBox.setDebug(true);
+            enemyMobSoundBox.setDebug(true);
+            gameObjectSoundBox.setDebug(true);
+        }
+    }
+
+    private void setVolumes(){
+        Settings settings = Settings.getInstance();
+        ambientSoundBox.setVolume(settings.getMainVolume()*settings.getAmbientVolume());
+        jukeBox.setVolume(settings.getMainVolume()*settings.getMusicVolume());
+        passiveMobSoundBox.setVolume(settings.getMainVolume()*settings.getFriendlyVolume());
+        enemyMobSoundBox.setVolume(settings.getMainVolume()*settings.getEnemyVolume());
+        gameObjectSoundBox.setVolume(settings.getMainVolume()*settings.getFriendlyVolume());
+        player.setVolume(settings.getMainVolume()*settings.getPlayerVolume());
+    }
+
+    private void createNewPlayer(float x, float y, float speed, int health){
+        player = new Player(x, y, speed);
+        player.setHealth(health);
     }
 }

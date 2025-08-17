@@ -117,6 +117,10 @@ public class LoadingScreen extends BasicGameState {
         loadingSteps.add(() -> SpriteManager.addSpriteSheet("smalltrees", AssetLoader.loadSingleAssetFromFile(texturePack, "smallTrees"), 16, 32));
         loadingSteps.add(() -> SpriteManager.addSpriteSheet("grass", AssetLoader.loadSingleAssetFromFile(texturePack, "grass"), 16, 16));
         loadingSteps.add(() -> SpriteManager.addSpriteSheet("specialtrees", AssetLoader.loadSingleAssetFromFile(texturePack, "specialTrees"), 56, 56));
+        loadingSteps.add(() -> SpriteManager.addSpriteSheet("zombies", AssetLoader.loadSingleAssetFromFile(texturePack, "zombies"), 16, 16));
+        loadingSteps.add(() -> SpriteManager.addSpriteSheet("spiders", AssetLoader.loadSingleAssetFromFile(texturePack, "spiders"), 16, 16));
+        loadingSteps.add(() -> SpriteManager.addSpriteSheet("items", AssetLoader.loadSingleAssetFromFile(texturePack, "items"), 16, 16));
+        loadingSteps.add(() -> SpriteManager.addSpriteSheet("player", AssetLoader.loadSingleAssetFromFile(texturePack, "player"), 16, 17));
         totalSteps = loadingSteps.size(); // Save initial size
         Log.debug("LoadingScreen Initialized");
     }

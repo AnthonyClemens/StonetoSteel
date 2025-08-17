@@ -66,14 +66,14 @@ public class MainMenu extends BasicGameState{
         // Create menu buttons
         int startY = 260;
         ImageTextButton startGame = new ImageTextButton(buttonImage, "Singleplayer", Utils.getFont(MAIN_FONT, 36f), TwoDimensionMath.getMiddleX(312, container.getWidth()), startY, 312, 104);
-        ImageTextButton multiplayer = new ImageTextButton(buttonImage, "Multiplayer", Utils.getFont(MAIN_FONT, 36f), TwoDimensionMath.getMiddleX(312, container.getWidth()), startY+120f, 312, 104);
+        //ImageTextButton multiplayer = new ImageTextButton(buttonImage, "Multiplayer", Utils.getFont(MAIN_FONT, 36f), TwoDimensionMath.getMiddleX(312, container.getWidth()), startY+120f, 312, 104);
         ImageTextButton options = new ImageTextButton(buttonImage, "Options", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(248, container.getWidth()), startY+240f, 248, 82);
         ImageTextButton exit = new ImageTextButton(buttonImage, "Exit", Utils.getFont(MAIN_FONT, 32f), TwoDimensionMath.getMiddleX(194, container.getWidth()), startY+340f, 194, 64);
         ImageTextButton credits = new ImageTextButton(buttonImage, "Credits", Utils.getFont(MAIN_FONT, 24f), TwoDimensionMath.getMiddleX(168, container.getWidth()), startY+420f, 168, 56);
         menuButtons.clear();
-        menuButtons.addAll(List.of(startGame,multiplayer,options,exit,credits));
-        //Image cursor = new Image(AssetLoader.loadSingleAssetFromFile(texturePack, "mainMenuCursor"), false, Image.FILTER_NEAREST);
-        //container.setMouseCursor(cursor, 0, 0);
+        menuButtons.addAll(List.of(startGame,/*multiplayer,*/options,exit,credits));
+        Image cursor = new Image(AssetLoader.loadSingleAssetFromFile(texturePack, "mainMenuCursor"), false, Image.FILTER_NEAREST);
+        container.setMouseCursor(cursor, 0, 0);
     }
 
     @Override

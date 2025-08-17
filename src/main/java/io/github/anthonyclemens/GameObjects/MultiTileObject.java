@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.geom.Rectangle;
+import org.newdawn.slick.util.Log;
 
 import io.github.anthonyclemens.Rendering.IsoRenderer;
 import io.github.anthonyclemens.Rendering.SpriteManager;
@@ -19,9 +20,6 @@ public class MultiTileObject extends GameObject{
     private final int tileWidth;
     private final int tileHeight;
     private final List<TileBlock> blocks = new ArrayList<>();
-    private float lastZoom = -1f;
-    private int lastOffsetX = Integer.MIN_VALUE;
-    private int lastOffsetY = Integer.MIN_VALUE;
 
     private static class TileBlock implements Serializable{
         private final int x;
@@ -61,10 +59,10 @@ public class MultiTileObject extends GameObject{
         this.hitbox = new Rectangle(x, y, this.tileWidth, this.tileHeight);
     }
 
-    public MultiTileObject(String loadedMTO) {
-        super("", 0,0, 0, 0, "");
+    public MultiTileObject(String loadedMTO, int x, int y, int chunkX, int chunkY) {
+        super("", x,y, chunkX, chunkY, "");
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(loadedMTO);
-             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 
             if (inputStream == null) {
                 throw new IllegalArgumentException("File not found: " + loadedMTO);
@@ -77,16 +75,12 @@ public class MultiTileObject extends GameObject{
             }
 
             String[] objectParts = firstLine.split(",");
-            if (objectParts.length != 6) {
+            if (objectParts.length != 2) {
                 throw new IllegalArgumentException("Invalid first line format: " + firstLine);
             }
             // Parse the object properties
-            this.x = Integer.parseInt(objectParts[1].trim());
-            this.y = Integer.parseInt(objectParts[2].trim());
-            this.chunkX = Integer.parseInt(objectParts[3].trim());
-            this.chunkY = Integer.parseInt(objectParts[4].trim());
-            this.name = objectParts[5].trim();
-            this.tileSheet = objectParts[0].trim();
+            this.name = objectParts[0].trim();
+            this.tileSheet = objectParts[1].trim();
 
             // Read the remaining lines for blocks
             String line;
@@ -104,7 +98,7 @@ public class MultiTileObject extends GameObject{
                 addBlock(index, blockX, blockY, h);
             }
         } catch (IOException | IllegalArgumentException e) {
-            e.printStackTrace();
+            Log.error("Error loading MultiTileObject from " + loadedMTO, e);
         }
         this.tileWidth = SpriteManager.getSpriteWidth(tileSheet);
         this.tileHeight = SpriteManager.getSpriteHeight(tileSheet);

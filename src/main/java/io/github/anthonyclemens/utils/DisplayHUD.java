@@ -19,11 +19,17 @@ public class DisplayHUD {
         g.drawString("Time: " + env.toString(), width - 200f, 16);
 
 
-        SpriteManager.getSpriteSheet("main").getSprite(0, 11).draw(width-70f, startY, 2);
+        SpriteManager.getSpriteSheet("items").getSprite(1, 0).draw(width-70f, startY, 2);
         g.drawString(player.getPlayerInventory().getItemCount(Items.ITEM_WOOD)+ "x", width - 70f + 32, startY+8f);
         SpriteManager.getSpriteSheet("main").getSprite(1, 10).draw(width-70f, startY+32f, 2);
         g.drawString(player.getPlayerInventory().getItemCount(Items.ITEM_FISH)+ "x", width - 70f + 32, startY+40f);
-        SpriteManager.getSpriteSheet("main").getSprite(0, 12).draw(width-70f, startY+64f, 2);
+        SpriteManager.getSpriteSheet("items").getSprite(3, 0).draw(width-70f, startY+64f, 2);
         g.drawString(player.getPlayerInventory().getItemCount(Items.ITEM_SEED)+ "x", width - 70f + 32, startY+72f);
+        SpriteManager.getSpriteSheet("items").getSprite(0, 0).draw(width-70f, startY+96f, 2);
+        g.drawString(player.getPlayerInventory().getItemCount(Items.ITEM_STRING)+ "x", width - 70f + 32, startY+104f);
+        SpriteManager.getSpriteSheet("items").getSprite(0, 1).draw(width-70f, startY+128f, 2);
+        g.drawString(player.getPlayerInventory().getItemCount(Items.ITEM_BERRIES)+ "x", width - 70f + 32, startY+136f);
+        SpriteManager.getSpriteSheet("items").getSprite(2, 0).draw(width-70f, startY+160f, 2);
+        g.drawString(player.getPlayerInventory().getItemCount(Items.ITEM_BONES)+ "x", width - 70f + 32, startY+168f);
     }
 }

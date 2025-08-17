@@ -18,7 +18,7 @@
         "GameObjects/Trees/56x56.png"
     ],
     "fishes": [
-        "GameObjects/Fish/fish.png"
+        "GameObjects/Mobs/fish.png"
     ],
     "grass": [
         "GameObjects/Grass/grass.png"
@@ -31,5 +31,20 @@
     ],
     "mainMenuCursor": [
         "cursors/Icon_Cursor_03c.png"
+    ],
+    "zombies": [
+        "GameObjects/Mobs/zombies.png"
+    ],
+    "spiders": [
+        "GameObjects/Mobs/spiders.png"
+    ],
+    "items": [
+        "GameObjects/Items/items.png"
+    ],
+    "rain": [
+        "World/rain.png"
+    ],
+    "player": [
+        "Player/player.png"
     ]
 }

@@ -30,7 +30,7 @@ public class SingleTileObject extends GameObject{
     @Override
     public void render(IsoRenderer r, int lodLevel) {
         r.drawScaledTile(tileSheet,i,x,y,chunkX,chunkY);
-        if(Game.showDebug){
+        if(Game.showDebug&&this.hitbox!=null){
             r.getGraphics().setColor(Color.black);
             r.getGraphics().draw(hitbox);
         }
@@ -39,7 +39,7 @@ public class SingleTileObject extends GameObject{
     @Override
     public void calculateHitbox(IsoRenderer r) {
         if(this.hitbox==null) this.hitbox = new Rectangle(x,y,this.tileWidth,this.tileHeight);
-        if(r.isCameraMoving()) hitbox.setBounds(r.calculateIsoX(x, y, chunkX, chunkY), r.calculateIsoY(x, y, chunkX, chunkY), tileWidth*r.getZoom(), tileHeight*r.getZoom());
+        if(r.isCameraMoving()||this.alwaysCalcHitbox) hitbox.setBounds(r.calculateIsoX(x, y, chunkX, chunkY), r.calculateIsoY(x, y, chunkX, chunkY), tileWidth*r.getZoom(), tileHeight*r.getZoom());
     }
 
     @Override
